@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "inertiaanticheat",
+  "version": "${version}",
+  "name": "InertiaAntiCheat",
+  "description": "Stop people using unwanted mods on your server!",
+  "authors": [
+    "DiffuseHyperion"
+  ],
+  "contact": {
+    "repo": "https://github.com/DiffuseHyperion/InertiaAntiCheat"
+  },
+  "license": "GPL-3.0",
+  "icon": "assets/InertiaAntiCheat/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient"
+    ],
+    "main": [
+      "me.diffusehyperion.inertiaanticheat.InertiaAntiCheat"
+    ],
+    "server": [
+      "me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
