@@ -4,7 +4,7 @@
 # The player's movement, actions and chat messages are frozen at this time.
 graceTime = 3000
 # The reason for kicking a player due to them not responding to the server's request.
-disconnectMessage = "You were kicked for not sending a response to the anticheat!\nThis is probably due to missing the anticheat client mod.\nInstall it here: https://github.com/DiffuseHyperion/InertiaAntiCheat/releases"
+disconnectMessage = "You were kicked for not sending a response to the anticheat!\nThis is probably due to missing the anticheat client mod.\nInstall it here: https://modrinth.com/mod/inertiaanticheat"
 # Show additional information in server logs.
 debug = false
 
