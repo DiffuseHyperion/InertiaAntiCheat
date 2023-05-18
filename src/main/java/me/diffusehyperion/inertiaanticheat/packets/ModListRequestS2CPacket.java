@@ -12,16 +12,10 @@ import net.minecraft.network.PacketByteBuf;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-
-import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.LOGGER;
 
 public class ModListRequestS2CPacket {
     public static void receive(MinecraftClient client, ClientPlayNetworkHandler clientPlayNetworkHandler, PacketByteBuf packetByteBuf, PacketSender packetSender) {
-        UUID uuid = packetByteBuf.readUuid();
         List<String> modNameList = new ArrayList<>();
-        // idk how bytebufs work exactly so ill dedicate first item to being uuid
-        modNameList.add(uuid.toString());
 
         for (ModContainer container : FabricLoader.getInstance().getAllMods().stream().toList()) {
             modNameList.add(container.getMetadata().getName());
@@ -29,8 +23,7 @@ public class ModListRequestS2CPacket {
 
         PacketByteBuf responseBuf = PacketByteBufs.create();
         responseBuf.writeString(modNameList.toString());
-        LOGGER.info("Sending string: " + modNameList);
 
-        client.execute(() -> ClientPlayNetworking.send(InertiaAntiCheatConstants.RESPONSE_PACKET_ID, responseBuf));
+        client.execute(() -> clientPlayNetworkHandler.sendPacket(ClientPlayNetworking.createC2SPacket(InertiaAntiCheatConstants.RESPONSE_PACKET_ID, responseBuf)));
     }
 }

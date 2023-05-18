@@ -3,7 +3,7 @@
   "id": "inertiaanticheat",
   "version": "${version}",
   "name": "InertiaAntiCheat",
-  "description": "Stop people using unwanted mods on your server!",
+  "description": "Stop people from using unwanted mods on your server!",
   "authors": [
     "DiffuseHyperion"
   ],
@@ -24,6 +24,9 @@
       "me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer"
     ]
   },
+  "mixins": [
+    "inertiaanticheat.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",

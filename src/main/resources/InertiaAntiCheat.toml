@@ -1,0 +1,34 @@
+# Time to wait for the client to send back their mod list before kicking them.
+# If the delay is too short, clients may not have enough time to send their response, depending on their internet.
+# If the delay is too long, clients may hang around for too long.
+# The player's movement, actions and chat messages are frozen at this time.
+graceTime = 3000
+# The reason for kicking a player due to them not responding to the server's request.
+disconnectMessage = "You were kicked for not sending a response to the anticheat!\nThis is probably due to missing the anticheat client mod.\nInstall it here: https://github.com/DiffuseHyperion/InertiaAntiCheat/releases"
+# Show additional information in server logs.
+debug = false
+
+[mods]
+# Immediately kick players who have these mods in their modlist.
+# The mod checks (and kicks) for blacklisted mods first.
+# Enabling debug will show the full modlist of players joining, allowing you to discover mod names.
+blacklist = ["Wurst Client", "Meteor Client"]
+# The reason for kicking a player due to having blacklisted mods installed.
+# Use ${blacklisted} as a placeholder for all blacklisted mods found on the player.
+blacklistMessage = "You were kicked for having offending mods installed!\nRemove ${blacklisted} before rejoining the server."
+
+# Immediately kick players who do not have these mods in their modlist.
+# Enabling debug will show the full modlist of players joining, allowing you to discover mod names.
+whitelist = []
+# The reason for kicking a player due to not having whitelisted mods installed.
+# Use ${whitelisted} as a placeholder for all whitelisted mods not found on the player.
+whitelistMessage = "You were kicked for having not having required mods installed!\nInstall ${whitelisted} before rejoining the server."
+
+# Alternatively, the server can create a MD5 hash of their modlist, and match it against this.
+# Filling this variable will cause the server to disreguard blacklisted/whitelisted mods.
+# This is recommended for modpacks.
+hash = ""
+# The reason for kicking a player due to their modlist hash not matching up.
+hashMessage = "You were kicked for not matching the server's modlist!\nDid you install their modpack correctly?"
+# Show each connecting player's modlist hash in your server logs. Useful to find out your modpack's hash.
+showHash = true
