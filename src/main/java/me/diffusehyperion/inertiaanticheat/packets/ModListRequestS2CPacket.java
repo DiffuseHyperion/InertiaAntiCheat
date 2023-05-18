@@ -17,7 +17,7 @@ public class ModListRequestS2CPacket {
     public static void receive(MinecraftClient client, ClientPlayNetworkHandler clientPlayNetworkHandler, PacketByteBuf packetByteBuf, PacketSender packetSender) {
         List<String> modNameList = new ArrayList<>();
 
-        for (ModContainer container : FabricLoader.getInstance().getAllMods().stream().toList()) {
+        for (ModContainer container : FabricLoader.getInstance().getAllMods()) {
             modNameList.add(container.getMetadata().getName());
         }
 
