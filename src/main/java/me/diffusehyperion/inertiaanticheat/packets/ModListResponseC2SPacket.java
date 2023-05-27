@@ -29,7 +29,7 @@ public class ModListResponseC2SPacket {
         List<String> modList = Arrays.asList(response.split(", "));
 
         InertiaAntiCheat.debugInfo(serverPlayerEntity.getEntityName() + " is joining with the following modlist: " + modList);
-        if (config.getString("mods.hash").isEmpty()) {
+        if (config.getBoolean("hash.enable")) {
             // checksum empty, use blacklist/whitelist
             List<String> blacklisted = config.getList("mods.blacklist");
             List<String> foundBlacklistedMods = new ArrayList<>();
@@ -61,12 +61,12 @@ public class ModListResponseC2SPacket {
                 MessageDigest md = MessageDigest.getInstance("MD5");
                 byte[] arr = md.digest(rawResponse.getBytes());
                 String hash = Base64.getEncoder().encodeToString(arr);
-                if (config.getBoolean("mods.showHash")) {
+                if (config.getBoolean("hash.showHash")) {
                     LOGGER.info(serverPlayerEntity.getEntityName() + "'s modlist hash: " + hash);
                 }
-                if (!hash.equals(config.getString("mods.hash"))) {
+                if (!hash.equals(config.getString("hash.hash"))) {
                     InertiaAntiCheat.debugInfo("Kicking " + serverPlayerEntity.getEntityName() + " as his modlist hash does not match up!");
-                    serverPlayNetworkHandler.sendPacket(new DisconnectS2CPacket(Text.of(config.getString("mods.hashMessage"))));
+                    serverPlayNetworkHandler.sendPacket(new DisconnectS2CPacket(Text.of(config.getString("hash.hashMessage"))));
                 }
             } catch (NoSuchAlgorithmException e) {
                 throw new RuntimeException(e);

@@ -15,7 +15,7 @@ public class InertiaAntiCheat implements ModInitializer {
     }
 
     public static void debugInfo(String info) {
-        if (config.getBoolean("debug")) {
+        if (config.getBoolean("debug.debug")) {
             LOGGER.info(info);
         }
     }
