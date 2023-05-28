@@ -3,19 +3,19 @@ package me.diffusehyperion.inertiaanticheat.packets;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.packet.s2c.play.ClearTitleS2CPacket;
 import net.minecraft.network.packet.s2c.play.DisconnectS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 
+import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.getHash;
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.LOGGER;
 import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.config;
 import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.impendingPlayers;
@@ -29,7 +29,14 @@ public class ModListResponseC2SPacket {
         List<String> modList = Arrays.asList(response.split(", "));
 
         InertiaAntiCheat.debugInfo(serverPlayerEntity.getEntityName() + " is joining with the following modlist: " + modList);
-        if (config.getBoolean("hash.enable")) {
+
+        String hash = null; // store for later use if needed
+        if (config.getBoolean("hash.showHash")) {
+            hash = getHash(rawResponse);
+            LOGGER.info(serverPlayerEntity.getEntityName() + "'s modlist hash: " + hash);
+        }
+
+        if (config.getString("hash.hash").isEmpty()) {
             // checksum empty, use blacklist/whitelist
             List<String> blacklisted = config.getList("mods.blacklist");
             List<String> foundBlacklistedMods = new ArrayList<>();
@@ -57,21 +64,17 @@ public class ModListResponseC2SPacket {
                                         .replace("${whitelisted}", InertiaAntiCheat.listToPrettyString(notFoundWhitelistedMods))));
             }
         } else {
-            try {
-                MessageDigest md = MessageDigest.getInstance("MD5");
-                byte[] arr = md.digest(rawResponse.getBytes());
-                String hash = Base64.getEncoder().encodeToString(arr);
-                if (config.getBoolean("hash.showHash")) {
-                    LOGGER.info(serverPlayerEntity.getEntityName() + "'s modlist hash: " + hash);
-                }
-                if (!hash.equals(config.getString("hash.hash"))) {
-                    InertiaAntiCheat.debugInfo("Kicking " + serverPlayerEntity.getEntityName() + " as his modlist hash does not match up!");
-                    serverPlayNetworkHandler.sendPacket(new DisconnectS2CPacket(Text.of(config.getString("hash.hashMessage"))));
-                }
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
+            if (Objects.isNull(hash)) {
+                hash = getHash(rawResponse);
+            }
+            if (!hash.equals(config.getString("hash.hash"))) {
+                InertiaAntiCheat.debugInfo("Kicking " + serverPlayerEntity.getEntityName() + " as his modlist hash does not match up!");
+                serverPlayNetworkHandler.sendPacket(new DisconnectS2CPacket(Text.of(config.getString("hash.hashMessage"))));
             }
         }
         impendingPlayers.remove(serverPlayerEntity);
+        if (!config.getString("grace.titleText").isEmpty()) {
+            serverPlayNetworkHandler.sendPacket(new ClearTitleS2CPacket(true));
+        }
     }
 }

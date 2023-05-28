@@ -9,4 +9,6 @@ public class InertiaAntiCheatConstants {
     public static final Identifier RESPONSE_PACKET_ID = new Identifier("inertiaanticheat", "response");
 
     public static final Logger LOGGER = LoggerFactory.getLogger("InertiaAntiCheat");
+
+    public static final int CURRENT_CONFIG_VERSION = 1;
 }
