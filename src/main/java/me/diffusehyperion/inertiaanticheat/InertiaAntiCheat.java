@@ -2,6 +2,9 @@ package me.diffusehyperion.inertiaanticheat;
 
 import net.fabricmc.api.ModInitializer;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.List;
 
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.LOGGER;
@@ -42,6 +45,16 @@ public class InertiaAntiCheat implements ModInitializer {
                 }
                 return builder.toString();
             }
+        }
+    }
+
+    public static String getHash(String input) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] arr = md.digest(input.getBytes());
+            return Base64.getEncoder().encodeToString(arr);
+        } catch (NoSuchAlgorithmException e){
+            throw new RuntimeException(e);
         }
     }
 }

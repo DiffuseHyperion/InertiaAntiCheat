@@ -9,11 +9,14 @@ disconnectMessage = "You were kicked for not sending a response to the anticheat
 # Title text to show when the player is frozen. (when the server is waiting for a response from the player)
 # Make this empty to disable showing titles.
 titleText = "Please wait..."
+# Make this empty to disable showing subtitles.
+subtitleText = "The server is checking your mods..."
 
 [mods]
 # Shw the mod list of everybody who joins.
 # Useful for discovering the true mod name of the mods you want to target!
 showMods = true
+
 # Immediately kick players who have these mods in their modlist.
 # The mod checks (and kicks) for blacklisted mods first.
 # Enabling debug will show the full modlist of players joining, allowing you to discover mod names.
@@ -31,12 +34,13 @@ whitelistMessage = "You were kicked for having not having required mods installe
 
 [hash]
 # Alternatively, the server can create a MD5 hash of their modlist, and match it against this.
-# Enabling this will cause the server to disreguard blacklisted/whitelisted mods.
 # This is recommended for modpacks.
-enable = true
+
 # Show each connecting player's modlist hash in your server logs. Useful to find out your modpack's hash.
 showHash = true
+
 # The hash for the server to check against. See "showHash" for more details.
+# Filling this will cause the server to disreguard blacklisted/whitelisted mods.
 hash = ""
 # The reason for kicking a player due to their modlist hash not matching up.
 hashMessage = "You were kicked for not matching the server's modlist!\nDid you install their modpack correctly?"
