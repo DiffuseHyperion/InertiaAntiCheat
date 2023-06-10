@@ -1,5 +1,6 @@
 plugins {
     id 'fabric-loom' version '1.1-SNAPSHOT'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
     id 'maven-publish'
 }
 
@@ -22,7 +23,7 @@ dependencies {
 
         // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    implementation 'com.moandjiezana.toml:toml4j:0.7.2'
+    shadow(implementation 'com.moandjiezana.toml:toml4j:0.7.2')
     }
 
 processResources {
@@ -66,6 +67,16 @@ jar {
     from("LICENSE") {
         rename { "${it}_${project.archivesBaseName}"}
     }
+}
+
+shadowJar {
+    configurations = [project.configurations.shadow]
+    archiveClassifier.set("dev")
+}
+
+remapJar {
+    dependsOn(shadowJar)
+    inputFile = tasks.shadowJar.archiveFile
 }
 
 // configure the maven publication

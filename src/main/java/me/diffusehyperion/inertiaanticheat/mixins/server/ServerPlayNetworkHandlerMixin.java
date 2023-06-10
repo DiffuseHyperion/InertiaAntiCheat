@@ -1,7 +1,6 @@
 package me.diffusehyperion.inertiaanticheat.mixins.server;
 
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
-import net.minecraft.network.packet.c2s.play.CommandExecutionC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
@@ -23,11 +22,7 @@ public class ServerPlayNetworkHandlerMixin {
     public ServerPlayerEntity player;
     @Inject(
             method="onPlayerMove(Lnet/minecraft/network/packet/c2s/play/PlayerMoveC2SPacket;)V",
-            at = @At(
-                    value = "INVOKE",
-                    target = "net/minecraft/network/NetworkThreadUtils.forceMainThread(Lnet/minecraft/network/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
-                    shift = At.Shift.AFTER
-            ),
+            at = @At(value = "HEAD"),
             cancellable = true
     )
     private void onPlayerMove(PlayerMoveC2SPacket playerMoveC2SPacket, CallbackInfo ci) {
@@ -38,11 +33,7 @@ public class ServerPlayNetworkHandlerMixin {
     }
     @Inject(
             method = "onPlayerAction(Lnet/minecraft/network/packet/c2s/play/PlayerActionC2SPacket;)V",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/network/NetworkThreadUtils;forceMainThread(Lnet/minecraft/network/Packet;Lnet/minecraft/network/listener/PacketListener;Lnet/minecraft/server/world/ServerWorld;)V",
-                    shift = At.Shift.AFTER
-            ),
+            at = @At(value = "HEAD"),
             cancellable = true
     )
     private void onPlayerAction(PlayerActionC2SPacket playerActionC2SPacket, CallbackInfo ci) {
@@ -56,17 +47,6 @@ public class ServerPlayNetworkHandlerMixin {
             cancellable = true
     )
     private void onPlayerChat(ChatMessageC2SPacket chatMessageC2SPacket, CallbackInfo ci) {
-        if (impendingPlayers.containsKey(player)) {
-            ci.cancel();
-        }
-    }
-
-    @Inject(
-            method = "onCommandExecution(Lnet/minecraft/network/packet/c2s/play/CommandExecutionC2SPacket;)V",
-            at = @At(value = "HEAD"),
-            cancellable = true
-    )
-    private void onCommandExecution(CommandExecutionC2SPacket commandExecutionC2SPacket, CallbackInfo ci) {
         if (impendingPlayers.containsKey(player)) {
             ci.cancel();
         }
