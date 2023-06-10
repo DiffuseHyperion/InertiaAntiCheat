@@ -31,11 +31,11 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
     public static Toml config;
     @Override
     public void onInitializeServer() {
-        initalizeConfig();
-        initalizeListeners();
+        initializeConfig();
+        initializeListeners();
     }
 
-    private void initalizeConfig() {
+    private void initializeConfig() {
         File configFile = FabricLoader.getInstance().getConfigDir().resolve("InertiaAntiCheat.toml").toFile();
         if (!configFile.exists()) {
             LOGGER.warn("No config file found! Creating a new one now...");
@@ -65,7 +65,7 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
         }
     }
 
-    private void initalizeListeners() {
+    private void initializeListeners() {
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
             if (!(entity instanceof ServerPlayerEntity player)) {
                 return;
