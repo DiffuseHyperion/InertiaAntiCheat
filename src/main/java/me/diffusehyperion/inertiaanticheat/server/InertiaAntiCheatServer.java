@@ -15,14 +15,9 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -37,12 +32,8 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
     public static Toml config;
     @Override
     public void onInitializeServer() {
-        InertiaAntiCheat.debugInfo("Initializing InertiaAntiCheat!");
-        InertiaAntiCheat.debugInfo("Initializing end-to-end encryption...");
-        initializeE2EE();
-        InertiaAntiCheat.debugInfo("Initializing config...");
+        LOGGER.info("Initializing InertiaAntiCheat!");
         initializeConfig();
-        InertiaAntiCheat.debugInfo("Initializing listeners...");
         initializeListeners();
     }
 
@@ -109,76 +100,6 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
             }
         });
         ServerPlayNetworking.registerGlobalReceiver(InertiaAntiCheatConstants.RESPONSE_PACKET_ID, ModListResponseC2SPacket::receive);
-    }
-
-    private void initializeE2EE() {
-        if (!config.getBoolean("e2ee.enabled")) {
-            return;
-        }
-        String privateKeyName = config.getString("e2ee.privateKey");
-        String publicKeyName = config.getString("e2ee.publicKey");
-        File privateKey = getConfigDir().resolve(config.getString("e2ee.privateKey")).toFile();
-        File publicKey = getConfigDir().resolve(config.getString("e2ee.publicKey")).toFile();
-        if (!privateKey.exists() || !publicKey.exists()) {
-            if (!privateKey.exists()) {
-                LOGGER.error("Could not find your private key! The mod will generate a new key pair for you.");
-                if (!publicKey.exists() && privateKey.exists()) {
-                    String backupFileName = "BACKUP-" + config.getString("e2ee.publicKey");
-                    File backupFile = getConfigDir().resolve(backupFileName).toFile();
-                    LOGGER.error("It looks like your public key still exists. The mod will rename the file to " + backupFileName + ".");
-                    try {
-                        Files.copy(publicKey.toPath(), backupFile.toPath());
-                    } catch (IOException e) {
-                        throw new RuntimeException("Couldn't copy existing public key into a backup public key file!", e);
-                    }
-                    if (!publicKey.delete()) {
-                        throw new RuntimeException("Could not delete the old public key file! Please delete it manually.");
-                    }
-                }
-            } else if (!publicKey.exists()) {
-                LOGGER.error("Could not find your public key! The mod will generate a new key pair for you.");
-                if (!privateKey.exists() && publicKey.exists()) {
-                    String backupFileName = "BACKUP-" + config.getString("e2ee.privateKey");
-                    File backupFile = getConfigDir().resolve(backupFileName).toFile();
-                    LOGGER.error("It looks like your private key still exists. The mod will rename the file to " + backupFileName + ".");
-                    try {
-                        Files.copy(publicKey.toPath(), backupFile.toPath());
-                    } catch (IOException e) {
-                        throw new RuntimeException("Couldn't copy existing private key into a backup public key file!", e);
-                    }
-                    if (!publicKey.delete()) {
-                        throw new RuntimeException("Could not delete the old private key file! Please delete it manually.");
-                    }
-                }
-            } else if (!privateKey.exists() && !publicKey.exists()) {
-                LOGGER.warn("Could not find either private and public keys! This is fine if this is your first run.");
-            }
-
-            InertiaAntiCheat.debugInfo("Generating new key pair...");
-            KeyPairGenerator generator;
-            try {
-                generator = KeyPairGenerator.getInstance("RSA");
-            } catch (NoSuchAlgorithmException e) {
-                // should never happen
-                throw new RuntimeException(e);
-            }
-            SecureRandom random = new SecureRandom();
-            generator.initialize(2048, random);
-            KeyPair pair = generator.generateKeyPair();
-
-            InertiaAntiCheat.debugInfo("Writing new key pair to files...");
-            try (FileOutputStream fos = new FileOutputStream(privateKey)) {
-                fos.write(pair.getPrivate().getEncoded());
-            } catch (IOException e) {
-                throw new RuntimeException("Couldn't write your private key into " + privateKeyName + "!", e);
-            }
-            try (FileOutputStream fos = new FileOutputStream(publicKey)) {
-                fos.write(pair.getPublic().getEncoded());
-            } catch (IOException e) {
-                throw new RuntimeException("Couldn't write your public key into " + publicKeyName + "!", e);
-            }
-            LOGGER.warn("Finished creating new key pair! Do not share the private key file with anybody!");
-        }
     }
 
     private Path getConfigDir() {

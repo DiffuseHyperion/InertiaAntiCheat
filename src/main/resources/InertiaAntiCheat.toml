@@ -45,17 +45,8 @@ hash = ""
 # The reason for kicking a player due to their modlist hash not matching up.
 hashMessage = "You were kicked for not matching the server's modlist!\nDid you install their modpack correctly?"
 
-[e2ee]
-# Enables end-to-end encryption for communication between the client and the server.
-# This improves the privacy of client modlists from other clients.
-enable = false
-# The files to store your keys in.
-# DO NOT SHARE THE PRIVATE KEY WITH ANYONE!
-privateKey = "id_rsa"
-publicKey = "id_rsa.pub"
-
 [debug]
 # Show additional information in server logs.
 debug = false
 # do not touch pls :)
-version = 2
+version = 1

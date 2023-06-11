@@ -2,11 +2,8 @@ package me.diffusehyperion.inertiaanticheat;
 
 import net.fabricmc.api.ModInitializer;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
 
@@ -57,31 +54,6 @@ public class InertiaAntiCheat implements ModInitializer {
             byte[] arr = md.digest(input.getBytes());
             return Base64.getEncoder().encodeToString(arr);
         } catch (NoSuchAlgorithmException e){
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static String encryptString(String input, PublicKey key) {
-        try {
-            Cipher encryptionCipher = Cipher.getInstance("RSA");
-            encryptionCipher.init(Cipher.ENCRYPT_MODE, key);
-            byte[] encryptedMessageBytes =
-                    encryptionCipher.doFinal(input.getBytes());
-            return Base64.getEncoder().encodeToString(encryptedMessageBytes);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException |
-                 InvalidKeyException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    public static String decryptString(String input, PrivateKey key) {
-        try {
-            Cipher decryptionCipher = Cipher.getInstance("RSA");
-            decryptionCipher.init(Cipher.DECRYPT_MODE, key);
-            byte[] decryptedMessageBytes =
-                    decryptionCipher.doFinal(Base64.getDecoder().decode(input));
-            return new String(decryptedMessageBytes);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException |
-                 InvalidKeyException e) {
             throw new RuntimeException(e);
         }
     }
