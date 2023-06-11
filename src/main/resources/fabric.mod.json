@@ -28,7 +28,7 @@
     "inertiaanticheat.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=${loader_version}",
+    "fabricloader": "*",
     "fabric": "*",
     "minecraft": ">=1.17 <=1.20"
   }

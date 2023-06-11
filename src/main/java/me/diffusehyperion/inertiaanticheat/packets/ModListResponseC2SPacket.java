@@ -28,7 +28,9 @@ public class ModListResponseC2SPacket {
         response = response.replace("]", "");
         List<String> modList = Arrays.asList(response.split(", "));
 
-        InertiaAntiCheat.debugInfo(serverPlayerEntity.getEntityName() + " is joining with the following modlist: " + modList);
+        if (config.getBoolean("mods.showMods")) {
+            LOGGER.info(serverPlayerEntity.getEntityName() + " is joining with the following modlist: " + modList);
+        }
 
         String hash = null; // store for later use if needed
         if (config.getBoolean("hash.showHash")) {
