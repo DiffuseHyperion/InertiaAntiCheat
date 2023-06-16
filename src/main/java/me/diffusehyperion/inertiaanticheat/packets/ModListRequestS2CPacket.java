@@ -31,7 +31,7 @@ public class ModListRequestS2CPacket {
         }
 
         PacketByteBuf responseBuf;
-        if (packetByteBuf.readableBytes() == 0) {
+        if (packetByteBuf.readableBytes() <= 0) {
             debugInfo("Server is not using E2EE, sending modlist in plaintext.");
             responseBuf = PacketByteBufs.create();
             responseBuf.writeString(modNameList.toString());
