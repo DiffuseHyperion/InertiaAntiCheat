@@ -9,100 +9,164 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.entity.Entity;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.play.*;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
+import java.nio.file.Paths;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.*;
 
-import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.CURRENT_CONFIG_VERSION;
+import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.*;
+import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.CURRENT_SERVER_CONFIG_VERSION;
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.LOGGER;
 
 public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
 
     public static HashMap<ServerPlayerEntity, Long> impendingPlayers = new HashMap<>();
-    public static Toml config;
+    public static Toml serverConfig;
+    public static KeyPair serverE2EEKeyPair; // null if e2ee not enabled
+
     @Override
     public void onInitializeServer() {
         LOGGER.info("Initializing InertiaAntiCheat!");
-        initializeConfig();
+        serverConfig = initializeConfig("/config/server/InertiaAntiCheat.toml", CURRENT_SERVER_CONFIG_VERSION);
+        debugInfo("Initializing listeners...");
         initializeListeners();
-    }
-
-    private void initializeConfig() {
-        File configFile = getConfigDir().resolve("InertiaAntiCheat.toml").toFile();
-        if (!configFile.exists()) {
-            LOGGER.warn("No config file found! Creating a new one now...");
-            try {
-                Files.copy(Objects.requireNonNull(InertiaAntiCheatServer.class.getResourceAsStream("/InertiaAntiCheat.toml")), configFile.toPath());
-            } catch (IOException e) {
-                throw new RuntimeException("Couldn't a create default config!", e);
-            }
-        }
-        config = new Toml().read(configFile);
-        InertiaAntiCheat.debugInfo("Config version: " + config.getLong("debug.version"));
-        if (config.getLong("debug.version", 0L) != CURRENT_CONFIG_VERSION) {
-            LOGGER.warn("Looks like your config file is outdated! Backing up current config, then creating an updated config.");
-            LOGGER.warn("Your config file will be backed up to \"BACKUP-InertiaAntiCheat.toml\".");
-            File backupFile = getConfigDir().resolve("BACKUP-InertiaAntiCheat.toml").toFile();
-            try {
-                Files.copy(configFile.toPath(), backupFile.toPath());
-            } catch (IOException e) {
-                throw new RuntimeException("Couldn't copy existing config file into a backup config file! Please do it manually.", e);
-            }
-            if (!configFile.delete()) {
-                throw new RuntimeException("Couldn't delete config file! Please delete it manually.");
-            }
-            try {
-                Files.copy(Objects.requireNonNull(InertiaAntiCheatServer.class.getResourceAsStream("/InertiaAntiCheat.toml")), configFile.toPath());
-            } catch (IOException e) {
-                throw new RuntimeException("Couldn't create a default config!", e);
-            }
-            LOGGER.info("Done! Please readjust the configs in the new file accordingly.");
-        }
+        debugInfo("Initializing E2EE...");
+        serverE2EEKeyPair = initializeE2EE();
     }
 
     private void initializeListeners() {
-        ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
-            if (!(entity instanceof ServerPlayerEntity player)) {
-                return;
-            }
-            long timeToWait = config.getLong("grace.graceTime");
-            impendingPlayers.put(player,System.currentTimeMillis() + timeToWait);
-            if (!config.getString("grace.titleText").isEmpty()) {
-                player.networkHandler.sendPacket(new ClearTitleS2CPacket(true));
-                player.networkHandler.sendPacket(new TitleFadeS2CPacket(0, (int) (timeToWait / 1000) * 20, 0));
-
-                if (!config.getString("grace.titleText").isEmpty()) {
-                    player.networkHandler.sendPacket(new TitleS2CPacket(Text.of(config.getString("grace.titleText"))));
-                    if (!config.getString("grace.subtitleText").isEmpty()) {
-                        player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.of(config.getString("grace.subtitleText"))));
-                    }
-                }
-            }
-            player.networkHandler.sendPacket(ServerPlayNetworking.createS2CPacket(InertiaAntiCheatConstants.REQUEST_PACKET_ID, PacketByteBufs.empty()));
-        });
-        ServerTickEvents.END_SERVER_TICK.register(server -> {
-            for (Iterator<Map.Entry<ServerPlayerEntity, Long>> it = impendingPlayers.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<ServerPlayerEntity, Long> entry = it.next();
-                if (entry.getValue() <= System.currentTimeMillis()) {
-                    entry.getKey().networkHandler.sendPacket(new DisconnectS2CPacket(Text.of(config.getString("grace.disconnectMessage"))));
-                    it.remove();
-                }
-            }
-        });
+        ServerEntityEvents.ENTITY_LOAD.register(this::onPlayerJoin);
+        ServerTickEvents.END_SERVER_TICK.register(this::onEndServerTick);
         ServerPlayNetworking.registerGlobalReceiver(InertiaAntiCheatConstants.RESPONSE_PACKET_ID, ModListResponseC2SPacket::receive);
+        debugInfo("Finished initializing listeners.");
     }
 
-    private Path getConfigDir() {
-        return FabricLoader.getInstance().getConfigDir();
+    private void onPlayerJoin(Entity entity, ServerWorld world) {
+        if (!(entity instanceof ServerPlayerEntity player)) {
+            return;
+        }
+        long timeToWait = serverConfig.getLong("grace.graceTime");
+        impendingPlayers.put(player, System.currentTimeMillis() + timeToWait);
+        if (!serverConfig.getString("grace.titleText").isEmpty()) {
+            player.networkHandler.sendPacket(new ClearTitleS2CPacket(true));
+            player.networkHandler.sendPacket(new TitleFadeS2CPacket(0, (int) (timeToWait / 1000) * 20, 0));
+
+            if (!serverConfig.getString("grace.titleText").isEmpty()) {
+                player.networkHandler.sendPacket(new TitleS2CPacket(Text.of(serverConfig.getString("grace.titleText"))));
+                if (!serverConfig.getString("grace.subtitleText").isEmpty()) {
+                    player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.of(serverConfig.getString("grace.subtitleText"))));
+                }
+            }
+        }
+
+        if (Objects.nonNull(serverE2EEKeyPair)) {
+            PacketByteBuf buf = PacketByteBufs.create();
+            buf.writeBytes(serverE2EEKeyPair.getPublic().getEncoded());
+            player.networkHandler.sendPacket(ServerPlayNetworking.createS2CPacket(InertiaAntiCheatConstants.REQUEST_PACKET_ID, buf));
+        } else {
+            player.networkHandler.sendPacket(ServerPlayNetworking.createS2CPacket(InertiaAntiCheatConstants.REQUEST_PACKET_ID, PacketByteBufs.empty()));
+        }
+    }
+
+    private void onEndServerTick(MinecraftServer server) {
+        for (Iterator<Map.Entry<ServerPlayerEntity, Long>> it = impendingPlayers.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<ServerPlayerEntity, Long> entry = it.next();
+            if (entry.getValue() <= System.currentTimeMillis()) {
+                entry.getKey().networkHandler.sendPacket(new DisconnectS2CPacket(Text.of(serverConfig.getString("grace.disconnectMessage"))));
+                it.remove();
+            }
+        }
+    }
+
+    private KeyPair initializeE2EE() {
+        if (!serverConfig.getBoolean("e2ee.enable")) {
+            debugInfo("E2EE was not enabled. Skipping e2ee initialization...");
+            return null;
+        }
+
+        String privateKeyFileName = serverConfig.getString("e2ee.privateKeyName");
+        String publicKeyFileName = serverConfig.getString("e2ee.publicKeyName");
+        File privateKeyFile = getConfigDir().resolve("./" + privateKeyFileName).toFile();
+        File publicKeyFile = getConfigDir().resolve("./" + publicKeyFileName).toFile();
+        PrivateKey privateKey;
+        PublicKey publicKey;
+
+        if (!privateKeyFile.exists() && !publicKeyFile.exists()) {
+            LOGGER.warn("E2EE was enabled, but the mod did not find either the private or public key file! Generating new keypair now...");
+            LOGGER.warn("This is fine if this is the first time you are running the mod.");
+            if (privateKeyFile.exists()) {
+                LOGGER.warn("Private key file exists, but public key file does not! Backing up private key file...");
+                File privateKeyFileBackup = getConfigDir().resolve("./" + privateKeyFileName + "-BACKUP.key").toFile();
+                try {
+                    privateKeyFileBackup.createNewFile();
+                    Files.copy(privateKeyFile.toPath(), privateKeyFileBackup.toPath());
+                } catch (IOException e) {
+                    throw new RuntimeException("Something went wrong while backing up private key file!", e);
+                }
+            } else if (publicKeyFile.exists()) {
+                LOGGER.warn("Public key file exists, but private key file does not! Backing up public key file now...");
+                File publicKeyFileBackup = getConfigDir().resolve("./" + publicKeyFileName + "-BACKUP.key").toFile();
+                try {
+                    publicKeyFileBackup.createNewFile();
+                    Files.copy(publicKeyFile.toPath(), publicKeyFileBackup.toPath());
+                } catch (IOException e) {
+                    throw new RuntimeException("Something went wrong while backing up public key file!", e);
+                }
+            }
+            debugInfo("Generating new E2EE keypair now...");
+            try {
+                KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+                keyPairGenerator.initialize(2048);
+                KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+                privateKey = keyPair.getPrivate();
+                publicKey = keyPair.getPublic();
+
+                privateKeyFile.createNewFile();
+                publicKeyFile.createNewFile();
+                Files.write(privateKeyFile.toPath(), privateKey.getEncoded());
+                Files.write(publicKeyFile.toPath(), publicKey.getEncoded());
+
+                debugInfo("Private key hash: " + InertiaAntiCheat.getHash(Arrays.toString(privateKey.getEncoded())));
+                debugInfo("Public key hash: " + InertiaAntiCheat.getHash(Arrays.toString(publicKey.getEncoded())));
+            } catch (NoSuchAlgorithmException | IOException e) {
+                throw new RuntimeException("Something went wrong while generating new key pairs!", e);
+            }
+        } else {
+            debugInfo("Found both key files.");
+            try {
+                Path privateKeyFilePath = Paths.get(privateKeyFile.toURI());
+                byte[] privateKeyFileBytes = Files.readAllBytes(privateKeyFilePath);
+                PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyFileBytes);
+
+                Path publicKeyFilePath = Paths.get(publicKeyFile.toURI());
+                byte[] publicKeyFileBytes = Files.readAllBytes(publicKeyFilePath);
+                X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyFileBytes);
+
+                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+                privateKey = keyFactory.generatePrivate(privateKeySpec);
+                publicKey = keyFactory.generatePublic(publicKeySpec);
+
+                debugInfo("Private key hash: " + InertiaAntiCheat.getHash(Arrays.toString(privateKey.getEncoded())));
+                debugInfo("Public key hash: " + InertiaAntiCheat.getHash(Arrays.toString(publicKey.getEncoded())));
+            } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+                throw new RuntimeException("Something went wrong while reading key pairs!", e);
+            }
+        }
+        return new KeyPair(publicKey, privateKey);
     }
 }

@@ -45,8 +45,22 @@ hash = ""
 # The reason for kicking a player due to their modlist hash not matching up.
 hashMessage = "You were kicked for not matching the server's modlist!\nDid you install their modpack correctly?"
 
+[e2ee]
+# Enable using end-to-end encryption to encrypt modlists coming from clients.
+# This prevents outside sources from reading and modifying modlists coming from clients.
+# This doesn't prevent clients from modfiying their own modlists though.
+enable = true
+
+# Name of the private and public key files to use for E2EE.
+# DO NOT LEAK YOUR PRIVATE KEY!
+privateKeyName = "private.key"
+publicKeyName = "public.key"
+
+# The reason for kicking a player due to them disabling support for E2EE.
+unsupportedMessage = "The server is using E2EE, but you have disabled support for E2EE!\nPlease look in your config file for more information."
+
 [debug]
 # Show additional information in server logs.
 debug = false
 # do not touch pls :)
-version = 1
+version = 2
