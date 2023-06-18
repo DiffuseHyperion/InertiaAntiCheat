@@ -41,9 +41,14 @@ showHash = true
 
 # The hash for the server to check against. See "showHash" for more details.
 # Filling this will cause the server to disreguard blacklisted/whitelisted mods.
+# Soft whitelisted mods (see below) will still be checked.
 hash = ""
 # The reason for kicking a player due to their modlist hash not matching up.
 hashMessage = "You were kicked for not matching the server's modlist!\nDid you install their modpack correctly?"
+
+# Allow certain mods to be used by players, in addition to your modpack.
+# This allows players to make use of optional client mods if you allow it.
+softWhitelist = []
 
 [e2ee]
 # Enable using end-to-end encryption to encrypt modlists coming from clients.
@@ -63,4 +68,4 @@ unsupportedMessage = "The server is using E2EE, but you have disabled support fo
 # Show additional information in server logs.
 debug = false
 # do not touch pls :)
-version = 2
+version = 3

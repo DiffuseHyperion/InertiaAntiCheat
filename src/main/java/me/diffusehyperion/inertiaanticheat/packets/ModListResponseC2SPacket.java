@@ -11,10 +11,7 @@ import net.minecraft.text.Text;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.*;
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.LOGGER;
@@ -43,14 +40,19 @@ public class ModListResponseC2SPacket {
                 response = packetByteBuf.readString();
             }
             response = response.replace("[", "").replace("]", "");
-            List<String> modList = Arrays.asList(response.split(", "));
+            // arrays.aslist creates a fixed size list, so linkedlist is required
+            List<String> modList = new LinkedList<>(Arrays.asList(response.split(", ")));
 
             if (serverConfig.getBoolean("mods.showMods")) {
                 LOGGER.info(serverPlayerEntity.getEntityName() + " is joining with the following modlist: " + modList);
             }
-            String hash = null; // store for later use if needed
+            String hash = null;
             if (serverConfig.getBoolean("hash.showHash")) {
-                hash = getHash(response);
+                if (serverConfig.getList("hash.softWhitelist").size() > 0) {
+                    hash = getHash(removeSoftWhitelistedMods(modList));
+                } else {
+                    hash = getHash(response);
+                }
                 LOGGER.info(serverPlayerEntity.getEntityName() + "'s modlist hash: " + hash);
             }
 
@@ -83,7 +85,11 @@ public class ModListResponseC2SPacket {
                 }
             } else {
                 if (Objects.isNull(hash)) {
-                    hash = getHash(response);
+                    if (serverConfig.getList("hash.softWhitelist").size() > 0) {
+                        hash = getHash(removeSoftWhitelistedMods(modList));
+                    } else {
+                        hash = getHash(response);
+                    }
                 }
                 if (!hash.equals(serverConfig.getString("hash.hash"))) {
                     debugInfo("Kicking " + serverPlayerEntity.getEntityName() + " as his modlist hash does not match up!");
@@ -98,5 +104,13 @@ public class ModListResponseC2SPacket {
         if (!serverConfig.getString("grace.titleText").isEmpty()) {
             serverPlayNetworkHandler.sendPacket(new ClearTitleS2CPacket(true));
         }
+    }
+
+    private static String removeSoftWhitelistedMods(List<String> modList) {
+        for (Object softWhitelistedModObj : serverConfig.getList("hash.softWhitelist")) {
+            String softWhitelistedMod = (String) softWhitelistedModObj;
+            modList.remove(softWhitelistedMod);
+        }
+        return modList.toString().replace("[", "").replace("]", "");
     }
 }

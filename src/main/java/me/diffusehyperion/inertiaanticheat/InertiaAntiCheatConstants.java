@@ -10,6 +10,6 @@ public class InertiaAntiCheatConstants {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("InertiaAntiCheat");
 
-    public static final long CURRENT_SERVER_CONFIG_VERSION = 2;
+    public static final long CURRENT_SERVER_CONFIG_VERSION = 3;
     public static final long CURRENT_CLIENT_CONFIG_VERSION = 1;
 }
