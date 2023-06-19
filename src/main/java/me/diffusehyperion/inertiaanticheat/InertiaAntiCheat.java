@@ -84,7 +84,6 @@ public class InertiaAntiCheat implements ModInitializer {
                 throw new RuntimeException("Couldn't a create default config!", e);
             }
         }
-        LOGGER.warn(configFile.getAbsolutePath());
         Toml config = new Toml().read(configFile);
         if (!Objects.equals(config.getLong("debug.version", 0L), currentConfigVersion)) {
             LOGGER.warn("Looks like your config file is outdated! Backing up current config, then creating an updated config.");

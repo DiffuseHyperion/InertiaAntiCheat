@@ -25,6 +25,7 @@ import static me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient.
 
 public class ModListRequestS2CPacket {
     public static void receive(MinecraftClient client, ClientPlayNetworkHandler clientPlayNetworkHandler, PacketByteBuf packetByteBuf, PacketSender packetSender) {
+        debugInfo("Received modlist request from server!");
         List<String> modNameList = new ArrayList<>();
         for (ModContainer container : FabricLoader.getInstance().getAllMods()) {
             modNameList.add(container.getMetadata().getName());
@@ -60,5 +61,6 @@ public class ModListRequestS2CPacket {
             }
         }
         client.execute(() -> clientPlayNetworkHandler.sendPacket(ClientPlayNetworking.createC2SPacket(InertiaAntiCheatConstants.RESPONSE_PACKET_ID, responseBuf)));
+        debugInfo("Sent modlist.");
     }
 }

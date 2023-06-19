@@ -60,6 +60,7 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
             return;
         }
         long timeToWait = serverConfig.getLong("grace.graceTime");
+        debugInfo("Player " + player.getName().getString() + " joined the server. Kicking them at: " + System.currentTimeMillis() + timeToWait);
         impendingPlayers.put(player, System.currentTimeMillis() + timeToWait);
         if (!serverConfig.getString("grace.titleText").isEmpty()) {
             player.networkHandler.sendPacket(new ClearTitleS2CPacket(true));
@@ -67,8 +68,10 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
 
             if (!serverConfig.getString("grace.titleText").isEmpty()) {
                 player.networkHandler.sendPacket(new TitleS2CPacket(Text.of(serverConfig.getString("grace.titleText"))));
+                debugInfo("Sending title packet, with the text: " + serverConfig.getString("grace.titleText"));
                 if (!serverConfig.getString("grace.subtitleText").isEmpty()) {
                     player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.of(serverConfig.getString("grace.subtitleText"))));
+                    debugInfo("Sending subtitle packet, with the text: " + serverConfig.getString("grace.subtitleText"));
                 }
             }
         }
@@ -76,8 +79,10 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
         if (Objects.nonNull(serverE2EEKeyPair)) {
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeBytes(serverE2EEKeyPair.getPublic().getEncoded());
+            debugInfo("Sending request with public key to player " + player.getName() + " with the length of " + serverE2EEKeyPair.getPublic().getEncoded().length);
             player.networkHandler.sendPacket(ServerPlayNetworking.createS2CPacket(InertiaAntiCheatConstants.REQUEST_PACKET_ID, buf));
         } else {
+            debugInfo("Sending request to player " + player.getName().getString() + ".");
             player.networkHandler.sendPacket(ServerPlayNetworking.createS2CPacket(InertiaAntiCheatConstants.REQUEST_PACKET_ID, PacketByteBufs.empty()));
         }
     }

@@ -19,6 +19,7 @@ import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.
 
 public class ModListResponseC2SPacket {
     public static void receive(MinecraftServer server, ServerPlayerEntity serverPlayerEntity, ServerPlayNetworkHandler serverPlayNetworkHandler, PacketByteBuf packetByteBuf, PacketSender packetSender) {
+        debugInfo("Received mod list response from " + serverPlayerEntity.getEntityName() + ".");
         String response;
         String kickMessage = null;
         if (packetByteBuf.readableBytes() <= 0) {
@@ -46,14 +47,17 @@ public class ModListResponseC2SPacket {
             if (serverConfig.getBoolean("mods.showMods")) {
                 LOGGER.info(serverPlayerEntity.getEntityName() + " is joining with the following modlist: " + modList);
             }
-            String hash = null;
             if (serverConfig.getBoolean("hash.showHash")) {
-                if (serverConfig.getList("hash.softWhitelist").size() > 0) {
-                    hash = getHash(removeSoftWhitelistedMods(modList));
-                } else {
-                    hash = getHash(response);
-                }
-                LOGGER.info(serverPlayerEntity.getEntityName() + "'s modlist hash: " + hash);
+                String finalResponse = response;
+                new Thread(() -> {
+                    String hash;
+                    if (serverConfig.getList("hash.softWhitelist").size() > 0) {
+                        hash = getHash(removeSoftWhitelistedMods(modList));
+                    } else {
+                        hash = getHash(finalResponse);
+                    }
+                    LOGGER.info(serverPlayerEntity.getEntityName() + "'s modlist hash: " + hash);
+                }).start();
             }
 
             if (serverConfig.getString("hash.hash").isEmpty()) {
@@ -62,7 +66,6 @@ public class ModListResponseC2SPacket {
                 List<String> foundBlacklistedMods = new ArrayList<>();
                 for (String blacklistedMod : blacklisted) {
                     if (modList.contains(blacklistedMod)) {
-                        debugInfo("Kicking " + serverPlayerEntity.getEntityName() + " as he is running " + blacklistedMod + "!");
                         foundBlacklistedMods.add(blacklistedMod);
                     }
                 }
@@ -75,7 +78,6 @@ public class ModListResponseC2SPacket {
                 List<String> notFoundWhitelistedMods = new ArrayList<>();
                 for (String whitelistedMod : whitelisted) {
                     if (!modList.contains(whitelistedMod)) {
-                        debugInfo("Kicking " + serverPlayerEntity.getEntityName() + " as he is not running " + whitelistedMod + "!");
                         notFoundWhitelistedMods.add(whitelistedMod);
                     }
                 }
@@ -84,21 +86,22 @@ public class ModListResponseC2SPacket {
                             .replace("${whitelisted}", listToPrettyString(notFoundWhitelistedMods));
                 }
             } else {
-                if (Objects.isNull(hash)) {
-                    if (serverConfig.getList("hash.softWhitelist").size() > 0) {
-                        hash = getHash(removeSoftWhitelistedMods(modList));
-                    } else {
-                        hash = getHash(response);
-                    }
+                String hash;
+                if (serverConfig.getList("hash.softWhitelist").size() > 0) {
+                    hash = getHash(removeSoftWhitelistedMods(modList));
+                } else {
+                    hash = getHash(response);
                 }
                 if (!hash.equals(serverConfig.getString("hash.hash"))) {
-                    debugInfo("Kicking " + serverPlayerEntity.getEntityName() + " as his modlist hash does not match up!");
                     kickMessage = serverConfig.getString("hash.hashMessage");
                 }
             }
         }
         if (Objects.nonNull(kickMessage)) {
             serverPlayerEntity.networkHandler.disconnect(Text.of(kickMessage));
+            debugInfo("Kicked " + serverPlayerEntity.getEntityName() + " for " + kickMessage + ".");
+        } else {
+            debugInfo("Accepted " + serverPlayerEntity.getEntityName() + " into the server.");
         }
         impendingPlayers.remove(serverPlayerEntity);
         if (!serverConfig.getString("grace.titleText").isEmpty()) {
