@@ -66,11 +66,11 @@ public class InertiaAntiCheat implements ModInitializer {
 
     public static String getHash(String input) {
         try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
+            MessageDigest md = MessageDigest.getInstance(serverConfig.getString("hash.algorithm"));
             byte[] arr = md.digest(input.getBytes());
             return Base64.getEncoder().encodeToString(arr);
         } catch (NoSuchAlgorithmException e){
-            throw new RuntimeException(e);
+            throw new RuntimeException("Invalid algorithm provided! Did you use an accepted algorithm in your config?", e);
         }
     }
 

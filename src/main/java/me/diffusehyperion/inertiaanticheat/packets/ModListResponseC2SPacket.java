@@ -44,24 +44,17 @@ public class ModListResponseC2SPacket {
             // arrays.aslist creates a fixed size list, so linkedlist is required
             List<String> modList = new LinkedList<>(Arrays.asList(response.split(", ")));
 
+            // hashes should only be calculated using getModlistHash!!
+
             if (serverConfig.getBoolean("mods.showMods")) {
                 LOGGER.info(serverPlayerEntity.getEntityName() + " is joining with the following modlist: " + modList);
             }
             if (serverConfig.getBoolean("hash.showHash")) {
-                String finalResponse = response;
-                new Thread(() -> {
-                    String hash;
-                    if (serverConfig.getList("hash.softWhitelist").size() > 0) {
-                        hash = getHash(removeSoftWhitelistedMods(modList));
-                    } else {
-                        hash = getHash(finalResponse);
-                    }
-                    LOGGER.info(serverPlayerEntity.getEntityName() + "'s modlist hash: " + hash);
-                }).start();
+                new Thread(() -> LOGGER.info(serverPlayerEntity.getEntityName() + "'s modlist hash: " + getModlistHash(modList))).start();
             }
 
             if (serverConfig.getString("hash.hash").isEmpty()) {
-                // checksum empty, use blacklist/whitelist
+                // hash empty, use blacklist/whitelist
                 List<String> blacklisted = serverConfig.getList("mods.blacklist");
                 List<String> foundBlacklistedMods = new ArrayList<>();
                 for (String blacklistedMod : blacklisted) {
@@ -86,13 +79,9 @@ public class ModListResponseC2SPacket {
                             .replace("${whitelisted}", listToPrettyString(notFoundWhitelistedMods));
                 }
             } else {
-                String hash;
-                if (serverConfig.getList("hash.softWhitelist").size() > 0) {
-                    hash = getHash(removeSoftWhitelistedMods(modList));
-                } else {
-                    hash = getHash(response);
-                }
-                if (!hash.equals(serverConfig.getString("hash.hash"))) {
+                String hash = getModlistHash(modList);
+                List<String> acceptedHashes = serverConfig.getList("hash.hash");
+                if (!acceptedHashes.contains(hash)) {
                     kickMessage = serverConfig.getString("hash.hashMessage");
                 }
             }
@@ -109,11 +98,16 @@ public class ModListResponseC2SPacket {
         }
     }
 
-    private static String removeSoftWhitelistedMods(List<String> modList) {
+    private static List<String> removeSoftWhitelistedMods(List<String> modList) {
         for (Object softWhitelistedModObj : serverConfig.getList("hash.softWhitelist")) {
             String softWhitelistedMod = (String) softWhitelistedModObj;
             modList.remove(softWhitelistedMod);
         }
-        return modList.toString().replace("[", "").replace("]", "");
+        return modList;
+    }
+
+    private static String getModlistHash(List<String> modlist) {
+        List<String> finalModlist = removeSoftWhitelistedMods(modlist);
+        return getHash(finalModlist.toString());
     }
 }
