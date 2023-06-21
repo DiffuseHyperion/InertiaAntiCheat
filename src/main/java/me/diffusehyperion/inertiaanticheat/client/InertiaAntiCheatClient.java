@@ -18,10 +18,8 @@ import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.debugInfo;
-import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.getConfigDir;
+import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.*;
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.CURRENT_CLIENT_CONFIG_VERSION;
-import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.LOGGER;
 
 public class InertiaAntiCheatClient implements ClientModInitializer {
 
@@ -45,8 +43,8 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
         File secretKeyFile = getConfigDir().resolve("./" + secretKeyFileName).toFile();
         SecretKey secretKey;
         if (!secretKeyFile.exists()) {
-            LOGGER.warn("E2EE was enabled, but the mod could not find the secret key file! Generating new secret key now...");
-            LOGGER.warn("This is fine if this is the first time you are running the mod.");
+            warn("E2EE was enabled, but the mod could not find the secret key file! Generating new secret key now...");
+            warn("This is fine if this is the first time you are running the mod.");
             try {
                 KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
                 keyGenerator.init(256);

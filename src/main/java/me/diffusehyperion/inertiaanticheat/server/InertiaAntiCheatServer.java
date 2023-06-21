@@ -30,7 +30,6 @@ import java.util.*;
 
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.*;
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.CURRENT_SERVER_CONFIG_VERSION;
-import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.LOGGER;
 
 public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
 
@@ -40,7 +39,7 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
 
     @Override
     public void onInitializeServer() {
-        LOGGER.info("Initializing InertiaAntiCheat!");
+        info("Initializing InertiaAntiCheat!");
         serverConfig = initializeConfig("/config/server/InertiaAntiCheat.toml", CURRENT_SERVER_CONFIG_VERSION);
         debugInfo("Initializing listeners...");
         initializeListeners();
@@ -111,10 +110,10 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
         PublicKey publicKey;
 
         if (!privateKeyFile.exists() && !publicKeyFile.exists()) {
-            LOGGER.warn("E2EE was enabled, but the mod did not find either the private or public key file! Generating new keypair now...");
-            LOGGER.warn("This is fine if this is the first time you are running the mod.");
+            warn("E2EE was enabled, but the mod did not find either the private or public key file! Generating new keypair now...");
+            warn("This is fine if this is the first time you are running the mod.");
             if (privateKeyFile.exists()) {
-                LOGGER.warn("Private key file exists, but public key file does not! Backing up private key file...");
+                warn("Private key file exists, but public key file does not! Backing up private key file...");
                 File privateKeyFileBackup = getConfigDir().resolve("./" + privateKeyFileName + "-BACKUP.key").toFile();
                 try {
                     privateKeyFileBackup.createNewFile();
@@ -123,7 +122,7 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
                     throw new RuntimeException("Something went wrong while backing up private key file!", e);
                 }
             } else if (publicKeyFile.exists()) {
-                LOGGER.warn("Public key file exists, but private key file does not! Backing up public key file now...");
+                warn("Public key file exists, but private key file does not! Backing up public key file now...");
                 File publicKeyFileBackup = getConfigDir().resolve("./" + publicKeyFileName + "-BACKUP.key").toFile();
                 try {
                     publicKeyFileBackup.createNewFile();

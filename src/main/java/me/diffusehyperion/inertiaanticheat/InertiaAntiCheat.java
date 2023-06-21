@@ -23,7 +23,7 @@ public class InertiaAntiCheat implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        LOGGER.info("Initializing InertiaAntiCheat!");
+        info("Initializing InertiaAntiCheat!");
         try {
             Files.createDirectories(getConfigDir());
         } catch (IOException e) {
@@ -31,11 +31,21 @@ public class InertiaAntiCheat implements ModInitializer {
         }
     }
 
+    public static void info(String info) {
+        LOGGER.info("[InertiaAntiCheat] " + info);
+    }
+    public static void warn(String info) {
+        LOGGER.warn("[InertiaAntiCheat] " + info);
+    }
+    public static void error(String info) {
+        LOGGER.error("[InertiaAntiCheat] " + info);
+    }
+
     public static void debugInfo(String info) {
         if (Objects.nonNull(serverConfig) && serverConfig.getBoolean("debug.debug")) {
-            LOGGER.info(info);
+            LOGGER.info("[InertiaAntiCheat] " + info);
         } else if (Objects.nonNull(clientConfig) && clientConfig.getBoolean("debug.debug")) {
-            LOGGER.info(info);
+            LOGGER.info("[InertiaAntiCheat] " + info);
         }
     }
 
@@ -77,7 +87,7 @@ public class InertiaAntiCheat implements ModInitializer {
     public static Toml initializeConfig(String defaultConfigPath, Long currentConfigVersion) {
         File configFile = getConfigDir().resolve("./InertiaAntiCheat.toml").toFile();
         if (!configFile.exists()) {
-            LOGGER.warn("No config file found! Creating a new one now...");
+            warn("No config file found! Creating a new one now...");
             try {
                 Files.copy(Objects.requireNonNull(InertiaAntiCheatServer.class.getResourceAsStream(defaultConfigPath)), configFile.toPath());
             } catch (IOException e) {
@@ -86,8 +96,8 @@ public class InertiaAntiCheat implements ModInitializer {
         }
         Toml config = new Toml().read(configFile);
         if (!Objects.equals(config.getLong("debug.version", 0L), currentConfigVersion)) {
-            LOGGER.warn("Looks like your config file is outdated! Backing up current config, then creating an updated config.");
-            LOGGER.warn("Your config file will be backed up to \"BACKUP-InertiaAntiCheat.toml\".");
+            warn("Looks like your config file is outdated! Backing up current config, then creating an updated config.");
+            warn("Your config file will be backed up to \"BACKUP-InertiaAntiCheat.toml\".");
             File backupFile = getConfigDir().resolve("BACKUP-InertiaAntiCheat.toml").toFile();
             try {
                 Files.copy(configFile.toPath(), backupFile.toPath());
@@ -102,7 +112,7 @@ public class InertiaAntiCheat implements ModInitializer {
             } catch (IOException e) {
                 throw new RuntimeException("Couldn't create a default config!", e);
             }
-            LOGGER.info("Done! Please readjust the configs in the new file accordingly.");
+            info("Done! Please readjust the configs in the new file accordingly.");
         }
         return config;
     }

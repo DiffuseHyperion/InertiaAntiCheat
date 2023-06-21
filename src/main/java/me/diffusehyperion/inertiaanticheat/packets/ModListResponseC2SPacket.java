@@ -14,7 +14,6 @@ import javax.crypto.spec.SecretKeySpec;
 import java.util.*;
 
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.*;
-import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.LOGGER;
 import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.*;
 
 public class ModListResponseC2SPacket {
@@ -47,10 +46,10 @@ public class ModListResponseC2SPacket {
             // hashes should only be calculated using getModlistHash!!
 
             if (serverConfig.getBoolean("mods.showMods")) {
-                LOGGER.info(serverPlayerEntity.getEntityName() + " is joining with the following modlist: " + modList);
+                info(serverPlayerEntity.getEntityName() + " is joining with the following modlist: " + modList);
             }
             if (serverConfig.getBoolean("hash.showHash")) {
-                new Thread(() -> LOGGER.info(serverPlayerEntity.getEntityName() + "'s modlist hash: " + getModlistHash(modList))).start();
+                new Thread(() -> info(serverPlayerEntity.getEntityName() + "'s modlist hash: " + getModlistHash(modList))).start();
             }
 
             if (serverConfig.getString("hash.hash").isEmpty()) {
