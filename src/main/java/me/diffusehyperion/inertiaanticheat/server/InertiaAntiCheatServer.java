@@ -145,8 +145,8 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
                 Files.write(privateKeyFile.toPath(), privateKey.getEncoded());
                 Files.write(publicKeyFile.toPath(), publicKey.getEncoded());
 
-                debugInfo("Private key hash: " + InertiaAntiCheat.getHash(Arrays.toString(privateKey.getEncoded())));
-                debugInfo("Public key hash: " + InertiaAntiCheat.getHash(Arrays.toString(publicKey.getEncoded())));
+                debugInfo("Private key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(privateKey.getEncoded()), "MD5"));
+                debugInfo("Public key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(publicKey.getEncoded()), "MD5"));
             } catch (NoSuchAlgorithmException | IOException e) {
                 throw new RuntimeException("Something went wrong while generating new key pairs!", e);
             }
@@ -165,8 +165,8 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
                 privateKey = keyFactory.generatePrivate(privateKeySpec);
                 publicKey = keyFactory.generatePublic(publicKeySpec);
 
-                debugInfo("Private key hash: " + InertiaAntiCheat.getHash(Arrays.toString(privateKey.getEncoded())));
-                debugInfo("Public key hash: " + InertiaAntiCheat.getHash(Arrays.toString(publicKey.getEncoded())));
+                debugInfo("Private key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(privateKey.getEncoded()), "MD5"));
+                debugInfo("Public key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(publicKey.getEncoded()), "MD5"));
             } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
                 throw new RuntimeException("Something went wrong while reading key pairs!", e);
             }

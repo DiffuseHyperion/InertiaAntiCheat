@@ -107,6 +107,6 @@ public class ModListResponseC2SPacket {
 
     private static String getModlistHash(List<String> modlist) {
         List<String> finalModlist = removeSoftWhitelistedMods(modlist);
-        return getHash(finalModlist.toString());
+        return getHash(finalModlist.toString(), "MD5");
     }
 }

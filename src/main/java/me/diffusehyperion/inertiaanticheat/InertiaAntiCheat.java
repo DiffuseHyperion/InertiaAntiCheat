@@ -74,9 +74,15 @@ public class InertiaAntiCheat implements ModInitializer {
         }
     }
 
-    public static String getHash(String input) {
+    public static String getHash(String input, String defaultAlgorithm) {
         try {
-            MessageDigest md = MessageDigest.getInstance(serverConfig.getString("hash.algorithm"));
+            String algorithm;
+            if (serverConfig == null) {
+                algorithm = defaultAlgorithm;
+            } else {
+                algorithm = serverConfig.getString("hash.algorithm", defaultAlgorithm);
+            }
+            MessageDigest md = MessageDigest.getInstance(algorithm);
             byte[] arr = md.digest(input.getBytes());
             return Base64.getEncoder().encodeToString(arr);
         } catch (NoSuchAlgorithmException e){

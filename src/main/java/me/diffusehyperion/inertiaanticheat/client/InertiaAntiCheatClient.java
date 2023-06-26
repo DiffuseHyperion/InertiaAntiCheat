@@ -53,7 +53,7 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
                 secretKeyFile.createNewFile();
                 Files.write(secretKeyFile.toPath(), secretKey.getEncoded());
 
-                debugInfo("Secret key hash: " + InertiaAntiCheat.getHash(Arrays.toString(secretKey.getEncoded())));
+                debugInfo("Secret key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(secretKey.getEncoded()), "MD5"));
             } catch (NoSuchAlgorithmException | IOException e) {
                 throw new RuntimeException("Something went wrong while generating new key!", e);
             }
@@ -64,7 +64,7 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
                 byte[] privateKeyFileBytes = Files.readAllBytes(privateKeyFilePath);
                 secretKey = new SecretKeySpec(privateKeyFileBytes, "AES");
 
-                debugInfo("Secret key hash: " + InertiaAntiCheat.getHash(Arrays.toString(secretKey.getEncoded())));
+                debugInfo("Secret key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(secretKey.getEncoded()), "MD5"));
             } catch (IOException e) {
                 throw new RuntimeException("Something went wrong while reading the secret key!", e);
             }
