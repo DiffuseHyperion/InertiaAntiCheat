@@ -52,7 +52,7 @@ public class ModListResponseC2SPacket {
                 new Thread(() -> info(serverPlayerEntity.getEntityName() + "'s modlist hash: " + getModlistHash(modList))).start();
             }
 
-            if (serverConfig.getString("hash.hash").isEmpty()) {
+            if (serverConfig.getList("hash.hash").isEmpty()) {
                 // hash empty, use blacklist/whitelist
                 List<String> blacklisted = serverConfig.getList("mods.blacklist");
                 List<String> foundBlacklistedMods = new ArrayList<>();
