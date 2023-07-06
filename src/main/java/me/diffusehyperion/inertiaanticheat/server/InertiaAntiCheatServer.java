@@ -4,6 +4,7 @@ import com.moandjiezana.toml.Toml;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants;
 import me.diffusehyperion.inertiaanticheat.packets.ModListResponseC2SPacket;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -58,6 +59,12 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
         if (!(entity instanceof ServerPlayerEntity player)) {
             return;
         }
+
+        if (Permissions.check(player, "inertiaanticheat.bypass")) {
+            debugInfo("Player " + player.getEntityName() + " joined the server. Immediately allowing access as they have the bypass permission.");
+            return;
+        }
+
         long timeToWait = serverConfig.getLong("grace.graceTime");
         debugInfo("Player " + player.getName().getString() + " joined the server. Kicking them at: " + System.currentTimeMillis() + timeToWait);
         impendingPlayers.put(player, System.currentTimeMillis() + timeToWait);

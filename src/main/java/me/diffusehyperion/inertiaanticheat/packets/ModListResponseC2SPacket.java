@@ -19,6 +19,12 @@ import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.
 public class ModListResponseC2SPacket {
     public static void receive(MinecraftServer server, ServerPlayerEntity serverPlayerEntity, ServerPlayNetworkHandler serverPlayNetworkHandler, PacketByteBuf packetByteBuf, PacketSender packetSender) {
         debugInfo("Received mod list response from " + serverPlayerEntity.getEntityName() + ".");
+
+        impendingPlayers.remove(serverPlayerEntity);
+        if (!serverConfig.getString("grace.titleText").isEmpty()) {
+            serverPlayNetworkHandler.sendPacket(new ClearTitleS2CPacket(true));
+        }
+
         String response;
         String kickMessage = null;
         if (packetByteBuf.readableBytes() <= 0) {
@@ -85,15 +91,12 @@ public class ModListResponseC2SPacket {
                 }
             }
         }
+
         if (Objects.nonNull(kickMessage)) {
             serverPlayerEntity.networkHandler.disconnect(Text.of(kickMessage));
             debugInfo("Kicked " + serverPlayerEntity.getEntityName() + " for " + kickMessage + ".");
         } else {
             debugInfo("Accepted " + serverPlayerEntity.getEntityName() + " into the server.");
-        }
-        impendingPlayers.remove(serverPlayerEntity);
-        if (!serverConfig.getString("grace.titleText").isEmpty()) {
-            serverPlayNetworkHandler.sendPacket(new ClearTitleS2CPacket(true));
         }
     }
 
