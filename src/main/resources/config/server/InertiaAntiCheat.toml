@@ -43,7 +43,7 @@ showHash = true
 # Filling this will cause the server to disreguard blacklisted/whitelisted mods.
 # Soft whitelisted mods (see below) will still be checked.
 # You can add multiple hashes into the list, and the server will check against all of them.
-hash = [""]
+hash = []
 # What hashing algorithm to use when creating the hash.
 # Accepted values: "MD5", "SHA-1", "SHA-256"
 algorithm = "MD5"
