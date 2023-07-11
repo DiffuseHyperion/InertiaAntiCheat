@@ -6,16 +6,16 @@ import me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants;
 import me.diffusehyperion.inertiaanticheat.packets.ModListResponseC2SPacket;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.DedicatedServerModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.Entity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 
 import java.io.File;
@@ -49,16 +49,14 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
     }
 
     private void initializeListeners() {
-        ServerEntityEvents.ENTITY_LOAD.register(this::onPlayerJoin);
+        ServerPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
         ServerTickEvents.END_SERVER_TICK.register(this::onEndServerTick);
         ServerPlayNetworking.registerGlobalReceiver(InertiaAntiCheatConstants.RESPONSE_PACKET_ID, ModListResponseC2SPacket::receive);
         debugInfo("Finished initializing listeners.");
     }
 
-    private void onPlayerJoin(Entity entity, ServerWorld world) {
-        if (!(entity instanceof ServerPlayerEntity player)) {
-            return;
-        }
+    private void onPlayerJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
+        ServerPlayerEntity player = serverPlayNetworkHandler.player;
 
         if (Permissions.check(player, "inertiaanticheat.bypass")) {
             debugInfo("Player " + player.getEntityName() + " joined the server. Immediately allowing access as they have the bypass permission.");
