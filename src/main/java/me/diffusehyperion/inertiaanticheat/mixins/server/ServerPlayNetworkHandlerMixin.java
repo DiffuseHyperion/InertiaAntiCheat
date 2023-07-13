@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.impendingPlayers;
 
 @Mixin(ServerPlayNetworkHandler.class)
-public class ServerPlayNetworkHandlerMixin {
+public abstract class ServerPlayNetworkHandlerMixin {
 
     // injects here taken or inspired from https://github.com/samolego/SimpleAuth/blob/fabric/src/main/java/org/samo_lego/simpleauth/mixin/MixinServerPlayNetworkHandler.java
 

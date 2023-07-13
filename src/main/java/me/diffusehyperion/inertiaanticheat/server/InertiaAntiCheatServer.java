@@ -4,6 +4,7 @@ import com.moandjiezana.toml.Toml;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants;
 import me.diffusehyperion.inertiaanticheat.packets.ModListResponseC2SPacket;
+import me.diffusehyperion.inertiaanticheat.packets.PingInfoC2SPacket;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -51,6 +52,7 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
     private void initializeListeners() {
         ServerPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
         ServerTickEvents.END_SERVER_TICK.register(this::onEndServerTick);
+        ServerPlayNetworking.registerGlobalReceiver(InertiaAntiCheatConstants.PING_PACKET_ID, PingInfoC2SPacket::receive);
         ServerPlayNetworking.registerGlobalReceiver(InertiaAntiCheatConstants.RESPONSE_PACKET_ID, ModListResponseC2SPacket::receive);
         debugInfo("Finished initializing listeners.");
     }
