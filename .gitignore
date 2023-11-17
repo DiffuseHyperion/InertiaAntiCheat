@@ -3,3 +3,5 @@
 /build/
 /run/
 /.idea/
+/runClient/
+/runServer/

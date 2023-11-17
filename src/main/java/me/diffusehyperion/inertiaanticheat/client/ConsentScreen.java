@@ -39,13 +39,14 @@ public class ConsentScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context);
+        this.renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
         context.drawText(textRenderer, Text.of("InertiaAntiCheat consent screen"), width / 2, 20, 0xFFFFFF, true);
     }
 
     @Override
     public void close() {
+        assert client != null;
         client.setScreen(parent);
     }
 }
