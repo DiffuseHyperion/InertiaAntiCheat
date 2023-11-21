@@ -25,7 +25,8 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     include(implementation 'com.moandjiezana.toml:toml4j:0.7.2')
     include(modImplementation('me.lucko:fabric-permissions-api:0.2-SNAPSHOT'))
-    }
+    include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.2.0")))
+}
 
 processResources {
     inputs.property "version", project.version
@@ -85,4 +86,8 @@ publishing {
         // The repositories here will be used for publishing your artifact, not for
         // retrieving dependencies.
     }
+}
+
+loom {
+    accessWidenerPath = file("src/main/resources/inertiaanticheat.accesswidener")
 }

@@ -41,7 +41,6 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
 
     @Override
     public void onInitializeServer() {
-        info("Initializing InertiaAntiCheat!");
         serverConfig = initializeConfig("/config/server/InertiaAntiCheat.toml", CURRENT_SERVER_CONFIG_VERSION);
         debugInfo("Initializing listeners...");
         initializeListeners();
