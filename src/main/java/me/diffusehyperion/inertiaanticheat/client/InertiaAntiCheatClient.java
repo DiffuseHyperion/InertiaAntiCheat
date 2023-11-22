@@ -2,8 +2,9 @@ package me.diffusehyperion.inertiaanticheat.client;
 
 import com.moandjiezana.toml.Toml;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
-import me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants;
-import me.diffusehyperion.inertiaanticheat.packets.ModListRequestS2CPacket;
+import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
+import me.diffusehyperion.inertiaanticheat.packets.legacy.ModListRequestS2CPacket;
+import me.diffusehyperion.inertiaanticheat.util.Scheduler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
@@ -19,12 +20,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.*;
-import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.CURRENT_CLIENT_CONFIG_VERSION;
+import static me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants.CURRENT_CLIENT_CONFIG_VERSION;
 
 public class InertiaAntiCheatClient implements ClientModInitializer {
-
     public static Toml clientConfig;
     public static SecretKey clientE2EESecretKey; // null if e2ee not enabled
+    public static final Scheduler clientScheduler = new Scheduler();
+
     @Override
     public void onInitializeClient() {
         ClientPlayNetworking.registerGlobalReceiver(InertiaAntiCheatConstants.REQUEST_PACKET_ID, ModListRequestS2CPacket::receive);

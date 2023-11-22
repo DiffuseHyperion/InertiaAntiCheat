@@ -15,7 +15,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
-import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.LOGGER;
+import static me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants.MODLOGGER;
 import static me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient.clientConfig;
 import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.serverConfig;
 
@@ -32,20 +32,20 @@ public class InertiaAntiCheat implements ModInitializer {
     }
 
     public static void info(String info) {
-        LOGGER.info("[InertiaAntiCheat] " + info);
+        MODLOGGER.info("[InertiaAntiCheat] " + info);
     }
     public static void warn(String info) {
-        LOGGER.warn("[InertiaAntiCheat] " + info);
+        MODLOGGER.warn("[InertiaAntiCheat] " + info);
     }
     public static void error(String info) {
-        LOGGER.error("[InertiaAntiCheat] " + info);
+        MODLOGGER.error("[InertiaAntiCheat] " + info);
     }
 
     public static void debugInfo(String info) {
         if (Objects.nonNull(serverConfig) && serverConfig.getBoolean("debug.debug")) {
-            LOGGER.info("[InertiaAntiCheat] " + info);
+            MODLOGGER.info("[InertiaAntiCheat] " + info);
         } else if (Objects.nonNull(clientConfig) && clientConfig.getBoolean("debug.debug")) {
-            LOGGER.info("[InertiaAntiCheat] " + info);
+            MODLOGGER.info("[InertiaAntiCheat] " + info);
         }
     }
 

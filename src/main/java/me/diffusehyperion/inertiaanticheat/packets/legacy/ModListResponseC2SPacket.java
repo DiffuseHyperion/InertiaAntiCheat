@@ -1,4 +1,4 @@
-package me.diffusehyperion.inertiaanticheat.packets;
+package me.diffusehyperion.inertiaanticheat.packets.legacy;
 
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;

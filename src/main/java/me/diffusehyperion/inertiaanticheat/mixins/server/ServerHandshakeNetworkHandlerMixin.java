@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 @Mixin(ServerHandshakeNetworkHandler.class)
-public class ServerHandshakeNetworkHandlerMixin {
+public abstract class ServerHandshakeNetworkHandlerMixin {
     @Final
     @Shadow
     private ClientConnection connection;

@@ -2,8 +2,9 @@ package me.diffusehyperion.inertiaanticheat.server;
 
 import com.moandjiezana.toml.Toml;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
-import me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants;
-import me.diffusehyperion.inertiaanticheat.packets.ModListResponseC2SPacket;
+import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
+import me.diffusehyperion.inertiaanticheat.packets.legacy.ModListResponseC2SPacket;
+import me.diffusehyperion.inertiaanticheat.util.Scheduler;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -31,13 +32,15 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.*;
-import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.CURRENT_SERVER_CONFIG_VERSION;
+import static me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants.CURRENT_SERVER_CONFIG_VERSION;
 
 public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
 
     public static HashMap<ServerPlayerEntity, Long> impendingPlayers = new HashMap<>();
     public static Toml serverConfig;
     public static KeyPair serverE2EEKeyPair; // null if e2ee not enabled
+
+    public static final Scheduler serverScheduler = new Scheduler();
 
     @Override
     public void onInitializeServer() {

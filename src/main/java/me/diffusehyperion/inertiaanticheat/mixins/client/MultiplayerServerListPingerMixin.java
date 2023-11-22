@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.authlib.GameProfile;
+import me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient;
 import me.diffusehyperion.inertiaanticheat.interfaces.ClientConnectionMixinInterface;
 import me.diffusehyperion.inertiaanticheat.interfaces.ServerInfoInterface;
 import me.diffusehyperion.inertiaanticheat.packets.ClientUpgradedQueryPacketListener;
@@ -24,6 +25,7 @@ import net.minecraft.util.Util;
 import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -36,7 +38,7 @@ import java.util.List;
 
 @Debug(export = true)
 @Mixin(MultiplayerServerListPinger.class)
-public class MultiplayerServerListPingerMixin {
+public abstract class MultiplayerServerListPingerMixin {
     @Shadow
     void showError(Text error, ServerInfo info) {}
     @Shadow
@@ -61,9 +63,15 @@ public class MultiplayerServerListPingerMixin {
             @Local ServerAddress serverAddress) {
         ServerInfo serverData = serverDataLocalRef.get();
         Runnable runnable = runnableLocalRef.get();
+
+        Runnable disconnectRunnable = () -> disconnect(connection);
+
         ClientUpgradedQueryPacketListener listener = new ClientUpgradedQueryPacketListener() {
             @Override
             public void onUpgradedResponse(UpgradedQueryResponseS2CPacket var1) {
+                InertiaAntiCheatClient.clientScheduler.cancelTask(disconnectRunnable);
+                disconnect(connection);
+
                 ((ServerInfoInterface) serverData).inertiaAntiCheat$setInertiaInstalled(true);
             }
             private boolean sentQuery;
@@ -118,7 +126,9 @@ public class MultiplayerServerListPingerMixin {
                 long l = this.startTime;
                 long m = Util.getMeasuringTimeMs();
                 serverData.ping = m - l;
-                connection.disconnect(Text.translatable("multiplayer.status.finished"));
+                connection.send(new UpgradedQueryRequestC2SPacket());
+
+                InertiaAntiCheatClient.clientScheduler.addTask((int) (((serverData.ping / 2) / 50) + 20), disconnectRunnable);
             }
 
             @Override
@@ -136,6 +146,16 @@ public class MultiplayerServerListPingerMixin {
         };
 
         ((ClientConnectionMixinInterface) connection).inertiaAntiCheat$connect(host, port, listener);
-        connection.send(new UpgradedQueryRequestC2SPacket());
+    }
+
+    @Unique
+    private void disconnect(ClientConnection connection) {
+        connection.disconnect(Text.translatable("multiplayer.status.finished"));
+    }
+
+    @Inject(method = "tick",
+            at = @At(value = "HEAD"))
+    private void tick(CallbackInfo ci) {
+        InertiaAntiCheatClient.clientScheduler.tick();
     }
 }

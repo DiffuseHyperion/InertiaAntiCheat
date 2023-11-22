@@ -1,4 +1,4 @@
-package me.diffusehyperion.inertiaanticheat;
+package me.diffusehyperion.inertiaanticheat.util;
 
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
@@ -8,7 +8,7 @@ public class InertiaAntiCheatConstants {
     public static final Identifier REQUEST_PACKET_ID = new Identifier("inertiaanticheat", "request");
     public static final Identifier RESPONSE_PACKET_ID = new Identifier("inertiaanticheat", "response");
 
-    public static final Logger LOGGER = LoggerFactory.getLogger("InertiaAntiCheat");
+    public static final Logger MODLOGGER = LoggerFactory.getLogger("InertiaAntiCheat");
     public static final String MODID = "inertiaanticheat";
 
     public static final long CURRENT_SERVER_CONFIG_VERSION = 4;

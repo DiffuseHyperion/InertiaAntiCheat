@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants.MODID;
+import static me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants.MODID;
 
 @Mixin(MultiplayerServerListWidget.ServerEntry.class)
 public abstract class MultiplayerServerListWidgetServerEntryMixin {
