@@ -4,6 +4,7 @@ import com.moandjiezana.toml.Toml;
 import me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.network.PacketByteBuf;
 
 import javax.crypto.*;
 import java.io.File;
@@ -11,6 +12,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
@@ -24,6 +27,9 @@ public class InertiaAntiCheat implements ModInitializer {
     @Override
     public void onInitialize() {
         info("Initializing InertiaAntiCheat!");
+        info(FabricLoader.getInstance().getGameDir().resolve("mods").resolve("InertiaAntiCheat-0.0.6.2.jar").toFile().getName());
+        info(FabricLoader.getInstance().getGameDir().resolve("mods").resolve("InertiaAntiCheat-0.0.6.2.jar").toFile().getPath());
+        info("Exists: " + FabricLoader.getInstance().getGameDir().resolve("mods").resolve("InertiaAntiCheat-0.0.6.2.jar").toFile().exists());
         try {
             Files.createDirectories(getConfigDir());
         } catch (IOException e) {
@@ -127,7 +133,7 @@ public class InertiaAntiCheat implements ModInitializer {
         return FabricLoader.getInstance().getConfigDir().resolve("InertiaAntiCheat");
     }
 
-    public static byte[] encryptBytes(byte[] input, SecretKey secretKey) {
+    public static byte[] encryptAESBytes(byte[] input, SecretKey secretKey) {
         try {
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
@@ -138,7 +144,7 @@ public class InertiaAntiCheat implements ModInitializer {
         }
     }
 
-    public static byte[] decryptBytes(byte[] input, SecretKey secretKey) {
+    public static byte[] decryptAESBytes(byte[] input, SecretKey secretKey) {
         try {
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
@@ -149,7 +155,7 @@ public class InertiaAntiCheat implements ModInitializer {
         }
     }
 
-    public static byte[] encryptBytes(byte[] input, PublicKey publicKey) {
+    public static byte[] encryptRSABytes(byte[] input, PublicKey publicKey) {
         try {
             Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.ENCRYPT_MODE, publicKey);
@@ -160,13 +166,25 @@ public class InertiaAntiCheat implements ModInitializer {
         }
     }
 
-    public static byte[] decryptBytes(byte[] input, PrivateKey privateKey) {
+    public static byte[] decryptRSABytes(byte[] input, PrivateKey privateKey) {
         try {
             Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.DECRYPT_MODE, privateKey);
             return cipher.doFinal(input);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException |
                  InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static PublicKey retrievePublicKey(PacketByteBuf packetByteBuf) {
+        byte[] rawPublicKeyBytes = new byte[packetByteBuf.readableBytes()];
+        packetByteBuf.readBytes(rawPublicKeyBytes);
+        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(rawPublicKeyBytes);
+        try {
+            KeyFactory factory = KeyFactory.getInstance("RSA");
+            return factory.generatePublic(publicKeySpec);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
         }
     }

@@ -50,8 +50,8 @@ public class ModListRequestS2CPacket {
                     KeyFactory factory = KeyFactory.getInstance("RSA");
                     PublicKey publicKey = factory.generatePublic(publicKeySpec);
 
-                    byte[] encryptedModList = InertiaAntiCheat.encryptBytes(modNameList.toString().getBytes(), clientE2EESecretKey);
-                    byte[] encryptedSecretKey = InertiaAntiCheat.encryptBytes(clientE2EESecretKey.getEncoded(), publicKey);
+                    byte[] encryptedModList = InertiaAntiCheat.encryptAESBytes(modNameList.toString().getBytes(), clientE2EESecretKey);
+                    byte[] encryptedSecretKey = InertiaAntiCheat.encryptRSABytes(clientE2EESecretKey.getEncoded(), publicKey);
                     responseBuf.writeInt(encryptedModList.length);
                     responseBuf.writeBytes(encryptedModList);
                     responseBuf.writeBytes(encryptedSecretKey);

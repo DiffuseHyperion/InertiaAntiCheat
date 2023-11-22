@@ -1,5 +1,8 @@
 package me.diffusehyperion.inertiaanticheat.packets;
 
+import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestEncryptedC2SPacket;
+import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestUnencryptedC2SPacket;
+import me.diffusehyperion.inertiaanticheat.packets.C2S.ContactRequestC2SPacket;
 import me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.c2s.query.QueryPingC2SPacket;
@@ -11,19 +14,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 
 public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPacketListener {
-
-    @Override
-    public void onUpgradedRequest(UpgradedQueryRequestC2SPacket var1) {
-        this.connection.send(new UpgradedQueryResponseS2CPacket());
-
-        InertiaAntiCheatServer.serverScheduler.cancelTask(disconnectRunnable);
-        disconnectRunnable.run();
-    }
-
-    private static final Text REQUEST_HANDLED = Text.translatable("multiplayer.status.request_handled");
-    private final ServerMetadata metadata;
-    private final ClientConnection connection;
-    private boolean responseSent;
     private long startTime;
     private final Runnable disconnectRunnable = new Runnable() {
         @Override
@@ -31,6 +21,31 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
             connection.disconnect(REQUEST_HANDLED);
         }
     };
+
+    @Override
+    public void onContactRequest(ContactRequestC2SPacket var1) {
+        //this.connection.send(new ContactResponseEncryptedS2CPacket());
+
+        InertiaAntiCheatServer.serverScheduler.cancelTask(disconnectRunnable);
+        disconnectRunnable.run();
+    }
+
+    @Override
+    public void onCommunicateUnencryptedRequest(CommunicateRequestUnencryptedC2SPacket var1) {
+
+    }
+
+    @Override
+    public void onCommunicateEncryptedRequest(CommunicateRequestEncryptedC2SPacket var1) {
+
+    }
+
+    /* ---------- (Mostly) vanilla stuff below ----------*/
+
+    private static final Text REQUEST_HANDLED = Text.translatable("multiplayer.status.request_handled");
+    private final ServerMetadata metadata;
+    private final ClientConnection connection;
+    private boolean responseSent;
 
     public UpgradedServerQueryNetworkHandler(ServerMetadata metadata, ClientConnection connection) {
         this.metadata = metadata;

@@ -38,9 +38,9 @@ public class ModListResponseC2SPacket {
                 byte[] encryptedAESKey = new byte[packetByteBuf.readableBytes()];
                 packetByteBuf.readBytes(encryptedAESKey);
 
-                byte[] rawAESKey = InertiaAntiCheat.decryptBytes(encryptedAESKey, serverE2EEKeyPair.getPrivate());
+                byte[] rawAESKey = InertiaAntiCheat.decryptRSABytes(encryptedAESKey, serverE2EEKeyPair.getPrivate());
                 SecretKey AESKey = new SecretKeySpec(rawAESKey, "AES");
-                byte[] rawResponse = InertiaAntiCheat.decryptBytes(encryptedModList, AESKey);
+                byte[] rawResponse = InertiaAntiCheat.decryptAESBytes(encryptedModList, AESKey);
                 response = new String(rawResponse);
             } else {
                 response = packetByteBuf.readString();
