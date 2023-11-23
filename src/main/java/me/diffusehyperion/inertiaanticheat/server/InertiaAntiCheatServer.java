@@ -2,8 +2,8 @@ package me.diffusehyperion.inertiaanticheat.server;
 
 import com.moandjiezana.toml.Toml;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
-import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
 import me.diffusehyperion.inertiaanticheat.packets.legacy.ModListResponseC2SPacket;
+import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
 import me.diffusehyperion.inertiaanticheat.util.Scheduler;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.DedicatedServerModInitializer;
@@ -14,7 +14,10 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.common.DisconnectS2CPacket;
-import net.minecraft.network.packet.s2c.play.*;
+import net.minecraft.network.packet.s2c.play.ClearTitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -23,13 +26,13 @@ import net.minecraft.text.Text;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.*;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
 
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.*;
 import static me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants.CURRENT_SERVER_CONFIG_VERSION;
@@ -121,63 +124,35 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
             warn("E2EE was enabled, but the mod did not find either the private or public key file! Generating new keypair now...");
             warn("This is fine if this is the first time you are running the mod.");
             if (privateKeyFile.exists()) {
-                warn("Private key file exists, but public key file does not! Backing up private key file...");
-                File privateKeyFileBackup = getConfigDir().resolve("./" + privateKeyFileName + "-BACKUP.key").toFile();
+                warn("Private key file exists, but public key file does not! Backing up and deleting private key file...");
                 try {
+                    File privateKeyFileBackup = getConfigDir().resolve("./" + privateKeyFileName + "-BACKUP.key").toFile();
                     privateKeyFileBackup.createNewFile();
                     Files.copy(privateKeyFile.toPath(), privateKeyFileBackup.toPath());
+                    privateKeyFile.delete();
                 } catch (IOException e) {
-                    throw new RuntimeException("Something went wrong while backing up private key file!", e);
+                    throw new RuntimeException("Something went wrong while backing up private key file! The mod has not deleted your private key file. Please delete " + privateKeyFileName + " by yourself.", e);
                 }
             } else if (publicKeyFile.exists()) {
                 warn("Public key file exists, but private key file does not! Backing up public key file now...");
-                File publicKeyFileBackup = getConfigDir().resolve("./" + publicKeyFileName + "-BACKUP.key").toFile();
                 try {
+                    File publicKeyFileBackup = getConfigDir().resolve("./" + publicKeyFileName + "-BACKUP.key").toFile();
                     publicKeyFileBackup.createNewFile();
                     Files.copy(publicKeyFile.toPath(), publicKeyFileBackup.toPath());
+                    publicKeyFile.delete();
                 } catch (IOException e) {
-                    throw new RuntimeException("Something went wrong while backing up public key file!", e);
+                    throw new RuntimeException("Something went wrong while backing up public key file! The mod has not deleted your public key file. Please delete " + publicKeyFileName + " by yourself.", e);
                 }
             }
             debugInfo("Generating new E2EE keypair now...");
-            try {
-                KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-                keyPairGenerator.initialize(2048);
-                KeyPair keyPair = keyPairGenerator.generateKeyPair();
-
-                privateKey = keyPair.getPrivate();
-                publicKey = keyPair.getPublic();
-
-                privateKeyFile.createNewFile();
-                publicKeyFile.createNewFile();
-                Files.write(privateKeyFile.toPath(), privateKey.getEncoded());
-                Files.write(publicKeyFile.toPath(), publicKey.getEncoded());
-
-                debugInfo("Private key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(privateKey.getEncoded()), "MD5"));
-                debugInfo("Public key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(publicKey.getEncoded()), "MD5"));
-            } catch (NoSuchAlgorithmException | IOException e) {
-                throw new RuntimeException("Something went wrong while generating new key pairs!", e);
-            }
+            KeyPair newPair = InertiaAntiCheat.createRSAPair(publicKeyFile, privateKeyFile);
+            publicKey = newPair.getPublic();
+            privateKey = newPair.getPrivate();
         } else {
             debugInfo("Found both key files.");
-            try {
-                Path privateKeyFilePath = Paths.get(privateKeyFile.toURI());
-                byte[] privateKeyFileBytes = Files.readAllBytes(privateKeyFilePath);
-                PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyFileBytes);
-
-                Path publicKeyFilePath = Paths.get(publicKeyFile.toURI());
-                byte[] publicKeyFileBytes = Files.readAllBytes(publicKeyFilePath);
-                X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyFileBytes);
-
-                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-                privateKey = keyFactory.generatePrivate(privateKeySpec);
-                publicKey = keyFactory.generatePublic(publicKeySpec);
-
-                debugInfo("Private key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(privateKey.getEncoded()), "MD5"));
-                debugInfo("Public key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(publicKey.getEncoded()), "MD5"));
-            } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-                throw new RuntimeException("Something went wrong while reading key pairs!", e);
-            }
+            KeyPair newPair = InertiaAntiCheat.loadRSAPair(publicKeyFile, privateKeyFile);
+            publicKey = newPair.getPublic();
+            privateKey = newPair.getPrivate();
         }
         return new KeyPair(publicKey, privateKey);
     }

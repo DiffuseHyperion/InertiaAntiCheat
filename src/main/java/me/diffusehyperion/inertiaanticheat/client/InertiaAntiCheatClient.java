@@ -8,15 +8,8 @@ import me.diffusehyperion.inertiaanticheat.util.Scheduler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.*;
@@ -47,29 +40,11 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
         if (!secretKeyFile.exists()) {
             warn("E2EE was enabled, but the mod could not find the secret key file! Generating new secret key now...");
             warn("This is fine if this is the first time you are running the mod.");
-            try {
-                KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-                keyGenerator.init(256);
-                secretKey = keyGenerator.generateKey();
-
-                secretKeyFile.createNewFile();
-                Files.write(secretKeyFile.toPath(), secretKey.getEncoded());
-
-                debugInfo("Secret key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(secretKey.getEncoded()), "MD5"));
-            } catch (NoSuchAlgorithmException | IOException e) {
-                throw new RuntimeException("Something went wrong while generating new key!", e);
-            }
+            secretKey = InertiaAntiCheat.createAESKey(secretKeyFile);
         } else {
             debugInfo("Found secret key file.");
-            try {
-                Path privateKeyFilePath = Paths.get(secretKeyFile.toURI());
-                byte[] privateKeyFileBytes = Files.readAllBytes(privateKeyFilePath);
-                secretKey = new SecretKeySpec(privateKeyFileBytes, "AES");
-
-                debugInfo("Secret key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(secretKey.getEncoded()), "MD5"));
-            } catch (IOException e) {
-                throw new RuntimeException("Something went wrong while reading the secret key!", e);
-            }
+            secretKey = InertiaAntiCheat.loadAESKey(secretKeyFile);
+            debugInfo("Secret key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(secretKey.getEncoded()), "MD5"));
         }
         return secretKey;
     }
