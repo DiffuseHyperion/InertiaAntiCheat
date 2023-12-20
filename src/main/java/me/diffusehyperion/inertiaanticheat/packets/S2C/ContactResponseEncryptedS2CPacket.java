@@ -26,4 +26,8 @@ public class ContactResponseEncryptedS2CPacket implements Packet<ClientUpgradedQ
     public void apply(ClientUpgradedQueryPacketListener listener) {
         listener.onContactEncryptedResponse(this);
     }
+
+    public PublicKey getPublicKey() {
+        return publicKey;
+    }
 }

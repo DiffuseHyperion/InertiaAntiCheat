@@ -5,11 +5,11 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.Packet;
 
 public class CommunicateRequestEncryptedC2SPacket implements Packet<ServerUpgradedQueryPacketListener> {
-    private final byte[] encryptedAESModlistHash;
+    private final byte[] encryptedAESSerializedModlist;
     private final byte[] encrypytedRSAAESKey;
 
     public CommunicateRequestEncryptedC2SPacket(byte[] encryptedAESModlistHash, byte[] encrypytedRSAAESKey) {
-        this.encryptedAESModlistHash = encryptedAESModlistHash;
+        this.encryptedAESSerializedModlist = encryptedAESModlistHash;
         this.encrypytedRSAAESKey = encrypytedRSAAESKey;
     }
 
@@ -18,7 +18,7 @@ public class CommunicateRequestEncryptedC2SPacket implements Packet<ServerUpgrad
 
         byte[] encryptedModlistHash = new byte[length];
         packetByteBuf.readBytes(encryptedModlistHash);
-        this.encryptedAESModlistHash = encryptedModlistHash;
+        this.encryptedAESSerializedModlist = encryptedModlistHash;
 
         byte[] encryptedAESKey = new byte[packetByteBuf.readableBytes()];
         packetByteBuf.readBytes(encryptedAESKey);
@@ -27,8 +27,8 @@ public class CommunicateRequestEncryptedC2SPacket implements Packet<ServerUpgrad
 
     @Override
     public void write(PacketByteBuf buf) {
-        buf.writeInt(this.encryptedAESModlistHash.length);
-        buf.writeBytes(this.encryptedAESModlistHash);
+        buf.writeInt(this.encryptedAESSerializedModlist.length);
+        buf.writeBytes(this.encryptedAESSerializedModlist);
         buf.writeBytes(this.encrypytedRSAAESKey);
     }
 
@@ -38,7 +38,7 @@ public class CommunicateRequestEncryptedC2SPacket implements Packet<ServerUpgrad
     }
 
     public byte[] getEncryptedAESModlistHash() {
-        return this.encryptedAESModlistHash;
+        return this.encryptedAESSerializedModlist;
     }
 
     public byte[] getEncrypytedRSAAESKey() {

@@ -3,6 +3,9 @@ package me.diffusehyperion.inertiaanticheat.packets;
 import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestEncryptedC2SPacket;
 import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestUnencryptedC2SPacket;
 import me.diffusehyperion.inertiaanticheat.packets.C2S.ContactRequestC2SPacket;
+import me.diffusehyperion.inertiaanticheat.packets.S2C.ContactResponseEncryptedS2CPacket;
+import me.diffusehyperion.inertiaanticheat.packets.S2C.ContactResponseRejectS2CPacket;
+import me.diffusehyperion.inertiaanticheat.packets.S2C.ContactResponseUnencryptedS2CPacket;
 import me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.c2s.query.QueryPingC2SPacket;
@@ -12,6 +15,10 @@ import net.minecraft.network.packet.s2c.query.QueryResponseS2CPacket;
 import net.minecraft.server.ServerMetadata;
 import net.minecraft.text.Text;
 import net.minecraft.util.Util;
+
+import java.util.Objects;
+
+import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.serverE2EEKeyPair;
 
 public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPacketListener {
     private long startTime;
@@ -24,20 +31,28 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
 
     @Override
     public void onContactRequest(ContactRequestC2SPacket var1) {
-        //this.connection.send(new ContactResponseEncryptedS2CPacket());
-
         InertiaAntiCheatServer.serverScheduler.cancelTask(disconnectRunnable);
-        disconnectRunnable.run();
+
+        boolean clientE2EESupport = var1.getE2EESupport();
+        boolean serverE2EESupport = Objects.nonNull(serverE2EEKeyPair);
+
+        if (!serverE2EESupport) {
+            connection.send(new ContactResponseUnencryptedS2CPacket());
+        } else if (!clientE2EESupport) {
+            connection.send(new ContactResponseRejectS2CPacket());
+        } else {
+            connection.send(new ContactResponseEncryptedS2CPacket(serverE2EEKeyPair.getPublic()));
+        }
     }
 
     @Override
     public void onCommunicateUnencryptedRequest(CommunicateRequestUnencryptedC2SPacket var1) {
-
+        disconnectRunnable.run();
     }
 
     @Override
     public void onCommunicateEncryptedRequest(CommunicateRequestEncryptedC2SPacket var1) {
-
+        disconnectRunnable.run();
     }
 
     /* ---------- (Mostly) vanilla stuff below ----------*/

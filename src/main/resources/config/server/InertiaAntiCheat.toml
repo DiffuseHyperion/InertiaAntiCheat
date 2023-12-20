@@ -3,14 +3,8 @@
 # If the delay is too long, clients may hang around for too long.
 # The player's movement, actions and chat messages are frozen at this time.
 [grace]
-graceTime = 3000
 # The reason for kicking a player due to them not responding to the server's request.
 disconnectMessage = "You were kicked for not sending a response to the anticheat!\nThis is probably due to missing the anticheat client mod.\nInstall it here: https://modrinth.com/mod/inertiaanticheat"
-# Title text to show when the player is frozen. (when the server is waiting for a response from the player)
-# Make this empty to disable showing titles.
-titleText = "Please wait..."
-# Make this empty to disable showing subtitles.
-subtitleText = "The server is checking your mods..."
 
 [mods]
 # Shw the mod list of everybody who joins.

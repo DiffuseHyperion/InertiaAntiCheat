@@ -5,19 +5,19 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.Packet;
 
 public class CommunicateRequestUnencryptedC2SPacket implements Packet<ServerUpgradedQueryPacketListener> {
-    private final String modlistHash;
+    private final String serializedModlist;
 
-    public CommunicateRequestUnencryptedC2SPacket(String modlistHash) {
-        this.modlistHash = modlistHash;
+    public CommunicateRequestUnencryptedC2SPacket(String serializedModlist) {
+        this.serializedModlist = serializedModlist;
     }
 
     public CommunicateRequestUnencryptedC2SPacket(PacketByteBuf packetByteBuf) {
-        this.modlistHash = packetByteBuf.readString();
+        this.serializedModlist = packetByteBuf.readString();
     }
 
     @Override
     public void write(PacketByteBuf buf) {
-        buf.writeString(this.modlistHash);
+        buf.writeString(this.serializedModlist);
     }
 
     @Override
@@ -26,6 +26,6 @@ public class CommunicateRequestUnencryptedC2SPacket implements Packet<ServerUpgr
     }
 
     public String getModlistHash() {
-        return this.modlistHash;
+        return this.serializedModlist;
     }
 }
