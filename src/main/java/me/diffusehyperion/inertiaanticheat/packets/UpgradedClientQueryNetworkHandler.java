@@ -60,7 +60,7 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
         this.showErrorMethod = showErrorMethod;
         this.pingMethod = pingMethod;
 
-        this.disconnectRunnable = () -> disconnect(this.connection);
+        this.disconnectRunnable = () -> connection.disconnect(Text.translatable("multiplayer.status.finished"));
     }
 
     private boolean sentQuery;
@@ -70,7 +70,7 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
     @Override
     public void onContactReject(ContactResponseRejectS2CPacket var1) {
         InertiaAntiCheatClient.clientScheduler.cancelTask(disconnectRunnable);
-        disconnect(connection);
+        disconnectRunnable.run();
 
         ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setInertiaInstalled(true);
         ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAllowedToJoin(false);
@@ -94,16 +94,11 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
         byte[] encryptedSerializedModlist = InertiaAntiCheat.encryptAESBytes(serializedModlist.getBytes(), clientE2EESecretKey);
         byte[] encryptedSecretKey = InertiaAntiCheat.encryptRSABytes(clientE2EESecretKey.getEncoded(), var1.getPublicKey());
         connection.send(new CommunicateRequestEncryptedC2SPacket(encryptedSerializedModlist, encryptedSecretKey));
-
     }
 
     @Override
     public void onCommunicateResponse(CommunicateResponseS2CPacket var1) {
-        disconnect(connection);
-    }
-
-    private void disconnect(ClientConnection connection) {
-        connection.disconnect(Text.translatable("multiplayer.status.finished"));
+        disconnectRunnable.run();
     }
 
     /* ---------- (Mostly) vanilla stuff below ----------*/

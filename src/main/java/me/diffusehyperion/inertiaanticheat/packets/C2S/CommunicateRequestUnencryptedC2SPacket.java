@@ -25,7 +25,7 @@ public class CommunicateRequestUnencryptedC2SPacket implements Packet<ServerUpgr
         listener.onCommunicateUnencryptedRequest(this);
     }
 
-    public String getModlistHash() {
+    public String getSerializedModlist() {
         return this.serializedModlist;
     }
 }

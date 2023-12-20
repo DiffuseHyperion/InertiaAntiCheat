@@ -37,7 +37,7 @@ public class CommunicateRequestEncryptedC2SPacket implements Packet<ServerUpgrad
         listener.onCommunicateEncryptedRequest(this);
     }
 
-    public byte[] getEncryptedAESModlistHash() {
+    public byte[] getEncryptedAESSerializedModlist() {
         return this.encryptedAESSerializedModlist;
     }
 

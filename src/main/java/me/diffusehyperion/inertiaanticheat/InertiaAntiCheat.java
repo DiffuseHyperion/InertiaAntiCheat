@@ -52,10 +52,27 @@ public class InertiaAntiCheat implements ModInitializer {
     }
 
     public static void debugInfo(String info) {
-        if (Objects.nonNull(serverConfig) && serverConfig.getBoolean("debug.debug")) {
-            MODLOGGER.info("[InertiaAntiCheat] " + info);
-        } else if (Objects.nonNull(clientConfig) && clientConfig.getBoolean("debug.debug")) {
-            MODLOGGER.info("[InertiaAntiCheat] " + info);
+        if ((Objects.nonNull(serverConfig) && serverConfig.getBoolean("debug.debug")) || (Objects.nonNull(clientConfig) && clientConfig.getBoolean("debug.debug"))) {
+            info(info);
+        }
+    }
+
+    public static void debugWarn(String info) {
+        if ((Objects.nonNull(serverConfig) && serverConfig.getBoolean("debug.debug")) || (Objects.nonNull(clientConfig) && clientConfig.getBoolean("debug.debug"))){
+            warn(info);
+        }
+    }
+
+    public static void debugError(String info) {
+        if ((Objects.nonNull(serverConfig) && serverConfig.getBoolean("debug.debug")) || (Objects.nonNull(clientConfig) && clientConfig.getBoolean("debug.debug"))){
+            error(info);
+        }
+    }
+
+    public static void debugException(Exception exception) {
+        if ((Objects.nonNull(serverConfig) && serverConfig.getBoolean("debug.debug")) || (Objects.nonNull(clientConfig) && clientConfig.getBoolean("debug.debug"))){
+            error(exception.getMessage());
+            error(Arrays.toString(exception.getStackTrace()));
         }
     }
 
