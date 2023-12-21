@@ -2,6 +2,7 @@ package me.diffusehyperion.inertiaanticheat;
 
 import com.moandjiezana.toml.Toml;
 import me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer;
+import me.diffusehyperion.inertiaanticheat.util.HashAlgorithm;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.PacketByteBuf;
@@ -19,12 +20,11 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.List;
 import java.util.Objects;
 
-import static me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants.MODLOGGER;
 import static me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient.clientConfig;
 import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.serverConfig;
+import static me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants.MODLOGGER;
 
 public class InertiaAntiCheat implements ModInitializer {
 
@@ -76,44 +76,43 @@ public class InertiaAntiCheat implements ModInitializer {
         }
     }
 
-    public static String listToPrettyString(List<String> list) {
-        switch (list.size()) {
-            case 0 -> {
-                return "";
-            }
-            case 1 -> {
-                return list.get(0);
-            }
-            default -> {
-                StringBuilder builder = new StringBuilder();
-                builder.append(list.get(0));
-                for (int i = 1; i < list.size(); i++) {
-                    if (i != (list.size() - 1)) {
-                        builder.append(", ");
-                        builder.append(list.get(i));
-                    } else {
-                        builder.append(" and ");
-                        builder.append(list.get(i));
-                    }
-                }
-                return builder.toString();
-            }
-        }
-    }
-
-    public static String getHash(String input, String defaultAlgorithm) {
+    public static String getHash(String input, String algorithm) {
         try {
-            String algorithm;
-            if (serverConfig == null) {
-                algorithm = defaultAlgorithm;
-            } else {
-                algorithm = serverConfig.getString("hash.algorithm", defaultAlgorithm);
-            }
             MessageDigest md = MessageDigest.getInstance(algorithm);
             byte[] arr = md.digest(input.getBytes());
             return Base64.getEncoder().encodeToString(arr);
         } catch (NoSuchAlgorithmException e){
-            throw new RuntimeException("Invalid algorithm provided! Did you use an accepted algorithm in your config?", e);
+            throw new RuntimeException("Invalid algorithm provided! Please report this on this project's Github!", e);
+        }
+    }
+
+    public static String getHash(String input, HashAlgorithm algorithm) {
+        try {
+            MessageDigest md = MessageDigest.getInstance(algorithm.toString());
+            byte[] arr = md.digest(input.getBytes());
+            return Base64.getEncoder().encodeToString(arr);
+        } catch (NoSuchAlgorithmException e){
+            throw new RuntimeException("Invalid algorithm provided! Please report this on this project's Github!", e);
+        }
+    }
+
+    public static String getHash(byte[] input, String algorithm) {
+        try {
+            MessageDigest md = MessageDigest.getInstance(algorithm);
+            byte[] arr = md.digest(input);
+            return Base64.getEncoder().encodeToString(arr);
+        } catch (NoSuchAlgorithmException e){
+            throw new RuntimeException("Invalid algorithm provided! Please report this on this project's Github!", e);
+        }
+    }
+
+    public static String getHash(byte[] input, HashAlgorithm algorithm) {
+        try {
+            MessageDigest md = MessageDigest.getInstance(algorithm.toString());
+            byte[] arr = md.digest(input);
+            return Base64.getEncoder().encodeToString(arr);
+        } catch (NoSuchAlgorithmException e){
+            throw new RuntimeException("Invalid algorithm provided! Please report this on this project's Github!", e);
         }
     }
 

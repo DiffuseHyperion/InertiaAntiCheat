@@ -98,6 +98,7 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
 
     @Override
     public void onCommunicateResponse(CommunicateResponseS2CPacket var1) {
+        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAllowedToJoin(var1.isAccepted());
         disconnectRunnable.run();
     }
 
