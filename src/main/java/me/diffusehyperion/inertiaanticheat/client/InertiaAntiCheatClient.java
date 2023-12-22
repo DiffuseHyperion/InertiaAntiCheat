@@ -2,15 +2,19 @@ package me.diffusehyperion.inertiaanticheat.client;
 
 import com.moandjiezana.toml.Toml;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
-import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
-import me.diffusehyperion.inertiaanticheat.packets.legacy.ModListRequestS2CPacket;
 import me.diffusehyperion.inertiaanticheat.util.Scheduler;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.loader.api.FabricLoader;
 
 import javax.crypto.SecretKey;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.*;
 import static me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants.CURRENT_CLIENT_CONFIG_VERSION;
@@ -22,7 +26,6 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        ClientPlayNetworking.registerGlobalReceiver(InertiaAntiCheatConstants.REQUEST_PACKET_ID, ModListRequestS2CPacket::receive);
         clientConfig = InertiaAntiCheat.initializeConfig("/config/client/InertiaAntiCheat.toml", CURRENT_CLIENT_CONFIG_VERSION);
         debugInfo("Initializing E2EE...");
         clientE2EESecretKey = initializeE2EE();
@@ -47,5 +50,19 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
             debugInfo("Secret key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(secretKey.getEncoded()), "MD5"));
         }
         return secretKey;
+    }
+
+    public static String serializeModlist() {
+        try {
+            File modDirectory = FabricLoader.getInstance().getGameDir().resolve("mods").toFile();
+            List<File> modFiles = new ArrayList<>(Arrays.asList(Objects.requireNonNull(modDirectory.listFiles())));
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
+            oos.writeObject(modFiles);
+
+            return bos.toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -9,9 +9,23 @@ import org.spongepowered.asm.mixin.Unique;
 public abstract class ServerInfoMixin implements ServerInfoInterface {
     @Unique
     private boolean inertiaInstalled;
+
+    @Unique
+    private boolean allowedToJoin;
+
+    @Override
+    public boolean inertiaAntiCheat$allowedToJoin() {
+        return this.allowedToJoin;
+    }
+
     @Override
     public boolean inertiaAntiCheat$isInertiaInstalled() {
-        return inertiaInstalled;
+        return this.inertiaInstalled;
+    }
+
+    @Override
+    public void inertiaAntiCheat$setAllowedToJoin(boolean value) {
+        this.allowedToJoin = value;
     }
 
     @Override

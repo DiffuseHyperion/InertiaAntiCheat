@@ -1,7 +1,12 @@
 package me.diffusehyperion.inertiaanticheat.packets;
 
 import com.mojang.authlib.GameProfile;
+import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient;
+import me.diffusehyperion.inertiaanticheat.interfaces.ServerInfoInterface;
+import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestEncryptedC2SPacket;
+import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestUnencryptedC2SPacket;
+import me.diffusehyperion.inertiaanticheat.packets.C2S.ContactRequestC2SPacket;
 import me.diffusehyperion.inertiaanticheat.packets.S2C.CommunicateResponseS2CPacket;
 import me.diffusehyperion.inertiaanticheat.packets.S2C.ContactResponseEncryptedS2CPacket;
 import me.diffusehyperion.inertiaanticheat.packets.S2C.ContactResponseRejectS2CPacket;
@@ -23,7 +28,10 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
+
+import static me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient.clientE2EESecretKey;
 
 public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPacketListener {
     private final ServerInfo serverInfo;
@@ -36,7 +44,13 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
     private final BiConsumer<Text, ServerInfo> showErrorMethod;
     private final TriConsumer<InetSocketAddress, ServerAddress, ServerInfo> pingMethod;
 
-    private final Runnable disconnectRunnable;
+    private final Runnable disconnectRunnable = new Runnable() {
+        @Override
+        public void run() {
+            InertiaAntiCheat.info("Disconnect");
+            connection.disconnect(Text.translatable("multiplayer.status.finished"));
+        }
+    };
 
     public UpgradedClientQueryNetworkHandler(ServerInfo serverInfo, Runnable runnable, ClientConnection connection,
                                              InetSocketAddress inetSocketAddress, ServerAddress serverAddress,
@@ -51,8 +65,6 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
 
         this.showErrorMethod = showErrorMethod;
         this.pingMethod = pingMethod;
-
-        this.disconnectRunnable = () -> disconnect(this.connection);
     }
 
     private boolean sentQuery;
@@ -61,30 +73,41 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
 
     @Override
     public void onContactReject(ContactResponseRejectS2CPacket var1) {
+        InertiaAntiCheat.info("Finished contact, rejected");
+        InertiaAntiCheatClient.clientScheduler.cancelTask(disconnectRunnable);
+        disconnectRunnable.run();
 
+        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setInertiaInstalled(true);
+        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAllowedToJoin(false);
     }
 
     @Override
     public void onContactUnencryptedResponse(ContactResponseUnencryptedS2CPacket var1) {
+        InertiaAntiCheat.info("Finished unencrypted contact");
+        InertiaAntiCheatClient.clientScheduler.cancelTask(disconnectRunnable);
 
+        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setInertiaInstalled(true);
+
+        connection.send(new CommunicateRequestUnencryptedC2SPacket(InertiaAntiCheatClient.serializeModlist()));
     }
 
     public void onContactEncryptedResponse(ContactResponseEncryptedS2CPacket var1) {
-        /*
+        InertiaAntiCheat.info("Finished encrypted contact");
         InertiaAntiCheatClient.clientScheduler.cancelTask(disconnectRunnable);
-        disconnect(connection);
 
         ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setInertiaInstalled(true);
-         */
+
+        String serializedModlist = InertiaAntiCheatClient.serializeModlist();
+        byte[] encryptedSerializedModlist = InertiaAntiCheat.encryptAESBytes(serializedModlist.getBytes(), clientE2EESecretKey);
+        byte[] encryptedSecretKey = InertiaAntiCheat.encryptRSABytes(clientE2EESecretKey.getEncoded(), var1.getPublicKey());
+        connection.send(new CommunicateRequestEncryptedC2SPacket(encryptedSerializedModlist, encryptedSecretKey));
     }
 
     @Override
     public void onCommunicateResponse(CommunicateResponseS2CPacket var1) {
-
-    }
-
-    private void disconnect(ClientConnection connection) {
-        connection.disconnect(Text.translatable("multiplayer.status.finished"));
+        InertiaAntiCheat.info("Finished communication, permitted: " + var1.isAccepted());
+        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAllowedToJoin(var1.isAccepted());
+        disconnectRunnable.run();
     }
 
     /* ---------- (Mostly) vanilla stuff below ----------*/
@@ -137,9 +160,10 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
         long l = this.startTime;
         long m = Util.getMeasuringTimeMs();
         serverInfo.ping = m - l;
-        //connection.send(new ContactRequestC2SPacket());
 
-        InertiaAntiCheatClient.clientScheduler.addTask((int) (((serverInfo.ping / 2) / 50) + 20), disconnectRunnable);
+        InertiaAntiCheat.info("Sending contact request");
+        connection.send(new ContactRequestC2SPacket(Objects.nonNull(clientE2EESecretKey)));
+        InertiaAntiCheatClient.clientScheduler.addTask((int) (((serverInfo.ping / 2) / 50) + 100), disconnectRunnable);
     }
 
     @Override

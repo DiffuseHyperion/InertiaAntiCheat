@@ -4,11 +4,6 @@ enable = true
 # Name of the secret key file to use for E2EE.
 secretKeyName = "secret.key"
 
-[consent]
-# Skip showing the consent screen when joining a server.
-donotshow = false
-
-
 [debug]
 # Show additional information in server logs.
 debug = false

@@ -27,6 +27,9 @@ public abstract class MultiplayerServerListWidgetServerEntryMixin {
 
     @Unique
     private final Identifier ICON_ENABLED = new Identifier(MODID, "textures/gui/enabled.png");
+    @Unique
+    private final Identifier ICON_ALLOWED = new Identifier(MODID, "textures/gui/tick.png");
+
     @Inject(
             method = "render",
             at = @At(value = "INVOKE",
@@ -40,6 +43,16 @@ public abstract class MultiplayerServerListWidgetServerEntryMixin {
             if (mouseX > iconX && mouseX < iconX + 10 && mouseY > iconY && mouseY < iconY + 10) {
                 List<Text> text = new ArrayList<>();
                 text.add(Text.of("InertiaAntiCheat installed"));
+                screen.setMultiplayerScreenTooltip(text);
+            }
+        }
+        if (((ServerInfoInterface) server).inertiaAntiCheat$allowedToJoin()) {
+            int iconX = x + entryWidth - 15;
+            int iconY = y + 20;
+            context.drawTexture(ICON_ALLOWED, iconX, iconY, 0.0f, 0.0f, 10, 10, 10, 10);
+            if (mouseX > iconX && mouseX < iconX + 10 && mouseY > iconY && mouseY < iconY + 10) {
+                List<Text> text = new ArrayList<>();
+                text.add(Text.of("Allowed to join"));
                 screen.setMultiplayerScreenTooltip(text);
             }
         }
