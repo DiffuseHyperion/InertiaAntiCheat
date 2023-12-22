@@ -17,6 +17,7 @@
     "client.ServerInfoMixin"
   ],
   "mixins": [
-    "NetworkStateMixin"
+    "NetworkStateMixin",
+    "server.ServerLoginNetworkHandlerMixin"
   ]
 }
