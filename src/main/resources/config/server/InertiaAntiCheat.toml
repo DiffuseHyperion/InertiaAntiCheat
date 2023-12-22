@@ -16,7 +16,7 @@ algorithm = "MD5"
 # Immediately kick players who have these mods in their modlist.
 # The mod checks (and kicks) for blacklisted mods first.
 # Enabling debug will show the full modlist of players joining, allowing you to discover mod names.
-blacklist = ["Wurst Client", "Meteor Client"]
+blacklist = ["cd74f2be2bf8ed2c8f1e00df310b29f3c172ae537a60ba3fdd4887bff2545595"]
 # The reason for kicking a player due to having blacklisted mods installed.
 # Use ${blacklisted} as a placeholder for all blacklisted mods found on the player.
 blacklistMessage = "You were kicked for having illegal mods installed!\nRemove ${blacklisted} before rejoining the server."

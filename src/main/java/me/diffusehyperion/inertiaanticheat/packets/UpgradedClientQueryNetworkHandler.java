@@ -44,7 +44,13 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
     private final BiConsumer<Text, ServerInfo> showErrorMethod;
     private final TriConsumer<InetSocketAddress, ServerAddress, ServerInfo> pingMethod;
 
-    private final Runnable disconnectRunnable;
+    private final Runnable disconnectRunnable = new Runnable() {
+        @Override
+        public void run() {
+            InertiaAntiCheat.info("Disconnect");
+            connection.disconnect(Text.translatable("multiplayer.status.finished"));
+        }
+    };
 
     public UpgradedClientQueryNetworkHandler(ServerInfo serverInfo, Runnable runnable, ClientConnection connection,
                                              InetSocketAddress inetSocketAddress, ServerAddress serverAddress,
@@ -59,8 +65,6 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
 
         this.showErrorMethod = showErrorMethod;
         this.pingMethod = pingMethod;
-
-        this.disconnectRunnable = () -> connection.disconnect(Text.translatable("multiplayer.status.finished"));
     }
 
     private boolean sentQuery;
@@ -69,6 +73,7 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
 
     @Override
     public void onContactReject(ContactResponseRejectS2CPacket var1) {
+        InertiaAntiCheat.info("Finished contact, rejected");
         InertiaAntiCheatClient.clientScheduler.cancelTask(disconnectRunnable);
         disconnectRunnable.run();
 
@@ -78,6 +83,7 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
 
     @Override
     public void onContactUnencryptedResponse(ContactResponseUnencryptedS2CPacket var1) {
+        InertiaAntiCheat.info("Finished unencrypted contact");
         InertiaAntiCheatClient.clientScheduler.cancelTask(disconnectRunnable);
 
         ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setInertiaInstalled(true);
@@ -86,6 +92,7 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
     }
 
     public void onContactEncryptedResponse(ContactResponseEncryptedS2CPacket var1) {
+        InertiaAntiCheat.info("Finished encrypted contact");
         InertiaAntiCheatClient.clientScheduler.cancelTask(disconnectRunnable);
 
         ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setInertiaInstalled(true);
@@ -98,6 +105,7 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
 
     @Override
     public void onCommunicateResponse(CommunicateResponseS2CPacket var1) {
+        InertiaAntiCheat.info("Finished communication, permitted: " + var1.isAccepted());
         ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAllowedToJoin(var1.isAccepted());
         disconnectRunnable.run();
     }
@@ -153,8 +161,9 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
         long m = Util.getMeasuringTimeMs();
         serverInfo.ping = m - l;
 
+        InertiaAntiCheat.info("Sending contact request");
         connection.send(new ContactRequestC2SPacket(Objects.nonNull(clientE2EESecretKey)));
-        InertiaAntiCheatClient.clientScheduler.addTask((int) (((serverInfo.ping / 2) / 50) + 20), disconnectRunnable);
+        InertiaAntiCheatClient.clientScheduler.addTask((int) (((serverInfo.ping / 2) / 50) + 100), disconnectRunnable);
     }
 
     @Override

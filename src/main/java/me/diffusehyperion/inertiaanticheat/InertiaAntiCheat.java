@@ -31,9 +31,6 @@ public class InertiaAntiCheat implements ModInitializer {
     @Override
     public void onInitialize() {
         info("Initializing InertiaAntiCheat!");
-        info(FabricLoader.getInstance().getGameDir().resolve("mods").resolve("InertiaAntiCheat-0.0.6.2.jar").toFile().getName());
-        info(FabricLoader.getInstance().getGameDir().resolve("mods").resolve("InertiaAntiCheat-0.0.6.2.jar").toFile().getPath());
-        info("Exists: " + FabricLoader.getInstance().getGameDir().resolve("mods").resolve("InertiaAntiCheat-0.0.6.2.jar").toFile().exists());
         try {
             Files.createDirectories(getConfigDir());
         } catch (IOException e) {
@@ -144,6 +141,7 @@ public class InertiaAntiCheat implements ModInitializer {
             } catch (IOException e) {
                 throw new RuntimeException("Couldn't create a default config!", e);
             }
+            config = new Toml().read(configFile); // update config to new file
             info("Done! Please readjust the configs in the new file accordingly.");
         }
         return config;

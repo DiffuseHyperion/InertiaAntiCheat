@@ -37,12 +37,14 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
     private final Runnable disconnectRunnable = new Runnable() {
         @Override
         public void run() {
+            InertiaAntiCheat.info("Disconnected");
             connection.disconnect(REQUEST_HANDLED);
         }
     };
 
     @Override
     public void onContactRequest(ContactRequestC2SPacket var1) {
+        InertiaAntiCheat.info("Received contact");
         InertiaAntiCheatServer.serverScheduler.cancelTask(disconnectRunnable);
 
         boolean clientE2EESupport = var1.getE2EESupport();
@@ -50,10 +52,13 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
 
         if (!serverE2EESupport) {
             connection.send(new ContactResponseUnencryptedS2CPacket());
+            InertiaAntiCheat.info("Sent contact unencrypted response");
         } else if (!clientE2EESupport) {
             connection.send(new ContactResponseRejectS2CPacket());
+            InertiaAntiCheat.info("Sent contact reject response");
         } else {
             connection.send(new ContactResponseEncryptedS2CPacket(serverE2EEKeyPair.getPublic()));
+            InertiaAntiCheat.info("Sent contact encrypted response");
         }
     }
 

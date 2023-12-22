@@ -5,7 +5,6 @@
   "compatibilityLevel": "JAVA_8",
   "server": [
     "server.ServerHandshakeNetworkHandlerMixin",
-    "server.ServerPlayNetworkHandlerMixin",
     "server.ServerNetworkIoMixin"
   ],
   "injectors": {
