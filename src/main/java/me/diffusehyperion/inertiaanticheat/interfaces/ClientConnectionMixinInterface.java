@@ -5,6 +5,4 @@ import me.diffusehyperion.inertiaanticheat.packets.ClientUpgradedQueryPacketList
 public interface ClientConnectionMixinInterface {
 
     void inertiaAntiCheat$connect(String string, int i, ClientUpgradedQueryPacketListener clientUpgradedStatusPacketListener);
-
-    boolean inertiaAntiCheat$isUpgraded();
 }

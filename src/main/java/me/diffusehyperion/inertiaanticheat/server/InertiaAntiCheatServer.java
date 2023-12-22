@@ -6,7 +6,10 @@ import me.diffusehyperion.inertiaanticheat.util.HashAlgorithm;
 import me.diffusehyperion.inertiaanticheat.util.ModlistCheckMethod;
 import me.diffusehyperion.inertiaanticheat.util.Scheduler;
 import net.fabricmc.api.DedicatedServerModInitializer;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,15 +17,15 @@ import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.UUID;
 
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.*;
 import static me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants.CURRENT_SERVER_CONFIG_VERSION;
 
 public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
 
-    public static List<ServerPlayerEntity> allowedPlayers = new ArrayList<>();
+    public static HashMap<String, UUID> generatedKeys = new HashMap<>();
     public static Toml serverConfig;
     public static KeyPair serverE2EEKeyPair; // null if e2ee not enabled
     public static ModlistCheckMethod modlistCheckMethod;
@@ -58,6 +61,12 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
 
         debugInfo("Initializing E2EE...");
         serverE2EEKeyPair = initializeE2EE();
+
+        ServerPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
+    }
+
+    private void onPlayerJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
+        InertiaAntiCheat.info("Player joining from address: " + serverPlayNetworkHandler.getConnectionAddress());
     }
 
     private KeyPair initializeE2EE() {

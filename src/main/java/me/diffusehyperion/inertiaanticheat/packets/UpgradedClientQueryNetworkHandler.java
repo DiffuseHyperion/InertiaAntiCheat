@@ -7,10 +7,7 @@ import me.diffusehyperion.inertiaanticheat.interfaces.ServerInfoInterface;
 import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestEncryptedC2SPacket;
 import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestUnencryptedC2SPacket;
 import me.diffusehyperion.inertiaanticheat.packets.C2S.ContactRequestC2SPacket;
-import me.diffusehyperion.inertiaanticheat.packets.S2C.CommunicateResponseS2CPacket;
-import me.diffusehyperion.inertiaanticheat.packets.S2C.ContactResponseEncryptedS2CPacket;
-import me.diffusehyperion.inertiaanticheat.packets.S2C.ContactResponseRejectS2CPacket;
-import me.diffusehyperion.inertiaanticheat.packets.S2C.ContactResponseUnencryptedS2CPacket;
+import me.diffusehyperion.inertiaanticheat.packets.S2C.*;
 import net.minecraft.client.network.MultiplayerServerListPinger;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.network.ServerInfo;
@@ -103,10 +100,19 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
         connection.send(new CommunicateRequestEncryptedC2SPacket(encryptedSerializedModlist, encryptedSecretKey));
     }
 
+    //TODO: Store keys for each server
+
     @Override
-    public void onCommunicateResponse(CommunicateResponseS2CPacket var1) {
-        InertiaAntiCheat.info("Finished communication, permitted: " + var1.isAccepted());
-        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAllowedToJoin(var1.isAccepted());
+    public void onCommunicateAcceptResponse(CommunicateResponseAcceptS2CPacket var1) {
+        InertiaAntiCheat.info("Finished communication, allowed to join");
+        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAllowedToJoin(true);
+        disconnectRunnable.run();
+    }
+
+    @Override
+    public void onCommunicateRejectResponse(CommunicateResponseRejectS2CPacket var1) {
+        InertiaAntiCheat.info("Finished communication, not allowed to join");
+        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAllowedToJoin(false);
         disconnectRunnable.run();
     }
 

@@ -12,19 +12,9 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(ClientConnection.class)
 public abstract class ClientConnectionMixin implements ClientConnectionMixinInterface {
     @Unique
-    private boolean upgraded;
-
-    @Unique
     @Override
     public void inertiaAntiCheat$connect(String string, int i, ClientUpgradedQueryPacketListener clientUpgradedQueryPacketListener) {
-        this.upgraded = true;
         this.connect(string, i, clientUpgradedQueryPacketListener, ConnectionIntent.STATUS);
-    }
-
-    @Unique
-    @Override
-    public boolean inertiaAntiCheat$isUpgraded() {
-        return upgraded;
     }
 
     @Shadow

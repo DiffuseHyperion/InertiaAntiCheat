@@ -12,6 +12,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -129,6 +130,11 @@ public class InertiaAntiCheat implements ModInitializer {
 
     public static Path getConfigDir() {
         return FabricLoader.getInstance().getConfigDir().resolve("InertiaAntiCheat");
+    }
+
+    public static String getIP(SocketAddress address) {
+        String addressString = address.toString();
+        return addressString.substring(addressString.indexOf("/") + 1, addressString.indexOf(":"));
     }
 
     public static PublicKey retrievePublicKey(PacketByteBuf packetByteBuf) {

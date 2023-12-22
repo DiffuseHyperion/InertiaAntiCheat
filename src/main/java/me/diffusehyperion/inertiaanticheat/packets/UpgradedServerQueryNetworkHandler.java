@@ -4,10 +4,7 @@ import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestEncryptedC2SPacket;
 import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestUnencryptedC2SPacket;
 import me.diffusehyperion.inertiaanticheat.packets.C2S.ContactRequestC2SPacket;
-import me.diffusehyperion.inertiaanticheat.packets.S2C.CommunicateResponseS2CPacket;
-import me.diffusehyperion.inertiaanticheat.packets.S2C.ContactResponseEncryptedS2CPacket;
-import me.diffusehyperion.inertiaanticheat.packets.S2C.ContactResponseRejectS2CPacket;
-import me.diffusehyperion.inertiaanticheat.packets.S2C.ContactResponseUnencryptedS2CPacket;
+import me.diffusehyperion.inertiaanticheat.packets.S2C.*;
 import me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer;
 import me.diffusehyperion.inertiaanticheat.util.ModlistCheckMethod;
 import net.minecraft.network.ClientConnection;
@@ -29,6 +26,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.serverConfig;
 import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.serverE2EEKeyPair;
@@ -45,7 +43,7 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
 
     @Override
     public void onContactRequest(ContactRequestC2SPacket var1) {
-        InertiaAntiCheat.info("Received contact");
+        InertiaAntiCheat.info("Received contact from address: " + connection.getAddress().toString());
         InertiaAntiCheatServer.serverScheduler.cancelTask(disconnectRunnable);
 
         boolean clientE2EESupport = var1.getE2EESupport();
@@ -72,17 +70,22 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
                 InertiaAntiCheat.debugError("The server received an invalid response from a player!");
                 InertiaAntiCheat.debugError("This may be caused by a player modifying their response.");
 
-                connection.send(new CommunicateResponseS2CPacket(false));
+                connection.send(new CommunicateResponseRejectS2CPacket());
             } else {
-                boolean allowed = checkModlist(modFiles);
-                connection.send(new CommunicateResponseS2CPacket(allowed));
+                if (checkModlist(modFiles)) {
+                    UUID newKey = UUID.randomUUID();
+                    InertiaAntiCheatServer.generatedKeys.put(InertiaAntiCheat.getIP(connection.getAddress()), newKey);
+                    connection.send(new CommunicateResponseAcceptS2CPacket(newKey));
+                } else {
+                    connection.send(new CommunicateResponseRejectS2CPacket());
+                }
             }
         } catch (IOException | ClassNotFoundException e) {
             InertiaAntiCheat.debugError("Something went wrong while deserializing a response packet!");
             InertiaAntiCheat.debugError("This may be caused by a player modifying their response.");
             InertiaAntiCheat.debugException(e);
 
-            connection.send(new CommunicateResponseS2CPacket(false));
+            connection.send(new CommunicateResponseRejectS2CPacket());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -101,15 +104,21 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
                 InertiaAntiCheat.debugError("The server received an invalid response from a player!");
                 InertiaAntiCheat.debugError("This may be caused by a player modifying their response.");
 
-                connection.send(new CommunicateResponseS2CPacket(false));
+                connection.send(new CommunicateResponseRejectS2CPacket());
             } else {
-                connection.send(new CommunicateResponseS2CPacket(checkModlist(modFiles)));
+                if (checkModlist(modFiles)) {
+                    UUID newKey = UUID.randomUUID();
+                    InertiaAntiCheatServer.generatedKeys.put(InertiaAntiCheat.getIP(connection.getAddress()), newKey);
+                    connection.send(new CommunicateResponseAcceptS2CPacket(newKey));
+                } else {
+                    connection.send(new CommunicateResponseRejectS2CPacket());
+                }
             }
         } catch (IOException | ClassNotFoundException e) {
             InertiaAntiCheat.debugError("Something went wrong while deserializing a response packet!");
             InertiaAntiCheat.debugError("This may be caused by a player modifying their response.");
 
-            connection.send(new CommunicateResponseS2CPacket(false));
+            connection.send(new CommunicateResponseRejectS2CPacket());
             throw new RuntimeException(e);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -124,8 +133,10 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
             return null;
         }
         List<?> modFilesListObj = (List<?>) modFilesObj;
-        if (!modFilesListObj.isEmpty() && !(modFilesListObj.get(0) instanceof File)) {
-            return null;
+        for (Object obj : modFilesListObj) {
+            if (!(obj instanceof File)) {
+                return null;
+            }
         }
         return (List<File>) modFilesObj; // dunno why intellij is complaining about unchecked cast lol
     }
