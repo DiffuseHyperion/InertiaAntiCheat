@@ -73,9 +73,15 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
                 connection.send(new CommunicateResponseRejectS2CPacket());
             } else {
                 if (checkModlist(modFiles)) {
-                    UUID newKey = UUID.randomUUID();
-                    InertiaAntiCheatServer.generatedKeys.put(InertiaAntiCheat.getIP(connection.getAddress()), newKey);
-                    connection.send(new CommunicateResponseAcceptS2CPacket(newKey));
+                    String ip = InertiaAntiCheat.getIP(connection.getAddress());
+                    UUID key;
+                    if (!InertiaAntiCheatServer.generatedKeys.containsKey(ip)) {
+                        key = UUID.randomUUID();
+                        InertiaAntiCheatServer.generatedKeys.put(InertiaAntiCheat.getIP(connection.getAddress()), key);
+                    } else {
+                        key = InertiaAntiCheatServer.generatedKeys.get(ip);
+                    }
+                    connection.send(new CommunicateResponseAcceptS2CPacket(key));
                 } else {
                     connection.send(new CommunicateResponseRejectS2CPacket());
                 }
@@ -107,9 +113,15 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
                 connection.send(new CommunicateResponseRejectS2CPacket());
             } else {
                 if (checkModlist(modFiles)) {
-                    UUID newKey = UUID.randomUUID();
-                    InertiaAntiCheatServer.generatedKeys.put(InertiaAntiCheat.getIP(connection.getAddress()), newKey);
-                    connection.send(new CommunicateResponseAcceptS2CPacket(newKey));
+                    String ip = InertiaAntiCheat.getIP(connection.getAddress());
+                    UUID key;
+                    if (!InertiaAntiCheatServer.generatedKeys.containsKey(ip)) {
+                        key = UUID.randomUUID();
+                        InertiaAntiCheatServer.generatedKeys.put(InertiaAntiCheat.getIP(connection.getAddress()), key);
+                    } else {
+                        key = InertiaAntiCheatServer.generatedKeys.get(ip);
+                    }
+                    connection.send(new CommunicateResponseAcceptS2CPacket(key));
                 } else {
                     connection.send(new CommunicateResponseRejectS2CPacket());
                 }
