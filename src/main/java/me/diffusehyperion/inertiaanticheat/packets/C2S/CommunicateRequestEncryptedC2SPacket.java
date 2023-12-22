@@ -16,13 +16,13 @@ public class CommunicateRequestEncryptedC2SPacket implements Packet<ServerUpgrad
     public CommunicateRequestEncryptedC2SPacket(PacketByteBuf packetByteBuf) {
         int length = packetByteBuf.readInt();
 
-        byte[] encryptedModlistHash = new byte[length];
-        packetByteBuf.readBytes(encryptedModlistHash);
-        this.encryptedAESSerializedModlist = encryptedModlistHash;
+        byte[] encryptedAESSerializedModlist = new byte[length];
+        packetByteBuf.readBytes(encryptedAESSerializedModlist);
+        this.encryptedAESSerializedModlist = encryptedAESSerializedModlist;
 
-        byte[] encryptedAESKey = new byte[packetByteBuf.readableBytes()];
-        packetByteBuf.readBytes(encryptedAESKey);
-        this.encrypytedRSAAESKey = encryptedAESKey;
+        byte[] encrypytedRSAAESKey = new byte[packetByteBuf.readableBytes()];
+        packetByteBuf.readBytes(encrypytedRSAAESKey);
+        this.encrypytedRSAAESKey = encrypytedRSAAESKey;
     }
 
     @Override

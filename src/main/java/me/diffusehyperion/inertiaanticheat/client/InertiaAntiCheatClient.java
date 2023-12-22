@@ -11,10 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.*;
 import static me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants.CURRENT_CLIENT_CONFIG_VERSION;
@@ -47,20 +44,21 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
         } else {
             debugInfo("Found secret key file.");
             secretKey = InertiaAntiCheat.loadAESKey(secretKeyFile);
-            debugInfo("Secret key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(secretKey.getEncoded()), "MD5"));
+            debugInfo("Secret key MD5 hash: " + InertiaAntiCheat.getChecksum(secretKey.getEncoded(), "MD5"));
         }
         return secretKey;
     }
 
-    public static String serializeModlist() {
+    public static byte[] serializeModlist() {
         try {
             File modDirectory = FabricLoader.getInstance().getGameDir().resolve("mods").toFile();
             List<File> modFiles = new ArrayList<>(Arrays.asList(Objects.requireNonNull(modDirectory.listFiles())));
+            InertiaAntiCheat.info("Serializing " + modFiles.size() + " mods");
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(bos);
             oos.writeObject(modFiles);
 
-            return bos.toString();
+            return bos.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

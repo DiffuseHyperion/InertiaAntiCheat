@@ -11,6 +11,7 @@ import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,7 +20,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Objects;
 
 import static me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient.clientConfig;
@@ -73,41 +73,21 @@ public class InertiaAntiCheat implements ModInitializer {
         }
     }
 
-    public static String getHash(String input, String algorithm) {
+    public static String getChecksum(byte[] input, String algorithm) {
         try {
             MessageDigest md = MessageDigest.getInstance(algorithm);
-            byte[] arr = md.digest(input.getBytes());
-            return Base64.getEncoder().encodeToString(arr);
+            byte[] checksum = md.digest(input);
+            return new BigInteger(1, checksum).toString(16);
         } catch (NoSuchAlgorithmException e){
             throw new RuntimeException("Invalid algorithm provided! Please report this on this project's Github!", e);
         }
     }
 
-    public static String getHash(String input, HashAlgorithm algorithm) {
+    public static String getChecksum(byte[] input, HashAlgorithm algorithm) {
         try {
             MessageDigest md = MessageDigest.getInstance(algorithm.toString());
-            byte[] arr = md.digest(input.getBytes());
-            return Base64.getEncoder().encodeToString(arr);
-        } catch (NoSuchAlgorithmException e){
-            throw new RuntimeException("Invalid algorithm provided! Please report this on this project's Github!", e);
-        }
-    }
-
-    public static String getHash(byte[] input, String algorithm) {
-        try {
-            MessageDigest md = MessageDigest.getInstance(algorithm);
-            byte[] arr = md.digest(input);
-            return Base64.getEncoder().encodeToString(arr);
-        } catch (NoSuchAlgorithmException e){
-            throw new RuntimeException("Invalid algorithm provided! Please report this on this project's Github!", e);
-        }
-    }
-
-    public static String getHash(byte[] input, HashAlgorithm algorithm) {
-        try {
-            MessageDigest md = MessageDigest.getInstance(algorithm.toString());
-            byte[] arr = md.digest(input);
-            return Base64.getEncoder().encodeToString(arr);
+            byte[] checksum = md.digest(input);
+            return new BigInteger(1, checksum).toString(16);
         } catch (NoSuchAlgorithmException e){
             throw new RuntimeException("Invalid algorithm provided! Please report this on this project's Github!", e);
         }
@@ -216,7 +196,7 @@ public class InertiaAntiCheat implements ModInitializer {
             secretKeyFile.createNewFile();
             Files.write(secretKeyFile.toPath(), secretKey.getEncoded());
 
-            debugInfo("Secret key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(secretKey.getEncoded()), "MD5"));
+            debugInfo("Secret key MD5 hash: " + InertiaAntiCheat.getChecksum(secretKey.getEncoded(), "MD5"));
             return secretKey;
         } catch (NoSuchAlgorithmException | IOException e) {
             throw new RuntimeException(e);
@@ -247,8 +227,8 @@ public class InertiaAntiCheat implements ModInitializer {
             Files.write(privateKeyFile.toPath(), privateKey.getEncoded());
             Files.write(publicKeyFile.toPath(), publicKey.getEncoded());
 
-            debugInfo("Private key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(privateKey.getEncoded()), "MD5"));
-            debugInfo("Public key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(publicKey.getEncoded()), "MD5"));
+            debugInfo("Private key MD5 hash: " + InertiaAntiCheat.getChecksum(privateKey.getEncoded(), "MD5"));
+            debugInfo("Public key MD5 hash: " + InertiaAntiCheat.getChecksum(publicKey.getEncoded(), "MD5"));
 
             return new KeyPair(publicKey, privateKey);
         } catch (NoSuchAlgorithmException | IOException e) {
@@ -270,8 +250,8 @@ public class InertiaAntiCheat implements ModInitializer {
             PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
             PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
 
-            debugInfo("Private key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(privateKey.getEncoded()), "MD5"));
-            debugInfo("Public key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(publicKey.getEncoded()), "MD5"));
+            debugInfo("Private key MD5 hash: " + InertiaAntiCheat.getChecksum(privateKey.getEncoded(), "MD5"));
+            debugInfo("Public key MD5 hash: " + InertiaAntiCheat.getChecksum(publicKey.getEncoded(), "MD5"));
 
             return new KeyPair(publicKey, privateKey);
         } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {

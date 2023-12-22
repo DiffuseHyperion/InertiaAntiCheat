@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -64,11 +65,18 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
 
     @Override
     public void onCommunicateUnencryptedRequest(CommunicateRequestUnencryptedC2SPacket var1) {
+        InertiaAntiCheat.info("Received unencrypted communication");
         try {
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(var1.getSerializedModlist().getBytes()));
-            List<File> modFiles = (List<File>) ois.readObject();
+            List<File> modFiles = deserializeResponse(var1.getSerializedModlist());
+            if (Objects.isNull(modFiles)) {
+                InertiaAntiCheat.debugError("The server received an invalid response from a player!");
+                InertiaAntiCheat.debugError("This may be caused by a player modifying their response.");
 
-            connection.send(new CommunicateResponseS2CPacket(checkModlist(modFiles)));
+                connection.send(new CommunicateResponseS2CPacket(false));
+            } else {
+                boolean allowed = checkModlist(modFiles);
+                connection.send(new CommunicateResponseS2CPacket(allowed));
+            }
         } catch (IOException | ClassNotFoundException e) {
             InertiaAntiCheat.debugError("Something went wrong while deserializing a response packet!");
             InertiaAntiCheat.debugError("This may be caused by a player modifying their response.");
@@ -83,48 +91,88 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
 
     @Override
     public void onCommunicateEncryptedRequest(CommunicateRequestEncryptedC2SPacket var1) {
+        InertiaAntiCheat.info("Received encrypted communication");
         try {
             SecretKey decryptedAESKey = new SecretKeySpec(InertiaAntiCheat.decryptRSABytes(var1.getEncrypytedRSAAESKey(), serverE2EEKeyPair.getPrivate()), "AES");
             byte[] decryptedSerializedModlistBytes = InertiaAntiCheat.decryptAESBytes(var1.getEncryptedAESSerializedModlist(), decryptedAESKey);
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(decryptedSerializedModlistBytes));
-            List<File> modFiles = (List<File>) ois.readObject();
 
-            connection.send(new CommunicateResponseS2CPacket(checkModlist(modFiles)));
+            List<File> modFiles = deserializeResponse(decryptedSerializedModlistBytes);
+            if (Objects.isNull(modFiles)) {
+                InertiaAntiCheat.debugError("The server received an invalid response from a player!");
+                InertiaAntiCheat.debugError("This may be caused by a player modifying their response.");
+
+                connection.send(new CommunicateResponseS2CPacket(false));
+            } else {
+                connection.send(new CommunicateResponseS2CPacket(checkModlist(modFiles)));
+            }
         } catch (IOException | ClassNotFoundException e) {
             InertiaAntiCheat.debugError("Something went wrong while deserializing a response packet!");
             InertiaAntiCheat.debugError("This may be caused by a player modifying their response.");
-            InertiaAntiCheat.debugException(e);
 
             connection.send(new CommunicateResponseS2CPacket(false));
+            throw new RuntimeException(e);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         disconnectRunnable.run();
     }
 
+    private List<File> deserializeResponse(byte[] serializedModlistBytes) throws IOException, ClassNotFoundException {
+        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(serializedModlistBytes));
+        Object modFilesObj = ois.readObject();
+        if (!(modFilesObj instanceof ArrayList<?>)) {
+            return null;
+        }
+        List<?> modFilesListObj = (List<?>) modFilesObj;
+        if (!modFilesListObj.isEmpty() && !(modFilesListObj.get(0) instanceof File)) {
+            return null;
+        }
+        return (List<File>) modFilesObj; // dunno why intellij is complaining about unchecked cast lol
+    }
+
     private boolean checkModlist(List<File> mods) throws Exception {
         if (InertiaAntiCheatServer.modlistCheckMethod == ModlistCheckMethod.INDIVIDUAL) {
+            InertiaAntiCheat.info("Checking modlist now, using individual method");
+            InertiaAntiCheat.info("Mod list size: " + mods.size());
             List<String> blacklistedMods = serverConfig.getList("mods.individual.blacklist");
+            InertiaAntiCheat.info("Blacklisted mods: " + String.join(", ", blacklistedMods));
             List<String> whitelistedMods = serverConfig.getList("mods.individual.whitelist");
+            InertiaAntiCheat.info("Whitelisted mods: " + String.join(", ", whitelistedMods));
+            InertiaAntiCheat.info("----------");
+
             for (File mod : mods) {
-                String fileHash = InertiaAntiCheat.getHash(Files.readAllBytes(mod.toPath()), InertiaAntiCheatServer.hashAlgorithm);
+                InertiaAntiCheat.info("Checking file name: " + mod.getName());
+                String fileHash = InertiaAntiCheat.getChecksum(Files.readAllBytes(mod.toPath()), InertiaAntiCheatServer.hashAlgorithm);
+                InertiaAntiCheat.info("File hash: " + fileHash + "; with algorithm " + InertiaAntiCheatServer.hashAlgorithm);
 
                 if (blacklistedMods.contains(fileHash)) {
+                    InertiaAntiCheat.info("Found in blacklist");
+                    InertiaAntiCheat.info("----------");
                     return false;
                 }
-                if (!whitelistedMods.contains(fileHash)) {
-                    return false;
+                if (whitelistedMods.contains(fileHash)) {
+                    InertiaAntiCheat.info("Found in whitelist");
+                    whitelistedMods.remove(fileHash);
                 }
+                InertiaAntiCheat.info("----------");
             }
+            if (!whitelistedMods.isEmpty()) {
+                InertiaAntiCheat.info("Whitelist not fufilled");
+                InertiaAntiCheat.info("----------");
+                return false;
+            }
+            InertiaAntiCheat.info("Passed");
+            InertiaAntiCheat.info("----------");
             return true;
         } else if (InertiaAntiCheatServer.modlistCheckMethod == ModlistCheckMethod.GROUP) {
+            InertiaAntiCheat.info("Checking modlist now, using group method");
             StringBuilder combinedHashes = new StringBuilder();
             for (File mod : mods) {
-                String fileHash = InertiaAntiCheat.getHash(Files.readAllBytes(mod.toPath()), InertiaAntiCheatServer.hashAlgorithm);
+                String fileHash = InertiaAntiCheat.getChecksum(Files.readAllBytes(mod.toPath()), InertiaAntiCheatServer.hashAlgorithm);
                 combinedHashes.append(fileHash);
             }
-            String finalHash = InertiaAntiCheat.getHash(combinedHashes.toString(), "MD5"); // no need to be cryptographically safe here
-            return Objects.equals(serverConfig.getString("mods.group.hash"), finalHash);
+            String finalHash = InertiaAntiCheat.getChecksum(combinedHashes.toString().getBytes(), "MD5"); // no need to be cryptographically safe here
+            return Objects.equals(serverConfig.getString("mods.group.checksum"), finalHash);
         } else {
             throw new Exception("Invalid mod list check method! Please report this on this project's Github!");
         }

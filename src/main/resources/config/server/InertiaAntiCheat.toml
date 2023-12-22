@@ -16,26 +16,18 @@ algorithm = "MD5"
 # Immediately kick players who have these mods in their modlist.
 # The mod checks (and kicks) for blacklisted mods first.
 # Enabling debug will show the full modlist of players joining, allowing you to discover mod names.
-blacklist = ["cd74f2be2bf8ed2c8f1e00df310b29f3c172ae537a60ba3fdd4887bff2545595"]
-# The reason for kicking a player due to having blacklisted mods installed.
-# Use ${blacklisted} as a placeholder for all blacklisted mods found on the player.
-blacklistMessage = "You were kicked for having illegal mods installed!\nRemove ${blacklisted} before rejoining the server."
+blacklist = ["c20218d611730cfd0eb000897e6968fd"]
 
 # Immediately kick players who do not have these mods in their modlist.
 # Enabling debug will show the full modlist of players joining, allowing you to discover mod names.
 whitelist = []
-# The reason for kicking a player due to not having whitelisted mods installed.
-# Use ${whitelisted} as a placeholder for all whitelisted mods not found on the player.
-whitelistMessage = "You were kicked for having not having required mods installed!\nInstall ${whitelisted} before rejoining the server."
 
 [mods.group]
 # The hash for the server to check against. See "showHash" for more details.
 # Filling this will cause the server to disreguard blacklisted/whitelisted mods.
 # Soft whitelisted mods (see below) will still be checked.
 # You can add multiple hashes into the list, and the server will check against all of them.
-hash = []
-# The reason for kicking a player due to their modlist hash not matching up.
-hashMessage = "You were kicked for not matching the server's modlist!\nDid you install their modpack correctly?"
+checksum = []
 
 # Allow certain mods to be used by players, in addition to your modpack.
 # This allows players to make use of optional client mods if you allow it.

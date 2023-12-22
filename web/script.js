@@ -9,7 +9,7 @@ function calculateHash(event) {
         fileReader.readAsBinaryString(value)
         fileReader.onloadend = function () {
             if (algorithm === "md5") {
-                console.log(CryptoJS.SHA256(CryptoJS.enc.Latin1.parse(fileReader.result)).toString())
+                console.log(CryptoJS.MD5(CryptoJS.enc.Latin1.parse(fileReader.result)).toString())
             } else if (algorithm === "sha1") {
                 console.log(CryptoJS.SHA1(CryptoJS.enc.Latin1.parse(fileReader.result)).toString())
             } else if (algorithm === "sha256") {

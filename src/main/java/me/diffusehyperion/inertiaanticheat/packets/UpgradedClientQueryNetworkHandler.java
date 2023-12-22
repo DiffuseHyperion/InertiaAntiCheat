@@ -47,7 +47,7 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
     private final Runnable disconnectRunnable = new Runnable() {
         @Override
         public void run() {
-            InertiaAntiCheat.info("Disconnect");
+            InertiaAntiCheat.info("Disconnected");
             connection.disconnect(Text.translatable("multiplayer.status.finished"));
         }
     };
@@ -97,8 +97,8 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
 
         ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setInertiaInstalled(true);
 
-        String serializedModlist = InertiaAntiCheatClient.serializeModlist();
-        byte[] encryptedSerializedModlist = InertiaAntiCheat.encryptAESBytes(serializedModlist.getBytes(), clientE2EESecretKey);
+        byte[] serializedModlist = InertiaAntiCheatClient.serializeModlist();
+        byte[] encryptedSerializedModlist = InertiaAntiCheat.encryptAESBytes(serializedModlist, clientE2EESecretKey);
         byte[] encryptedSecretKey = InertiaAntiCheat.encryptRSABytes(clientE2EESecretKey.getEncoded(), var1.getPublicKey());
         connection.send(new CommunicateRequestEncryptedC2SPacket(encryptedSerializedModlist, encryptedSecretKey));
     }

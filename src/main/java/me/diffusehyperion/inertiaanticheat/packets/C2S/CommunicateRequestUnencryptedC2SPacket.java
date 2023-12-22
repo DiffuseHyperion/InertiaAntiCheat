@@ -5,19 +5,21 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.Packet;
 
 public class CommunicateRequestUnencryptedC2SPacket implements Packet<ServerUpgradedQueryPacketListener> {
-    private final String serializedModlist;
+    private final byte[] serializedModlist;
 
-    public CommunicateRequestUnencryptedC2SPacket(String serializedModlist) {
+    public CommunicateRequestUnencryptedC2SPacket(byte[] serializedModlist) {
         this.serializedModlist = serializedModlist;
     }
 
     public CommunicateRequestUnencryptedC2SPacket(PacketByteBuf packetByteBuf) {
-        this.serializedModlist = packetByteBuf.readString();
+        byte[] serializedModlist = new byte[packetByteBuf.readableBytes()];
+        packetByteBuf.readBytes(serializedModlist);
+        this.serializedModlist = serializedModlist;
     }
 
     @Override
     public void write(PacketByteBuf buf) {
-        buf.writeString(this.serializedModlist);
+        buf.writeBytes(this.serializedModlist);
     }
 
     @Override
@@ -25,7 +27,7 @@ public class CommunicateRequestUnencryptedC2SPacket implements Packet<ServerUpgr
         listener.onCommunicateUnencryptedRequest(this);
     }
 
-    public String getSerializedModlist() {
+    public byte[] getSerializedModlist() {
         return this.serializedModlist;
     }
 }
