@@ -5,8 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class InertiaAntiCheatConstants {
-    public static final Identifier REQUEST_PACKET_ID = new Identifier("inertiaanticheat", "request");
-    public static final Identifier RESPONSE_PACKET_ID = new Identifier("inertiaanticheat", "response");
+    public static final Identifier KEY_COMMUNICATION_ID = new Identifier("inertiaanticheat", "key");
 
     public static final Logger MODLOGGER = LoggerFactory.getLogger("InertiaAntiCheat");
     public static final String MODID = "inertiaanticheat";

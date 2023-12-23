@@ -106,6 +106,7 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
     public void onCommunicateAcceptResponse(CommunicateResponseAcceptS2CPacket var1) {
         InertiaAntiCheat.info("Finished communication, allowed to join");
         ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAllowedToJoin(true);
+        InertiaAntiCheatClient.storedKeys.put(serverInfo, var1.getKey());
         disconnectRunnable.run();
     }
 

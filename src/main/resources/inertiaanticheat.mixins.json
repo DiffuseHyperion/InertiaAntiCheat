@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "server": [
     "server.ServerHandshakeNetworkHandlerMixin",
+    "server.ServerLoginNetworkHandlerMixin",
     "server.ServerNetworkIoMixin"
   ],
   "injectors": {
@@ -12,6 +13,7 @@
   },
   "client": [
     "client.ClientConnectionMixin",
+    "client.ClientLoginNetworkHandlerMixin",
     "client.MultiplayerServerListPingerMixin",
     "client.MultiplayerServerListWidgetServerEntryMixin",
     "client.ServerInfoMixin"
