@@ -6,6 +6,7 @@ import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestUnencry
 import me.diffusehyperion.inertiaanticheat.packets.C2S.ContactRequestC2SPacket;
 import me.diffusehyperion.inertiaanticheat.packets.S2C.*;
 import me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer;
+import me.diffusehyperion.inertiaanticheat.server.ServerLoginHandler;
 import me.diffusehyperion.inertiaanticheat.util.ModlistCheckMethod;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.c2s.query.QueryPingC2SPacket;
@@ -75,11 +76,11 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
                 if (checkModlist(modFiles)) {
                     String ip = InertiaAntiCheat.getIP(connection.getAddress());
                     UUID key;
-                    if (!InertiaAntiCheatServer.generatedKeys.containsKey(ip)) {
+                    if (!ServerLoginHandler.generatedKeys.containsKey(ip)) {
                         key = UUID.randomUUID();
-                        InertiaAntiCheatServer.generatedKeys.put(InertiaAntiCheat.getIP(connection.getAddress()), key);
+                        ServerLoginHandler.generatedKeys.put(InertiaAntiCheat.getIP(connection.getAddress()), key);
                     } else {
-                        key = InertiaAntiCheatServer.generatedKeys.get(ip);
+                        key = ServerLoginHandler.generatedKeys.get(ip);
                     }
                     connection.send(new CommunicateResponseAcceptS2CPacket(key));
                 } else {
@@ -115,11 +116,11 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
                 if (checkModlist(modFiles)) {
                     String ip = InertiaAntiCheat.getIP(connection.getAddress());
                     UUID key;
-                    if (!InertiaAntiCheatServer.generatedKeys.containsKey(ip)) {
+                    if (!ServerLoginHandler.generatedKeys.containsKey(ip)) {
                         key = UUID.randomUUID();
-                        InertiaAntiCheatServer.generatedKeys.put(InertiaAntiCheat.getIP(connection.getAddress()), key);
+                        ServerLoginHandler.generatedKeys.put(InertiaAntiCheat.getIP(connection.getAddress()), key);
                     } else {
-                        key = InertiaAntiCheatServer.generatedKeys.get(ip);
+                        key = ServerLoginHandler.generatedKeys.get(ip);
                     }
                     connection.send(new CommunicateResponseAcceptS2CPacket(key));
                 } else {

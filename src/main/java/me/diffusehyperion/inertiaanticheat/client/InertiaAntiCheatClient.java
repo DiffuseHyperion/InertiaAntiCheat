@@ -5,6 +5,7 @@ import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import me.diffusehyperion.inertiaanticheat.util.Scheduler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.network.ServerInfo;
 
 import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
@@ -20,12 +21,15 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
     public static Toml clientConfig;
     public static SecretKey clientE2EESecretKey; // null if e2ee not enabled
     public static final Scheduler clientScheduler = new Scheduler();
+    public static final HashMap<ServerInfo, UUID> storedKeys = new HashMap<>();
 
     @Override
     public void onInitializeClient() {
         clientConfig = InertiaAntiCheat.initializeConfig("/config/client/InertiaAntiCheat.toml", CURRENT_CLIENT_CONFIG_VERSION);
         debugInfo("Initializing E2EE...");
         clientE2EESecretKey = initializeE2EE();
+
+        ClientLoginHandler.registerClientKeyHandler();
     }
 
     private SecretKey initializeE2EE() {
