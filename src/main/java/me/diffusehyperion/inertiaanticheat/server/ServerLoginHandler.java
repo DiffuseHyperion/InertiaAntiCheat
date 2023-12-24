@@ -47,7 +47,7 @@ public class ServerLoginHandler {
         InertiaAntiCheat.debugInfo("Received key from address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress());
         if (!understood) {
             InertiaAntiCheat.debugWarn("Client did not understand key request - most likely due to not having the mod installed");
-            handler.disconnect(Text.of("did not respond to key request"));
+            handler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.vanillaKickMessage")));
             return;
         }
         InertiaAntiCheat.debugInfo("Client understood request!");
@@ -57,19 +57,19 @@ public class ServerLoginHandler {
         synchronizer.waitFor(server.submit(() -> {
             if (buf.readableBytes() <= 0) {
                 InertiaAntiCheat.debugInfo("Received no data from the client");
-                handler.disconnect(Text.of("invalid key"));
+                handler.disconnect(Text.translatable("login.key.invalid_response"));
                 return;
             }
             UUID key = buf.readUuid();
 
             if (!generatedKeys.containsKey(ip)) {
                 InertiaAntiCheat.debugInfo("Client did not previously generate a key");
-                handler.disconnect(Text.of("no keys generated for this ip"));
+                handler.disconnect(Text.translatable("login.key.no_possible_key"));
                 return;
             }
             if (!generatedKeys.get(ip).equals(key)) {
                 InertiaAntiCheat.debugInfo("Client provided an invalid key");
-                handler.disconnect(Text.of("key mismatch"));
+                handler.disconnect(Text.translatable("login.key.mismatched_key"));
                 return;
             }
 

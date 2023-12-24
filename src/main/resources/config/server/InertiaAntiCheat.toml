@@ -1,23 +1,27 @@
 [mods]
+# The method to check client's mod list.
+# If you prefer blacklisting/whitelisting certain mods from being used, use "individual".
+# If you prefer ensuring client's have a modpack installed, use "group".
 # Accepted types: "individual", "group"
 method = "individual"
+# The hashing algorithm for the mod to use.
+# MD5 is the fastest but most insecure.
+# SHA256 is the slowest but most secure.
 # Accepted algorithms: "MD5", "SHA1", "SHA256"
 algorithm = "MD5"
+# The kick message to show to client's when they try to connect without InertiaAntiCheat installed.
+vanillaKickMessage = "You were kicked for not sending a response to the anti-cheat!\nThis is probably due to missing the anti-cheat client mod.\nInstall it here: https://modrinth.com/mod/inertiaanticheat"
 
 [mods.individual]
 # Immediately kick players who have these mods in their modlist.
 # The mod checks (and kicks) for blacklisted mods first.
-# Enabling debug will show the full modlist of players joining, allowing you to discover mod names.
 blacklist = ["c20218d611730cfd0eb000897e6968fd"]
 
 # Immediately kick players who do not have these mods in their modlist.
-# Enabling debug will show the full modlist of players joining, allowing you to discover mod names.
 whitelist = []
 
 [mods.group]
-# The hash for the server to check against. See "showHash" for more details.
-# Filling this will cause the server to disreguard blacklisted/whitelisted mods.
-# Soft whitelisted mods (see below) will still be checked.
+# The hash for the server to check against.
 # You can add multiple hashes into the list, and the server will check against all of them.
 checksum = []
 

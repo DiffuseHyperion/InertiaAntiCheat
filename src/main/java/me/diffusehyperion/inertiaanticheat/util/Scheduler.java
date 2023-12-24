@@ -16,9 +16,9 @@ public class Scheduler {
     }
 
     public void tick() {
-        Iterator it = tasksToRun.entrySet().iterator();
+        Iterator<Map.Entry<Runnable, Integer>> it = tasksToRun.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry<Runnable, Integer> entry = (Map.Entry<Runnable, Integer>) it.next();
+            Map.Entry<Runnable, Integer> entry = it.next();
 
             int newValue = entry.getValue() - 1;
             tasksToRun.put(entry.getKey(), newValue);
