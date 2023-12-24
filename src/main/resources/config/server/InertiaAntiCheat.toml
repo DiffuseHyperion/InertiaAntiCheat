@@ -23,7 +23,6 @@ checksum = []
 
 # Allow certain mods to be used by players, in addition to your modpack.
 # This allows players to make use of optional client mods if you allow it.
-# yet to be implemented
 softWhitelist = []
 
 [debug]

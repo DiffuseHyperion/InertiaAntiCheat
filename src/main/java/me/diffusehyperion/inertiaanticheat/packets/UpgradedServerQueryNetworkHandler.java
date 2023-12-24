@@ -168,10 +168,16 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
             return true;
         } else if (InertiaAntiCheatServer.modlistCheckMethod == ModlistCheckMethod.GROUP) {
             InertiaAntiCheat.debugInfo("Checking modlist now, using group method");
+            List<String> softWhitelistedMods = InertiaAntiCheatServer.serverConfig.getList("mods.group.softWhitelist");
+            InertiaAntiCheat.debugInfo("Soft whitelisted mods: " + String.join(", ", softWhitelistedMods));
             StringBuilder combinedHashes = new StringBuilder();
             for (File mod : mods) {
                 String fileHash = InertiaAntiCheat.getChecksum(Files.readAllBytes(mod.toPath()), InertiaAntiCheatServer.hashAlgorithm);
-                combinedHashes.append(fileHash);
+                if (softWhitelistedMods.contains(fileHash)) {
+                    softWhitelistedMods.remove(fileHash);
+                } else {
+                    combinedHashes.append(fileHash);
+                }
             }
             String finalHash = InertiaAntiCheat.getChecksum(combinedHashes.toString().getBytes(), "MD5"); // no need to be cryptographically safe here
             InertiaAntiCheat.debugInfo("Final hash: " + finalHash);

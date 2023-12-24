@@ -3,6 +3,7 @@ package me.diffusehyperion.inertiaanticheat.server;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import me.diffusehyperion.inertiaanticheat.interfaces.ServerLoginNetworkHandlerInterface;
 import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking;
@@ -24,12 +25,21 @@ public class ServerLoginHandler {
 
     public static void sendKeyRequest(ServerLoginNetworkHandler serverLoginNetworkHandler, MinecraftServer ignored2, PacketSender packetSender, ServerLoginNetworking.LoginSynchronizer ignored3) {
         InertiaAntiCheat.debugLine();
-        if (InertiaAntiCheat.inDebug()) {
-            ServerLoginNetworkHandlerInterface upgradedServerLoginNetworkHandler = (ServerLoginNetworkHandlerInterface) serverLoginNetworkHandler;
-            InertiaAntiCheat.debugInfo("Sending key request to address " + upgradedServerLoginNetworkHandler.inertiaAntiCheat$getConnection().getAddress());
-        }
-        packetSender.sendPacket(InertiaAntiCheatConstants.KEY_COMMUNICATION_ID, PacketByteBufs.empty());
-        InertiaAntiCheat.debugLine();
+        ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) serverLoginNetworkHandler;
+
+        InertiaAntiCheat.debugInfo("Checking if " + upgradedHandler.inertiaAntiCheat$getGameProfile().getName() + " has bypass permissions");
+        Permissions.check(upgradedHandler.inertiaAntiCheat$getGameProfile(), "inertiaanticheat.bypass").thenAccept(allowed -> {
+            if (allowed) {
+                InertiaAntiCheat.debugInfo(upgradedHandler.inertiaAntiCheat$getGameProfile().getName() + " is allowed to bypass");
+            } else {
+                if (InertiaAntiCheat.inDebug()) {
+                    InertiaAntiCheat.debugInfo("Sending key request to address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress());
+                }
+                packetSender.sendPacket(InertiaAntiCheatConstants.KEY_COMMUNICATION_ID, PacketByteBufs.empty());
+            }
+            InertiaAntiCheat.debugLine();
+        });
+
     }
 
     public static void serverKeyHandler(MinecraftServer server, ServerLoginNetworkHandler handler, boolean understood, PacketByteBuf buf, ServerLoginNetworking.LoginSynchronizer synchronizer, PacketSender responseSender) {
