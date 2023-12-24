@@ -1,11 +1,3 @@
-# Time to wait for the client to send back their mod list before kicking them.
-# If the delay is too short, clients may not have enough time to send their response, depending on their internet.
-# If the delay is too long, clients may hang around for too long.
-# The player's movement, actions and chat messages are frozen at this time.
-[grace]
-# The reason for kicking a player due to them not responding to the server's request.
-disconnectMessage = "You were kicked for not sending a response to the anticheat!\nThis is probably due to missing the anticheat client mod.\nInstall it here: https://modrinth.com/mod/inertiaanticheat"
-
 [mods]
 # Accepted types: "individual", "group"
 method = "individual"
@@ -31,21 +23,8 @@ checksum = []
 
 # Allow certain mods to be used by players, in addition to your modpack.
 # This allows players to make use of optional client mods if you allow it.
+# yet to be implemented
 softWhitelist = []
-
-[e2ee]
-# Enable using end-to-end encryption to encrypt modlists coming from clients.
-# This prevents outside sources from reading and modifying modlists coming from clients.
-# This doesn't prevent clients from modfiying their own modlists though.
-enable = false
-
-# Name of the private and public key files to use for E2EE.
-# DO NOT LEAK YOUR PRIVATE KEY!
-privateKeyName = "private.key"
-publicKeyName = "public.key"
-
-# The reason for kicking a player due to them disabling support for E2EE.
-unsupportedMessage = "The server is using E2EE, but you have disabled support for E2EE!\nPlease look in your config file for more information."
 
 [debug]
 # Show additional information in server logs.

@@ -8,20 +8,18 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.PacketByteBuf;
 
 import javax.crypto.*;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.SocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Arrays;
 import java.util.Objects;
+import java.util.UUID;
 
 import static me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient.clientConfig;
 import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.serverConfig;
@@ -50,28 +48,37 @@ public class InertiaAntiCheat implements ModInitializer {
     }
 
     public static void debugInfo(String info) {
-        if ((Objects.nonNull(serverConfig) && serverConfig.getBoolean("debug.debug")) || (Objects.nonNull(clientConfig) && clientConfig.getBoolean("debug.debug"))) {
+        if (inDebug()) {
             info(info);
         }
     }
 
     public static void debugWarn(String info) {
-        if ((Objects.nonNull(serverConfig) && serverConfig.getBoolean("debug.debug")) || (Objects.nonNull(clientConfig) && clientConfig.getBoolean("debug.debug"))){
+        if (inDebug()) {
             warn(info);
         }
     }
 
     public static void debugError(String info) {
-        if ((Objects.nonNull(serverConfig) && serverConfig.getBoolean("debug.debug")) || (Objects.nonNull(clientConfig) && clientConfig.getBoolean("debug.debug"))){
+        if (inDebug()) {
             error(info);
         }
     }
 
-    public static void debugException(Exception exception) {
-        if ((Objects.nonNull(serverConfig) && serverConfig.getBoolean("debug.debug")) || (Objects.nonNull(clientConfig) && clientConfig.getBoolean("debug.debug"))){
-            error(exception.getMessage());
-            error(Arrays.toString(exception.getStackTrace()));
+    public static void debugLine() {
+        if (inDebug()) {
+            info("--------------------"); // lol
         }
+    }
+
+    public static void debugLine2() {
+        if (inDebug()) {
+            info("===================="); // lol 2
+        }
+    }
+
+    public static boolean inDebug() {
+        return (Objects.nonNull(serverConfig) && serverConfig.getBoolean("debug.debug")) || (Objects.nonNull(clientConfig) && clientConfig.getBoolean("debug.debug"));
     }
 
     public static String getChecksum(byte[] input, String algorithm) {
@@ -193,75 +200,37 @@ public class InertiaAntiCheat implements ModInitializer {
         }
     }
 
-    public static SecretKey createAESKey(File secretKeyFile) {
+    public static SecretKey createAESKey() {
         try {
             KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
             keyGenerator.init(256);
-            SecretKey secretKey = keyGenerator.generateKey();
-
-            secretKeyFile.createNewFile();
-            Files.write(secretKeyFile.toPath(), secretKey.getEncoded());
-
-            debugInfo("Secret key MD5 hash: " + InertiaAntiCheat.getChecksum(secretKey.getEncoded(), "MD5"));
-            return secretKey;
-        } catch (NoSuchAlgorithmException | IOException e) {
+            return keyGenerator.generateKey();
+        } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static SecretKey loadAESKey(File secretKeyFile) {
-        try {
-            Path privateKeyFilePath = Paths.get(secretKeyFile.toURI());
-            byte[] privateKeyFileBytes = Files.readAllBytes(privateKeyFilePath);
-            return new SecretKeySpec(privateKeyFileBytes, "AES");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static KeyPair createRSAPair(File publicKeyFile, File privateKeyFile) {
+    public static KeyPair createRSAPair() {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(2048);
-            KeyPair keyPair = keyPairGenerator.generateKeyPair();
-
-            PrivateKey privateKey = keyPair.getPrivate();
-            PublicKey publicKey = keyPair.getPublic();
-
-            privateKeyFile.createNewFile();
-            publicKeyFile.createNewFile();
-            Files.write(privateKeyFile.toPath(), privateKey.getEncoded());
-            Files.write(publicKeyFile.toPath(), publicKey.getEncoded());
-
-            debugInfo("Private key MD5 hash: " + InertiaAntiCheat.getChecksum(privateKey.getEncoded(), "MD5"));
-            debugInfo("Public key MD5 hash: " + InertiaAntiCheat.getChecksum(publicKey.getEncoded(), "MD5"));
-
-            return new KeyPair(publicKey, privateKey);
-        } catch (NoSuchAlgorithmException | IOException e) {
+            return keyPairGenerator.generateKeyPair();
+        } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Something went wrong while generating new key pairs!", e);
         }
     }
 
-    public static KeyPair loadRSAPair(File publicKeyFile, File privateKeyFile) {
-        try {
-            Path privateKeyFilePath = Paths.get(privateKeyFile.toURI());
-            byte[] privateKeyFileBytes = Files.readAllBytes(privateKeyFilePath);
-            PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyFileBytes);
+    public static byte[] UUIDToBytes(UUID uuid) {
+        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+        bb.putLong(uuid.getMostSignificantBits());
+        bb.putLong(uuid.getLeastSignificantBits());
+        return bb.array();
+    }
 
-            Path publicKeyFilePath = Paths.get(publicKeyFile.toURI());
-            byte[] publicKeyFileBytes = Files.readAllBytes(publicKeyFilePath);
-            X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyFileBytes);
-
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
-            PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
-
-            debugInfo("Private key MD5 hash: " + InertiaAntiCheat.getChecksum(privateKey.getEncoded(), "MD5"));
-            debugInfo("Public key MD5 hash: " + InertiaAntiCheat.getChecksum(publicKey.getEncoded(), "MD5"));
-
-            return new KeyPair(publicKey, privateKey);
-        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new RuntimeException("Something went wrong while reading key pairs!", e);
-        }
+    public static UUID bytesToUUID(byte[] bytes) {
+        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        long high = byteBuffer.getLong();
+        long low = byteBuffer.getLong();
+        return new UUID(high, low);
     }
 }

@@ -18,17 +18,19 @@ import java.util.function.Consumer;
 
 public class ClientLoginHandler {
     public static void registerClientKeyHandler() {
-        InertiaAntiCheat.warn("Registering handler");
+        InertiaAntiCheat.debugInfo("Registering key communication handler");
         ClientLoginNetworking.registerGlobalReceiver(InertiaAntiCheatConstants.KEY_COMMUNICATION_ID, ClientLoginHandler::clientKeyHandler);
     }
 
     public static CompletableFuture<PacketByteBuf> clientKeyHandler(MinecraftClient client, ClientLoginNetworkHandler clientLoginNetworkHandler, PacketByteBuf packetByteBuf, Consumer<GenericFutureListener<? extends Future<? super Void>>> genericFutureListenerConsumer) {
-        InertiaAntiCheat.warn("Handler triggered");
+        InertiaAntiCheat.debugLine();
+        InertiaAntiCheat.debugInfo("Received key request from server");
         ServerInfo info = ((ClientLoginNetworkHandlerInterface) clientLoginNetworkHandler).inertiaAntiCheat$getServerInfo();
         UUID key = InertiaAntiCheatClient.storedKeys.get(info);
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeUuid(key);
-
+        InertiaAntiCheat.debugInfo("Sent key response to server");
+        InertiaAntiCheat.debugLine();
         return CompletableFuture.completedFuture(PacketByteBufs.create().writeUuid(key));
     }
 }

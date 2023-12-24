@@ -1,8 +1,7 @@
 package me.diffusehyperion.inertiaanticheat.packets;
 
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
-import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestEncryptedC2SPacket;
-import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestUnencryptedC2SPacket;
+import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestC2SPacket;
 import me.diffusehyperion.inertiaanticheat.packets.C2S.ContactRequestC2SPacket;
 import me.diffusehyperion.inertiaanticheat.packets.S2C.*;
 import me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer;
@@ -24,86 +23,61 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.file.Files;
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.serverConfig;
-import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.serverE2EEKeyPair;
-
 public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPacketListener {
+    /* ---------- vanilla fields ----------*/
+
+    private static final Text REQUEST_HANDLED = Text.translatable("multiplayer.status.request_handled");
+    private final ServerMetadata metadata;
+    private final ClientConnection connection;
+    private boolean responseSent;
+
+    /* ---------- custom fields ----------*/
+
     private long startTime;
-    private final Runnable disconnectRunnable = new Runnable() {
-        @Override
-        public void run() {
-            InertiaAntiCheat.info("Disconnected");
-            connection.disconnect(REQUEST_HANDLED);
-        }
-    };
+    private final Runnable disconnectRunnable;
+    private final KeyPair serverKeyPair;
+    private PublicKey clientPublicKey;
+
+    public UpgradedServerQueryNetworkHandler(ServerMetadata metadata, ClientConnection connection) {
+        /* ---------- vanilla fields ----------*/
+
+        this.metadata = metadata;
+        this.connection = connection;
+
+        /* ---------- custom fields ----------*/
+
+        this.disconnectRunnable = () -> {
+            InertiaAntiCheat.info("Disconnected from address " + this.connection.getAddress());
+            this.connection.disconnect(REQUEST_HANDLED);
+        };
+        this.serverKeyPair = InertiaAntiCheat.createRSAPair();
+    }
 
     @Override
     public void onContactRequest(ContactRequestC2SPacket var1) {
-        InertiaAntiCheat.info("Received contact from address: " + connection.getAddress().toString());
-        InertiaAntiCheatServer.serverScheduler.cancelTask(disconnectRunnable);
+        InertiaAntiCheat.debugLine();
+        InertiaAntiCheat.debugInfo("Received contact request from address: " + this.connection.getAddress());
+        InertiaAntiCheatServer.serverScheduler.cancelTask(this.disconnectRunnable);
 
-        boolean clientE2EESupport = var1.getE2EESupport();
-        boolean serverE2EESupport = Objects.nonNull(serverE2EEKeyPair);
+        this.clientPublicKey = var1.getClientPublicKey();
 
-        if (!serverE2EESupport) {
-            connection.send(new ContactResponseUnencryptedS2CPacket());
-            InertiaAntiCheat.info("Sent contact unencrypted response");
-        } else if (!clientE2EESupport) {
-            connection.send(new ContactResponseRejectS2CPacket());
-            InertiaAntiCheat.info("Sent contact reject response");
-        } else {
-            connection.send(new ContactResponseEncryptedS2CPacket(serverE2EEKeyPair.getPublic()));
-            InertiaAntiCheat.info("Sent contact encrypted response");
-        }
+        this.connection.send(new ContactResponseS2CPacket(this.serverKeyPair.getPublic()));
+        InertiaAntiCheat.debugInfo("Sent contact response back to address");
+        InertiaAntiCheat.debugLine();
     }
 
     @Override
-    public void onCommunicateUnencryptedRequest(CommunicateRequestUnencryptedC2SPacket var1) {
-        InertiaAntiCheat.info("Received unencrypted communication");
+    public void onCommunicateRequest(CommunicateRequestC2SPacket var1) {
+        InertiaAntiCheat.debugInfo("Received communication request from address: " + this.connection.getAddress());
         try {
-            List<File> modFiles = deserializeResponse(var1.getSerializedModlist());
-            if (Objects.isNull(modFiles)) {
-                InertiaAntiCheat.debugError("The server received an invalid response from a player!");
-                InertiaAntiCheat.debugError("This may be caused by a player modifying their response.");
-
-                connection.send(new CommunicateResponseRejectS2CPacket());
-            } else {
-                if (checkModlist(modFiles)) {
-                    String ip = InertiaAntiCheat.getIP(connection.getAddress());
-                    UUID key;
-                    if (!ServerLoginHandler.generatedKeys.containsKey(ip)) {
-                        key = UUID.randomUUID();
-                        ServerLoginHandler.generatedKeys.put(InertiaAntiCheat.getIP(connection.getAddress()), key);
-                    } else {
-                        key = ServerLoginHandler.generatedKeys.get(ip);
-                    }
-                    connection.send(new CommunicateResponseAcceptS2CPacket(key));
-                } else {
-                    connection.send(new CommunicateResponseRejectS2CPacket());
-                }
-            }
-        } catch (IOException | ClassNotFoundException e) {
-            InertiaAntiCheat.debugError("Something went wrong while deserializing a response packet!");
-            InertiaAntiCheat.debugError("This may be caused by a player modifying their response.");
-            InertiaAntiCheat.debugException(e);
-
-            connection.send(new CommunicateResponseRejectS2CPacket());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        disconnectRunnable.run();
-    }
-
-    @Override
-    public void onCommunicateEncryptedRequest(CommunicateRequestEncryptedC2SPacket var1) {
-        InertiaAntiCheat.info("Received encrypted communication");
-        try {
-            SecretKey decryptedAESKey = new SecretKeySpec(InertiaAntiCheat.decryptRSABytes(var1.getEncrypytedRSAAESKey(), serverE2EEKeyPair.getPrivate()), "AES");
+            SecretKey decryptedAESKey = new SecretKeySpec(InertiaAntiCheat.decryptRSABytes(var1.getEncryptedRSAAESKey(), this.serverKeyPair.getPrivate()), "AES");
             byte[] decryptedSerializedModlistBytes = InertiaAntiCheat.decryptAESBytes(var1.getEncryptedAESSerializedModlist(), decryptedAESKey);
 
             List<File> modFiles = deserializeResponse(decryptedSerializedModlistBytes);
@@ -111,7 +85,7 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
                 InertiaAntiCheat.debugError("The server received an invalid response from a player!");
                 InertiaAntiCheat.debugError("This may be caused by a player modifying their response.");
 
-                connection.send(new CommunicateResponseRejectS2CPacket());
+                this.connection.send(new CommunicateResponseS2CPacket());
             } else {
                 if (checkModlist(modFiles)) {
                     String ip = InertiaAntiCheat.getIP(connection.getAddress());
@@ -122,21 +96,25 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
                     } else {
                         key = ServerLoginHandler.generatedKeys.get(ip);
                     }
-                    connection.send(new CommunicateResponseAcceptS2CPacket(key));
+                    byte[] encryptedKey = InertiaAntiCheat.encryptRSABytes(InertiaAntiCheat.UUIDToBytes(key), this.clientPublicKey);
+                    this.connection.send(new CommunicateResponseS2CPacket(encryptedKey));
                 } else {
-                    connection.send(new CommunicateResponseRejectS2CPacket());
+                    this.connection.send(new CommunicateResponseS2CPacket());
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
             InertiaAntiCheat.debugError("Something went wrong while deserializing a response packet!");
             InertiaAntiCheat.debugError("This may be caused by a player modifying their response.");
 
-            connection.send(new CommunicateResponseRejectS2CPacket());
+            this.connection.send(new CommunicateResponseS2CPacket());
             throw new RuntimeException(e);
         } catch (Exception e) {
             throw new RuntimeException(e);
+        } finally {
+            this.disconnectRunnable.run();
+            InertiaAntiCheat.debugInfo("Sent communication response back to address");
+            InertiaAntiCheat.debugLine();
         }
-        disconnectRunnable.run();
     }
 
     private List<File> deserializeResponse(byte[] serializedModlistBytes) throws IOException, ClassNotFoundException {
@@ -155,64 +133,64 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
     }
 
     private boolean checkModlist(List<File> mods) throws Exception {
+        InertiaAntiCheat.debugLine2();
         if (InertiaAntiCheatServer.modlistCheckMethod == ModlistCheckMethod.INDIVIDUAL) {
-            InertiaAntiCheat.info("Checking modlist now, using individual method");
-            InertiaAntiCheat.info("Mod list size: " + mods.size());
-            List<String> blacklistedMods = serverConfig.getList("mods.individual.blacklist");
-            InertiaAntiCheat.info("Blacklisted mods: " + String.join(", ", blacklistedMods));
-            List<String> whitelistedMods = serverConfig.getList("mods.individual.whitelist");
-            InertiaAntiCheat.info("Whitelisted mods: " + String.join(", ", whitelistedMods));
-            InertiaAntiCheat.info("----------");
-
+            InertiaAntiCheat.debugInfo("Checking modlist now, using individual method");
+            InertiaAntiCheat.debugInfo("Mod list size: " + mods.size());
+            List<String> blacklistedMods = InertiaAntiCheatServer.serverConfig.getList("mods.individual.blacklist");
+            InertiaAntiCheat.debugInfo("Blacklisted mods: " + String.join(", ", blacklistedMods));
+            List<String> whitelistedMods = InertiaAntiCheatServer.serverConfig.getList("mods.individual.whitelist");
+            InertiaAntiCheat.debugInfo("Whitelisted mods: " + String.join(", ", whitelistedMods));
+            InertiaAntiCheat.debugLine();
             for (File mod : mods) {
-                InertiaAntiCheat.info("Checking file name: " + mod.getName());
+                InertiaAntiCheat.debugInfo("Checking file name: " + mod.getName());
                 String fileHash = InertiaAntiCheat.getChecksum(Files.readAllBytes(mod.toPath()), InertiaAntiCheatServer.hashAlgorithm);
-                InertiaAntiCheat.info("File hash: " + fileHash + "; with algorithm " + InertiaAntiCheatServer.hashAlgorithm);
+                InertiaAntiCheat.debugInfo("File hash: " + fileHash + "; with algorithm " + InertiaAntiCheatServer.hashAlgorithm);
 
                 if (blacklistedMods.contains(fileHash)) {
-                    InertiaAntiCheat.info("Found in blacklist");
-                    InertiaAntiCheat.info("----------");
+                    InertiaAntiCheat.debugInfo("Found in blacklist");
+                    InertiaAntiCheat.debugLine();
                     return false;
                 }
                 if (whitelistedMods.contains(fileHash)) {
-                    InertiaAntiCheat.info("Found in whitelist");
+                    InertiaAntiCheat.debugInfo("Found in whitelist");
                     whitelistedMods.remove(fileHash);
                 }
-                InertiaAntiCheat.info("----------");
+                InertiaAntiCheat.debugLine();
             }
             if (!whitelistedMods.isEmpty()) {
-                InertiaAntiCheat.info("Whitelist not fufilled");
-                InertiaAntiCheat.info("----------");
+                InertiaAntiCheat.debugInfo("Whitelist not fufilled");
+                InertiaAntiCheat.debugLine();
                 return false;
             }
-            InertiaAntiCheat.info("Passed");
-            InertiaAntiCheat.info("----------");
+            InertiaAntiCheat.debugInfo("Passed");
+            InertiaAntiCheat.debugLine2();
             return true;
         } else if (InertiaAntiCheatServer.modlistCheckMethod == ModlistCheckMethod.GROUP) {
-            InertiaAntiCheat.info("Checking modlist now, using group method");
+            InertiaAntiCheat.debugInfo("Checking modlist now, using group method");
             StringBuilder combinedHashes = new StringBuilder();
             for (File mod : mods) {
                 String fileHash = InertiaAntiCheat.getChecksum(Files.readAllBytes(mod.toPath()), InertiaAntiCheatServer.hashAlgorithm);
                 combinedHashes.append(fileHash);
             }
             String finalHash = InertiaAntiCheat.getChecksum(combinedHashes.toString().getBytes(), "MD5"); // no need to be cryptographically safe here
-            return Objects.equals(serverConfig.getString("mods.group.checksum"), finalHash);
+            InertiaAntiCheat.debugInfo("Final hash: " + finalHash);
+            InertiaAntiCheat.debugInfo("Comparing to: " + InertiaAntiCheatServer.serverConfig.getString("mods.group.checksum"));
+
+            boolean success = Objects.equals(InertiaAntiCheatServer.serverConfig.getString("mods.group.checksum"), finalHash);
+            if (success) {
+                InertiaAntiCheat.debugInfo("Passed");
+            } else {
+                InertiaAntiCheat.debugInfo("Failed");
+            }
+            InertiaAntiCheat.debugLine2();
+            return success;
         } else {
             throw new Exception("Invalid mod list check method! Please report this on this project's Github!");
         }
     }
 
     /* ---------- (Mostly) vanilla stuff below ----------*/
-
-    private static final Text REQUEST_HANDLED = Text.translatable("multiplayer.status.request_handled");
-    private final ServerMetadata metadata;
-    private final ClientConnection connection;
-    private boolean responseSent;
-
-    public UpgradedServerQueryNetworkHandler(ServerMetadata metadata, ClientConnection connection) {
-        this.metadata = metadata;
-        this.connection = connection;
-    }
 
     @Override
     public void onDisconnected(Text reason) {

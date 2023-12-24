@@ -1,12 +1,9 @@
 package me.diffusehyperion.inertiaanticheat.interfaces;
 
 public interface ServerInfoInterface {
-    boolean inertiaAntiCheat$allowedToJoin();
+    Boolean inertiaAntiCheat$allowedToJoin();
+    Boolean inertiaAntiCheat$isInertiaInstalled();
 
-    boolean inertiaAntiCheat$isInertiaInstalled();
-
-    void inertiaAntiCheat$setAllowedToJoin(boolean value);
-
-
-    void inertiaAntiCheat$setInertiaInstalled(boolean value);
+    void inertiaAntiCheat$setAllowedToJoin(Boolean value);
+    void inertiaAntiCheat$setInertiaInstalled(Boolean value);
 }

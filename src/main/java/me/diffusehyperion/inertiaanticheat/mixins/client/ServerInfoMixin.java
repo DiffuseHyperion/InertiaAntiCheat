@@ -2,34 +2,36 @@ package me.diffusehyperion.inertiaanticheat.mixins.client;
 
 import me.diffusehyperion.inertiaanticheat.interfaces.ServerInfoInterface;
 import net.minecraft.client.network.ServerInfo;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(ServerInfo.class)
 public abstract class ServerInfoMixin implements ServerInfoInterface {
     @Unique
-    private boolean inertiaInstalled;
-
+    @Nullable
+    private Boolean inertiaInstalled;
     @Unique
-    private boolean allowedToJoin;
+    @Nullable
+    private Boolean allowedToJoin;
 
     @Override
-    public boolean inertiaAntiCheat$allowedToJoin() {
+    @Nullable
+    public Boolean inertiaAntiCheat$allowedToJoin() {
         return this.allowedToJoin;
     }
-
     @Override
-    public boolean inertiaAntiCheat$isInertiaInstalled() {
+    @Nullable
+    public Boolean inertiaAntiCheat$isInertiaInstalled() {
         return this.inertiaInstalled;
     }
 
     @Override
-    public void inertiaAntiCheat$setAllowedToJoin(boolean value) {
+    public void inertiaAntiCheat$setAllowedToJoin(@Nullable Boolean value) {
         this.allowedToJoin = value;
     }
-
     @Override
-    public void inertiaAntiCheat$setInertiaInstalled(boolean value) {
+    public void inertiaAntiCheat$setInertiaInstalled(@Nullable Boolean value) {
         this.inertiaInstalled = value;
     }
 }

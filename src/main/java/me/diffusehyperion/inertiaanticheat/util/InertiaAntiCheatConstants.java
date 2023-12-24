@@ -11,5 +11,5 @@ public class InertiaAntiCheatConstants {
     public static final String MODID = "inertiaanticheat";
 
     public static final long CURRENT_SERVER_CONFIG_VERSION = 5;
-    public static final long CURRENT_CLIENT_CONFIG_VERSION = 1;
+    public static final long CURRENT_CLIENT_CONFIG_VERSION = 2;
 }

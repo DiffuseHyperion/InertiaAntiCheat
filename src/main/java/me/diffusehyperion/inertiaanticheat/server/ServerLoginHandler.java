@@ -18,43 +18,54 @@ public class ServerLoginHandler {
     public static HashMap<String, UUID> generatedKeys = new HashMap<>();
 
     public static void registerServerKeyHandler() {
-        InertiaAntiCheat.warn("Registering handler");
+        InertiaAntiCheat.debugInfo("Registering key communication handler");
         ServerLoginNetworking.registerGlobalReceiver(InertiaAntiCheatConstants.KEY_COMMUNICATION_ID, ServerLoginHandler::serverKeyHandler);
     }
 
-    public static void sendKeyRequest(ServerLoginNetworkHandler ignored1, MinecraftServer ignored2, PacketSender packetSender, ServerLoginNetworking.LoginSynchronizer ignored3) {
-        InertiaAntiCheat.warn("Sending key request");
+    public static void sendKeyRequest(ServerLoginNetworkHandler serverLoginNetworkHandler, MinecraftServer ignored2, PacketSender packetSender, ServerLoginNetworking.LoginSynchronizer ignored3) {
+        InertiaAntiCheat.debugLine();
+        if (InertiaAntiCheat.inDebug()) {
+            ServerLoginNetworkHandlerInterface upgradedServerLoginNetworkHandler = (ServerLoginNetworkHandlerInterface) serverLoginNetworkHandler;
+            InertiaAntiCheat.debugInfo("Sending key request to address " + upgradedServerLoginNetworkHandler.inertiaAntiCheat$getConnection().getAddress());
+        }
         packetSender.sendPacket(InertiaAntiCheatConstants.KEY_COMMUNICATION_ID, PacketByteBufs.empty());
+        InertiaAntiCheat.debugLine();
     }
 
     public static void serverKeyHandler(MinecraftServer server, ServerLoginNetworkHandler handler, boolean understood, PacketByteBuf buf, ServerLoginNetworking.LoginSynchronizer synchronizer, PacketSender responseSender) {
-        InertiaAntiCheat.warn("Handler triggered");
+        ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) handler;
+        InertiaAntiCheat.debugInfo("Received key from address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress());
         if (!understood) {
-            InertiaAntiCheat.error("Not understood");
+            InertiaAntiCheat.debugWarn("Client did not understand key request - most likely due to not having the mod installed");
             handler.disconnect(Text.of("did not respond to key request"));
             return;
         }
-        InertiaAntiCheat.warn("Understood!");
+        InertiaAntiCheat.debugInfo("Client understood request!");
 
-        String ip = InertiaAntiCheat.getIP(((ServerLoginNetworkHandlerInterface) handler).inertiaAntiCheat$getConnection().getAddress());
+        String ip = InertiaAntiCheat.getIP(upgradedHandler.inertiaAntiCheat$getConnection().getAddress());
 
         synchronizer.waitFor(server.submit(() -> {
-            InertiaAntiCheat.warn("Communication bytes: " + buf.readableBytes());
             if (buf.readableBytes() <= 0) {
+                InertiaAntiCheat.debugInfo("Received no data from the client");
                 handler.disconnect(Text.of("invalid key"));
+                return;
             }
             UUID key = buf.readUuid();
 
-
             if (!generatedKeys.containsKey(ip)) {
+                InertiaAntiCheat.debugInfo("Client did not previously generate a key");
                 handler.disconnect(Text.of("no keys generated for this ip"));
-            } else {
-                if (!generatedKeys.get(ip).equals(key)) {
-                    handler.disconnect(Text.of("key mismatch"));
-                } else {
-                    generatedKeys.remove(ip);
-                }
+                return;
             }
+            if (!generatedKeys.get(ip).equals(key)) {
+                InertiaAntiCheat.debugInfo("Client provided an invalid key");
+                handler.disconnect(Text.of("key mismatch"));
+                return;
+            }
+
+            InertiaAntiCheat.debugInfo("Passed");
+            generatedKeys.remove(ip);
+            InertiaAntiCheat.debugLine();
         }));
     }
 }

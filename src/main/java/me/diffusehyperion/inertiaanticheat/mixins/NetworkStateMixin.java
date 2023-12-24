@@ -1,7 +1,6 @@
 package me.diffusehyperion.inertiaanticheat.mixins;
 
-import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestEncryptedC2SPacket;
-import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestUnencryptedC2SPacket;
+import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestC2SPacket;
 import me.diffusehyperion.inertiaanticheat.packets.S2C.*;
 import me.diffusehyperion.inertiaanticheat.packets.C2S.ContactRequestC2SPacket;
 import net.minecraft.network.NetworkState;
@@ -27,8 +26,7 @@ public class NetworkStateMixin {
                     )
             ))
     private static NetworkState.InternalPacketHandler registerServerbound(NetworkState.InternalPacketHandler packetHandler) {
-        packetHandler.register(CommunicateRequestEncryptedC2SPacket.class, o -> new CommunicateRequestEncryptedC2SPacket((PacketByteBuf) o));
-        packetHandler.register(CommunicateRequestUnencryptedC2SPacket.class, o -> new CommunicateRequestUnencryptedC2SPacket((PacketByteBuf) o));
+        packetHandler.register(CommunicateRequestC2SPacket.class, o -> new CommunicateRequestC2SPacket((PacketByteBuf) o));
         packetHandler.register(ContactRequestC2SPacket.class, o -> new ContactRequestC2SPacket((PacketByteBuf) o));
 
         return packetHandler;
@@ -45,11 +43,8 @@ public class NetworkStateMixin {
                     )
             ))
     private static NetworkState.InternalPacketHandler registerClientbound(NetworkState.InternalPacketHandler packetSet) {
-        packetSet.register(CommunicateResponseAcceptS2CPacket.class, o -> new CommunicateResponseAcceptS2CPacket((PacketByteBuf) o));
-        packetSet.register(CommunicateResponseRejectS2CPacket.class, o -> new CommunicateResponseRejectS2CPacket((PacketByteBuf) o));
-        packetSet.register(ContactResponseEncryptedS2CPacket.class, o -> new ContactResponseEncryptedS2CPacket((PacketByteBuf) o));
-        packetSet.register(ContactResponseRejectS2CPacket.class, o -> new ContactResponseRejectS2CPacket((PacketByteBuf) o));
-        packetSet.register(ContactResponseUnencryptedS2CPacket.class, o -> new ContactResponseUnencryptedS2CPacket((PacketByteBuf) o));
+        packetSet.register(CommunicateResponseS2CPacket.class, o -> new CommunicateResponseS2CPacket((PacketByteBuf) o));
+        packetSet.register(ContactResponseS2CPacket.class, o -> new ContactResponseS2CPacket((PacketByteBuf) o));
         return packetSet;
     }
 }
