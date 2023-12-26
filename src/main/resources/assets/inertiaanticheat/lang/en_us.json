@@ -1,5 +1,4 @@
 {
-  "login.key.invalid_response": "Something went wrong while communicating with the anti-cheat!\nPlease rejoin.",
   "login.key.no_possible_key": "You have not successfully verified your mod-list yet!\nPlease ping the server in the server-list before rejoining.",
   "login.key.mismatched_key": "Something went wrong while communicating with the anti-cheat!\nPlease ping the server in the server-list before rejoining."
 }

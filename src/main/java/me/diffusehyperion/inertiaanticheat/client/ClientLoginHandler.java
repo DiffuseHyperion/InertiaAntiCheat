@@ -12,6 +12,7 @@ import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.network.PacketByteBuf;
 
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -27,10 +28,14 @@ public class ClientLoginHandler {
         InertiaAntiCheat.debugInfo("Received key request from server");
         ServerInfo info = ((ClientLoginNetworkHandlerInterface) clientLoginNetworkHandler).inertiaAntiCheat$getServerInfo();
         UUID key = InertiaAntiCheatClient.storedKeys.get(info);
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeUuid(key);
-        InertiaAntiCheat.debugInfo("Sent key response to server");
-        InertiaAntiCheat.debugLine();
-        return CompletableFuture.completedFuture(PacketByteBufs.create().writeUuid(key));
+        if (Objects.isNull(key)) {
+            return CompletableFuture.completedFuture(PacketByteBufs.empty());
+        } else {
+            PacketByteBuf buf = PacketByteBufs.create();
+            buf.writeUuid(key);
+            InertiaAntiCheat.debugInfo("Sent key response to server");
+            InertiaAntiCheat.debugLine();
+            return CompletableFuture.completedFuture(PacketByteBufs.create().writeUuid(key));
+        }
     }
 }

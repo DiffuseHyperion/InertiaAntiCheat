@@ -28,18 +28,16 @@ public class ServerLoginHandler {
         ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) serverLoginNetworkHandler;
 
         InertiaAntiCheat.debugInfo("Checking if " + upgradedHandler.inertiaAntiCheat$getGameProfile().getName() + " has bypass permissions");
-        Permissions.check(upgradedHandler.inertiaAntiCheat$getGameProfile(), "inertiaanticheat.bypass").thenAccept(allowed -> {
-            if (allowed) {
-                InertiaAntiCheat.debugInfo(upgradedHandler.inertiaAntiCheat$getGameProfile().getName() + " is allowed to bypass");
-            } else {
-                if (InertiaAntiCheat.inDebug()) {
-                    InertiaAntiCheat.debugInfo("Sending key request to address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress());
-                }
-                packetSender.sendPacket(InertiaAntiCheatConstants.KEY_COMMUNICATION_ID, PacketByteBufs.empty());
+        boolean allowed = Permissions.check(upgradedHandler.inertiaAntiCheat$getGameProfile(), "inertiaanticheat.bypass").join();
+        if (allowed) {
+            InertiaAntiCheat.debugInfo(upgradedHandler.inertiaAntiCheat$getGameProfile().getName() + " is allowed to bypass");
+        } else {
+            if (InertiaAntiCheat.inDebug()) {
+                InertiaAntiCheat.debugInfo("Not allowed to bypass, sending key request to address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress());
             }
-            InertiaAntiCheat.debugLine();
-        });
-
+            packetSender.sendPacket(InertiaAntiCheatConstants.KEY_COMMUNICATION_ID, PacketByteBufs.empty());
+        }
+        InertiaAntiCheat.debugLine();
     }
 
     public static void serverKeyHandler(MinecraftServer server, ServerLoginNetworkHandler handler, boolean understood, PacketByteBuf buf, ServerLoginNetworking.LoginSynchronizer synchronizer, PacketSender responseSender) {
@@ -56,8 +54,8 @@ public class ServerLoginHandler {
 
         synchronizer.waitFor(server.submit(() -> {
             if (buf.readableBytes() <= 0) {
-                InertiaAntiCheat.debugInfo("Received no data from the client");
-                handler.disconnect(Text.translatable("login.key.invalid_response"));
+                InertiaAntiCheat.debugInfo("Received no key from the client");
+                handler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.deniedKickMessage")));
                 return;
             }
             UUID key = buf.readUuid();
