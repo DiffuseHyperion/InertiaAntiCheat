@@ -181,9 +181,8 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
             }
             String finalHash = InertiaAntiCheat.getChecksum(combinedHashes.toString().getBytes(), "MD5"); // no need to be cryptographically safe here
             InertiaAntiCheat.debugInfo("Final hash: " + finalHash);
-            InertiaAntiCheat.debugInfo("Comparing to: " + InertiaAntiCheatServer.serverConfig.getString("mods.group.checksum"));
 
-            boolean success = Objects.equals(InertiaAntiCheatServer.serverConfig.getString("mods.group.checksum"), finalHash);
+            boolean success = InertiaAntiCheatServer.serverConfig.getList("mods.group.checksum").contains(finalHash);
             if (success) {
                 InertiaAntiCheat.debugInfo("Passed");
             } else {

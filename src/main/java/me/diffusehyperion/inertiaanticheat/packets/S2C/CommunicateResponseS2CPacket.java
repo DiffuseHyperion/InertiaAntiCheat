@@ -4,8 +4,6 @@ import me.diffusehyperion.inertiaanticheat.packets.ClientUpgradedQueryPacketList
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.Packet;
 
-import java.util.Objects;
-
 public class CommunicateResponseS2CPacket implements Packet<ClientUpgradedQueryPacketListener> {
     private final boolean accepted;
     private final byte[] encryptedKey;
@@ -18,12 +16,13 @@ public class CommunicateResponseS2CPacket implements Packet<ClientUpgradedQueryP
     public CommunicateResponseS2CPacket(PacketByteBuf packetByteBuf) {
         this.accepted = packetByteBuf.readBoolean();
 
-        if (packetByteBuf.readableBytes() <= 0) {
-            throw new RuntimeException("PacketByteBuf provided to CommunicateResponseS2CPacket was empty");
+        if (!this.accepted) {
+            this.encryptedKey = null;
+        } else {
+            byte[] enctyptedKey = new byte[packetByteBuf.readableBytes()];
+            packetByteBuf.readBytes(enctyptedKey);
+            this.encryptedKey = enctyptedKey;
         }
-        byte[] enctyptedKey = new byte[packetByteBuf.readableBytes()];
-        packetByteBuf.readBytes(enctyptedKey);
-        this.encryptedKey = enctyptedKey;
     }
 
     public CommunicateResponseS2CPacket() {
@@ -33,8 +32,8 @@ public class CommunicateResponseS2CPacket implements Packet<ClientUpgradedQueryP
 
     @Override
     public void write(PacketByteBuf buf) {
-        buf.writeBoolean(Objects.nonNull(this.encryptedKey));
-        if (Objects.nonNull(this.encryptedKey)) {
+        buf.writeBoolean(this.accepted);
+        if (this.accepted) {
             buf.writeBytes(this.encryptedKey);
         }
     }
