@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -33,19 +32,6 @@ public abstract class MultiplayerServerListWidgetServerEntryMixin {
     @Unique
     private final Identifier ICON_DISALLOWED = new Identifier(MODID, "textures/gui/cross.png");
 
-    @Unique
-    private final List<Text> ICON_ENABLED_TEXT = new ArrayList<>();
-    @Unique
-    private final List<Text> ICON_ALLOWED_TEXT = new ArrayList<>();
-    @Unique
-    private final List<Text> ICON_DISALLOWED_TEXT = new ArrayList<>();
-
-    public MultiplayerServerListWidgetServerEntryMixin() {
-        this.ICON_ENABLED_TEXT.add(Text.of("InertiaAntiCheat installed"));
-        this.ICON_ALLOWED_TEXT.add(Text.of("Allowed to join"));
-        this.ICON_DISALLOWED_TEXT.add(Text.of("Not allowed to join"));
-    }
-
     @Inject(
             method = "render",
             at = @At(value = "INVOKE",
@@ -58,7 +44,7 @@ public abstract class MultiplayerServerListWidgetServerEntryMixin {
             int iconY = y + 10;
             context.drawTexture(ICON_ENABLED, iconX, iconY, 0.0f, 0.0f, 10, 10, 10, 10);
             if (mouseX > iconX && mouseX < iconX + 10 && mouseY > iconY && mouseY < iconY + 10) {
-                screen.setMultiplayerScreenTooltip(ICON_ENABLED_TEXT);
+                screen.setMultiplayerScreenTooltip(List.of(Text.of("InertiaAntiCheat installed")));
             }
         }
         if (Objects.nonNull(upgradedServerInfo.inertiaAntiCheat$allowedToJoin())) {
@@ -67,14 +53,14 @@ public abstract class MultiplayerServerListWidgetServerEntryMixin {
                 int iconY = y + 20;
                 context.drawTexture(ICON_ALLOWED, iconX, iconY, 0.0f, 0.0f, 10, 10, 10, 10);
                 if (mouseX > iconX && mouseX < iconX + 10 && mouseY > iconY && mouseY < iconY + 10) {
-                    screen.setMultiplayerScreenTooltip(ICON_ALLOWED_TEXT);
+                    screen.setMultiplayerScreenTooltip(List.of(Text.of(Text.of("Allowed to join"))));
                 }
             } else {
                 int iconX = x + entryWidth - 15;
                 int iconY = y + 20;
                 context.drawTexture(ICON_DISALLOWED, iconX, iconY, 0.0f, 0.0f, 10, 10, 10, 10);
                 if (mouseX > iconX && mouseX < iconX + 10 && mouseY > iconY && mouseY < iconY + 10) {
-                    screen.setMultiplayerScreenTooltip(ICON_DISALLOWED_TEXT);
+                    screen.setMultiplayerScreenTooltip(List.of(Text.of(Text.of("Not allowed to join"))));
                 }
             }
 

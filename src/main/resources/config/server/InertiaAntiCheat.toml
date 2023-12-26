@@ -12,7 +12,7 @@ algorithm = "MD5"
 # The kick message to show to client's when they try to connect without InertiaAntiCheat installed.
 vanillaKickMessage = "You were kicked for not sending a response to the anti-cheat!\nThis is probably due to missing the anti-cheat client mod.\nInstall it here: https://modrinth.com/mod/inertiaanticheat"
 # The kick message to show to client's when they fail the modlist check.
-deniedKickMessage = "You were kicked by the anti-cheat!\nThis is due to having illegal mods.\nPlease contact your server adminstator for more details."
+deniedKickMessage = "You were kicked by the anti-cheat!\nThis is due to having illegal mods.\nPlease contact your server administrator for more details."
 
 
 [mods.individual]
