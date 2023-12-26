@@ -29,6 +29,8 @@ public class ClientLoginHandler {
         ServerInfo info = ((ClientLoginNetworkHandlerInterface) clientLoginNetworkHandler).inertiaAntiCheat$getServerInfo();
         UUID key = InertiaAntiCheatClient.storedKeys.get(info);
         if (Objects.isNull(key)) {
+            InertiaAntiCheat.debugInfo("No key available, sending empty response");
+            InertiaAntiCheat.debugLine();
             return CompletableFuture.completedFuture(PacketByteBufs.empty());
         } else {
             PacketByteBuf buf = PacketByteBufs.create();
