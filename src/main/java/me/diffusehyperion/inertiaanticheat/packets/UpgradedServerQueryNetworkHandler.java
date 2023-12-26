@@ -6,6 +6,7 @@ import me.diffusehyperion.inertiaanticheat.packets.C2S.ContactRequestC2SPacket;
 import me.diffusehyperion.inertiaanticheat.packets.S2C.*;
 import me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer;
 import me.diffusehyperion.inertiaanticheat.server.ServerLoginHandler;
+import me.diffusehyperion.inertiaanticheat.util.HashAlgorithm;
 import me.diffusehyperion.inertiaanticheat.util.ModlistCheckMethod;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.c2s.query.QueryPingC2SPacket;
@@ -25,10 +26,7 @@ import java.io.ObjectInputStream;
 import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPacketListener {
     /* ---------- vanilla fields ----------*/
@@ -170,17 +168,21 @@ public class UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPac
             InertiaAntiCheat.debugInfo("Checking modlist now, using group method");
             List<String> softWhitelistedMods = InertiaAntiCheatServer.serverConfig.getList("mods.group.softWhitelist");
             InertiaAntiCheat.debugInfo("Soft whitelisted mods: " + String.join(", ", softWhitelistedMods));
-            StringBuilder combinedHashes = new StringBuilder();
+            List<String> hashes = new ArrayList<>();
             for (File mod : mods) {
                 String fileHash = InertiaAntiCheat.getChecksum(Files.readAllBytes(mod.toPath()), InertiaAntiCheatServer.hashAlgorithm);
                 if (softWhitelistedMods.contains(fileHash)) {
                     softWhitelistedMods.remove(fileHash);
                 } else {
-                    combinedHashes.append(fileHash);
+                    hashes.add(fileHash);
                 }
             }
-            String finalHash = InertiaAntiCheat.getChecksum(combinedHashes.toString().getBytes(), "MD5"); // no need to be cryptographically safe here
+            Collections.sort(hashes);
+            String combinedHash = String.join("|", hashes);
+            String finalHash = InertiaAntiCheat.getChecksum(combinedHash.getBytes(), HashAlgorithm.MD5); // no need to be cryptographically safe here
             InertiaAntiCheat.debugInfo("Final hash: " + finalHash);
+            InertiaAntiCheat.debugInfo("Combined hash: " + combinedHash);
+
 
             boolean success = InertiaAntiCheatServer.serverConfig.getList("mods.group.checksum").contains(finalHash);
             if (success) {

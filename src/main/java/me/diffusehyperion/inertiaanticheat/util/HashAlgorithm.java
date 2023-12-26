@@ -1,18 +1,24 @@
 package me.diffusehyperion.inertiaanticheat.util;
 
 public enum HashAlgorithm {
-    MD5("MD5"),
-    SHA1("SHA-1"),
-    SHA256("SHA-256");
+    MD5("MD5", 32),
+    SHA1("SHA-1", 40),
+    SHA256("SHA-256", 64);
 
     private final String name;
+    private final int length;
 
-    HashAlgorithm(String name) {
+    HashAlgorithm(String name, int length) {
         this.name = name;
+        this.length = length;
     }
 
     @Override
     public String toString() {
         return name;
+    }
+
+    public int getLength() {
+        return length;
     }
 }
