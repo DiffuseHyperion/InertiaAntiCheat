@@ -2,16 +2,21 @@ package me.diffusehyperion.inertiaanticheat.server;
 
 import com.moandjiezana.toml.Toml;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
+import me.diffusehyperion.inertiaanticheat.interfaces.ServerLoginNetworkHandlerInterface;
 import me.diffusehyperion.inertiaanticheat.util.HashAlgorithm;
 import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
 import me.diffusehyperion.inertiaanticheat.util.ModlistCheckMethod;
 import me.diffusehyperion.inertiaanticheat.util.Scheduler;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.DedicatedServerModInitializer;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.server.network.ServerLoginNetworkHandler;
+
+import java.security.KeyPair;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
 
@@ -21,7 +26,6 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
 
     public static final Scheduler serverScheduler = new Scheduler();
 
-    //TODO: Add inertiaanticheat.bypass logic
     @Override
     public void onInitializeServer() {
         InertiaAntiCheatServer.serverConfig = InertiaAntiCheat.initializeConfig("/config/server/InertiaAntiCheat.toml", InertiaAntiCheatConstants.CURRENT_SERVER_CONFIG_VERSION);
@@ -46,12 +50,7 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
                 InertiaAntiCheatServer.hashAlgorithm = HashAlgorithm.MD5;
             }
         }
-        ServerLoginHandler.registerServerKeyHandler();
-        ServerPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
-        ServerLoginConnectionEvents.QUERY_START.register(ServerLoginHandler::sendKeyRequest);
-    }
 
-    private void onPlayerJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
-        InertiaAntiCheat.info("Player joining from address: " + serverPlayNetworkHandler.getConnectionAddress());
+        ServerLoginModlistTransferHandler.init();
     }
 }

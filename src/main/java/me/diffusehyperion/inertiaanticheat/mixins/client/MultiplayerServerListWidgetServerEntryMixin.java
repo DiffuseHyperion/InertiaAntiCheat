@@ -1,6 +1,10 @@
 package me.diffusehyperion.inertiaanticheat.mixins.client;
 
 import me.diffusehyperion.inertiaanticheat.interfaces.ServerInfoInterface;
+import me.diffusehyperion.inertiaanticheat.util.AnticheatDetails;
+import me.diffusehyperion.inertiaanticheat.util.GroupAnticheatDetails;
+import me.diffusehyperion.inertiaanticheat.util.IndividualAnticheatDetails;
+import me.diffusehyperion.inertiaanticheat.util.ModlistCheckMethod;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerServerListWidget;
@@ -39,7 +43,9 @@ public abstract class MultiplayerServerListWidgetServerEntryMixin {
     )
     private void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
         ServerInfoInterface upgradedServerInfo = ((ServerInfoInterface) server);
-        if (Objects.nonNull(upgradedServerInfo.inertiaAntiCheat$isInertiaInstalled()) && upgradedServerInfo.inertiaAntiCheat$isInertiaInstalled().equals(true)) {
+        Boolean installed = upgradedServerInfo.inertiaAntiCheat$isInertiaInstalled();
+        AnticheatDetails anticheatDetails = upgradedServerInfo.inertiaAntiCheat$getAnticheatDetails();
+        if (Objects.nonNull(installed) && installed.equals(true)) {
             int iconX = x + entryWidth - 15;
             int iconY = y + 10;
             context.drawTexture(ICON_ENABLED, iconX, iconY, 0.0f, 0.0f, 10, 10, 10, 10);
@@ -47,23 +53,33 @@ public abstract class MultiplayerServerListWidgetServerEntryMixin {
                 screen.setMultiplayerScreenTooltip(List.of(Text.of("InertiaAntiCheat installed")));
             }
         }
-        if (Objects.nonNull(upgradedServerInfo.inertiaAntiCheat$allowedToJoin())) {
-            if (upgradedServerInfo.inertiaAntiCheat$allowedToJoin()) {
-                int iconX = x + entryWidth - 15;
-                int iconY = y + 20;
-                context.drawTexture(ICON_ALLOWED, iconX, iconY, 0.0f, 0.0f, 10, 10, 10, 10);
-                if (mouseX > iconX && mouseX < iconX + 10 && mouseY > iconY && mouseY < iconY + 10) {
-                    screen.setMultiplayerScreenTooltip(List.of(Text.of(Text.of("Allowed to join"))));
+        if (Objects.nonNull(anticheatDetails)) {
+            if (anticheatDetails.getCheckMethod() == ModlistCheckMethod.INDIVIDUAL) {
+                IndividualAnticheatDetails individualAnticheatDetails = (IndividualAnticheatDetails) anticheatDetails;
+
+                int whitelistIconX = x + entryWidth - 25;
+                int whitelistIconY = y + 20;
+                context.drawTexture(ICON_ALLOWED, whitelistIconX, whitelistIconY, 0.0f, 0.0f, 10, 10, 10, 10);
+                if (mouseX > whitelistIconX && mouseX < whitelistIconX + 10 && mouseY > whitelistIconY && mouseY < whitelistIconY + 10) {
+                    screen.setMultiplayerScreenTooltip(individualAnticheatDetails.whitelistedMods().stream().map(Text::of).toList());
+                }
+
+                int blacklistIconX = x + entryWidth - 15;
+                int blacklistIconY = y + 20;
+                context.drawTexture(ICON_DISALLOWED, blacklistIconX, blacklistIconY, 0.0f, 0.0f, 10, 10, 10, 10);
+                if (mouseX > blacklistIconX && mouseX < blacklistIconX + 10 && mouseY > blacklistIconY && mouseY < blacklistIconY + 10) {
+                    screen.setMultiplayerScreenTooltip(individualAnticheatDetails.blacklistedMods().stream().map(Text::of).toList());
                 }
             } else {
-                int iconX = x + entryWidth - 15;
-                int iconY = y + 20;
-                context.drawTexture(ICON_DISALLOWED, iconX, iconY, 0.0f, 0.0f, 10, 10, 10, 10);
-                if (mouseX > iconX && mouseX < iconX + 10 && mouseY > iconY && mouseY < iconY + 10) {
-                    screen.setMultiplayerScreenTooltip(List.of(Text.of(Text.of("Not allowed to join"))));
+                GroupAnticheatDetails groupAnticheatDetails = (GroupAnticheatDetails) anticheatDetails;
+
+                int blacklistIconX = x + entryWidth - 15;
+                int blacklistIconY = y + 20;
+                context.drawTexture(ICON_ALLOWED, blacklistIconX, blacklistIconY, 0.0f, 0.0f, 10, 10, 10, 10);
+                if (mouseX > blacklistIconX && mouseX < blacklistIconX + 10 && mouseY > blacklistIconY && mouseY < blacklistIconY + 10) {
+                    screen.setMultiplayerScreenTooltip(List.of(Text.of(groupAnticheatDetails.modpackName())));
                 }
             }
-
         }
     }
 }

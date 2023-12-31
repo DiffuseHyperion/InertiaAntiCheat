@@ -19,14 +19,17 @@ deniedKickMessage = "You were kicked by the anti-cheat!\nThis is due to having i
 # Immediately kick players who have these mods in their modlist.
 # The mod checks (and kicks) for blacklisted mods first.
 blacklist = ["c20218d611730cfd0eb000897e6968fd"]
+friendlyBlacklist = ["Wrust Client"]
 
 # Immediately kick players who do not have these mods in their modlist.
 whitelist = []
+friendlyWhitelist = []
 
 [mods.group]
 # The hash for the server to check against.
 # You can add multiple hashes into the list, and the server will check against all of them.
 checksum = []
+friendlyChecksum = "Modpack Name"
 
 # Allow certain mods to be used by players, in addition to your modpack.
 # This allows players to make use of optional client mods if you allow it.

@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient;
 import me.diffusehyperion.inertiaanticheat.interfaces.ClientConnectionMixinInterface;
+import me.diffusehyperion.inertiaanticheat.interfaces.ServerInfoInterface;
 import me.diffusehyperion.inertiaanticheat.packets.ClientUpgradedQueryPacketListener;
 import me.diffusehyperion.inertiaanticheat.packets.UpgradedClientQueryNetworkHandler;
 import net.minecraft.client.network.MultiplayerServerListPinger;
@@ -57,6 +58,8 @@ public abstract class MultiplayerServerListPingerMixin {
                 this::showError,
                 this::ping);
 
+        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setInertiaInstalled(null);
+        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAnticheatDetails(null);
         ((ClientConnectionMixinInterface) connection).inertiaAntiCheat$connect(host, port, listener);
     }
 

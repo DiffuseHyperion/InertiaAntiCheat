@@ -4,9 +4,7 @@ import com.mojang.authlib.GameProfile;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient;
 import me.diffusehyperion.inertiaanticheat.interfaces.ServerInfoInterface;
-import me.diffusehyperion.inertiaanticheat.packets.C2S.CommunicateRequestC2SPacket;
-import me.diffusehyperion.inertiaanticheat.packets.C2S.ContactRequestC2SPacket;
-import me.diffusehyperion.inertiaanticheat.packets.S2C.*;
+import me.diffusehyperion.inertiaanticheat.packets.S2C.AnticheatDetailsS2CPacket;
 import net.minecraft.client.network.MultiplayerServerListPinger;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.network.ServerInfo;
@@ -46,12 +44,6 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
     private boolean received;
     private long startTime;
 
-    /* ---------- custom fields ----------*/
-
-    private final Runnable disconnectRunnable;
-    private final KeyPair keyPair;
-    private final SecretKey secretKey;
-
     public UpgradedClientQueryNetworkHandler(ServerInfo serverInfo, Runnable runnable, ClientConnection connection,
                                              InetSocketAddress inetSocketAddress, ServerAddress serverAddress,
                                              BiConsumer<Text, ServerInfo> showErrorMethod,
@@ -67,45 +59,13 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
 
         this.showErrorMethod = showErrorMethod;
         this.pingMethod = pingMethod;
-
-        /* ---------- custom fields ----------*/
-
-        this.disconnectRunnable = () -> {
-            InertiaAntiCheat.debugInfo("Disconnected from address " + this.connection.getAddress());
-            connection.disconnect(Text.translatable("multiplayer.status.finished"));
-        };
-        this.keyPair = InertiaAntiCheat.createRSAPair();
-        this.secretKey = InertiaAntiCheat.createAESKey();
     }
 
-    public void onContactResponse(ContactResponseS2CPacket var1) {
-        InertiaAntiCheat.debugInfo("Received contact response from address " + this.connection.getAddress());
-        InertiaAntiCheatClient.clientScheduler.cancelTask(this.disconnectRunnable);
-
-        ((ServerInfoInterface) this.serverInfo).inertiaAntiCheat$setInertiaInstalled(true);
-
-        byte[] serializedModlist = InertiaAntiCheatClient.serializeModlist();
-        byte[] encryptedSerializedModlist = InertiaAntiCheat.encryptAESBytes(serializedModlist, this.secretKey);
-        byte[] encryptedSecretKey = InertiaAntiCheat.encryptRSABytes(this.secretKey.getEncoded(), var1.getServerPublicKey());
-        this.connection.send(new CommunicateRequestC2SPacket(encryptedSerializedModlist, encryptedSecretKey));
-        InertiaAntiCheat.debugInfo("Sent communication request to address " + this.connection.getAddress());
-        InertiaAntiCheat.debugLine();
-    }
 
     @Override
-    public void onCommunicateResponse(CommunicateResponseS2CPacket var1) {
-        InertiaAntiCheat.debugInfo("Received communication response from address " + this.connection.getAddress());
-        ((ServerInfoInterface) this.serverInfo).inertiaAntiCheat$setAllowedToJoin(var1.isAccepted());
-
-        if (var1.isAccepted()) {
-            byte[] decryptedKey = InertiaAntiCheat.decryptRSABytes(var1.getEncryptedKey(), this.keyPair.getPrivate());
-            UUID key = InertiaAntiCheat.bytesToUUID(decryptedKey);
-
-            InertiaAntiCheatClient.storedKeys.put(this.serverInfo, key);
-        }
-
-        this.disconnectRunnable.run();
-        InertiaAntiCheat.debugLine();
+    public void onReceiveAnticheatDetails(AnticheatDetailsS2CPacket var1) {
+        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setInertiaInstalled(true);
+        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAnticheatDetails(var1.getDetails());
     }
 
 
@@ -150,7 +110,7 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
             }
         });
         this.startTime = Util.getMeasuringTimeMs();
-        connection.send(new QueryPingC2SPacket(this.startTime));
+        this.connection.send(new QueryPingC2SPacket(this.startTime));
         this.sentQuery = true;
     }
 
@@ -159,15 +119,7 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
         long l = this.startTime;
         long m = Util.getMeasuringTimeMs();
         serverInfo.ping = m - l;
-
-        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setInertiaInstalled(null);
-        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAllowedToJoin(null);
-
-        InertiaAntiCheat.debugLine();
-        InertiaAntiCheat.debugInfo("Sending contact request to address " + connection.getAddress());
-        connection.send(new ContactRequestC2SPacket(keyPair.getPublic()));
-        InertiaAntiCheatClient.clientScheduler.addTask((int) (((serverInfo.ping / 2) / 50) + 100), disconnectRunnable);
-        InertiaAntiCheat.debugLine();
+        this.connection.disconnect(Text.translatable("multiplayer.status.finished"));
     }
 
     @Override
@@ -180,6 +132,6 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
 
     @Override
     public boolean isConnectionOpen() {
-        return connection.isOpen();
+        return this.connection.isOpen();
     }
 }

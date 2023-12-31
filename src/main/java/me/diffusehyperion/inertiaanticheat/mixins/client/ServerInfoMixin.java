@@ -1,6 +1,7 @@
 package me.diffusehyperion.inertiaanticheat.mixins.client;
 
 import me.diffusehyperion.inertiaanticheat.interfaces.ServerInfoInterface;
+import me.diffusehyperion.inertiaanticheat.util.AnticheatDetails;
 import net.minecraft.client.network.ServerInfo;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,13 +14,13 @@ public abstract class ServerInfoMixin implements ServerInfoInterface {
     private Boolean inertiaInstalled;
     @Unique
     @Nullable
-    private Boolean allowedToJoin;
+    private AnticheatDetails anticheatDetails;
 
     @Override
-    @Nullable
-    public Boolean inertiaAntiCheat$allowedToJoin() {
-        return this.allowedToJoin;
+    public AnticheatDetails inertiaAntiCheat$getAnticheatDetails() {
+        return this.anticheatDetails;
     }
+
     @Override
     @Nullable
     public Boolean inertiaAntiCheat$isInertiaInstalled() {
@@ -27,9 +28,10 @@ public abstract class ServerInfoMixin implements ServerInfoInterface {
     }
 
     @Override
-    public void inertiaAntiCheat$setAllowedToJoin(@Nullable Boolean value) {
-        this.allowedToJoin = value;
+    public void inertiaAntiCheat$setAnticheatDetails(AnticheatDetails anticheatDetails) {
+        this.anticheatDetails = anticheatDetails;
     }
+
     @Override
     public void inertiaAntiCheat$setInertiaInstalled(@Nullable Boolean value) {
         this.inertiaInstalled = value;
