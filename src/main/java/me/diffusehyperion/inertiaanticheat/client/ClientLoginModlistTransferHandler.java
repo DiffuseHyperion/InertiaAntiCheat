@@ -14,6 +14,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 
 import javax.crypto.SecretKey;
+import java.math.BigInteger;
 import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Objects;
@@ -39,7 +40,7 @@ public class ClientLoginModlistTransferHandler {
         InertiaAntiCheat.debugInfo("Registered new handler for channel");
 
         PacketByteBuf responseBuf = PacketByteBufs.create();
-        responseBuf.writeInt(InertiaAntiCheatClient.allModData.size()); //TODO: encrypt this
+        responseBuf.writeBytes(InertiaAntiCheat.encryptRSABytes(BigInteger.valueOf(InertiaAntiCheatClient.allModData.size()).toByteArray(), publicKey));
         InertiaAntiCheat.debugInfo("Responding with mod size of " + InertiaAntiCheatClient.allModData.size());
         InertiaAntiCheat.debugLine();
 

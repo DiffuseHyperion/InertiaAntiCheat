@@ -19,6 +19,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,7 +81,10 @@ public class ServerLoginModlistTransferHandler {
             return;
         }
 
-        this.maxIndex = packetByteBuf.readInt();
+        byte[] encryptedData = new byte[packetByteBuf.readableBytes()];
+        packetByteBuf.readBytes(encryptedData);
+        this.maxIndex = new BigInteger(InertiaAntiCheat.decryptRSABytes(encryptedData, this.keyPair.getPrivate())).intValue();
+
         InertiaAntiCheat.debugInfo("Max index: " + this.maxIndex);
 
         ServerLoginNetworking.registerReceiver(serverLoginNetworkHandler, this.modTransferID, this::continueModTransfer);
