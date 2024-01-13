@@ -11,18 +11,12 @@ import javax.crypto.*;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Objects;
-import java.util.UUID;
-import java.util.zip.DataFormatException;
-import java.util.zip.Deflater;
-import java.util.zip.Inflater;
 
 import static me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient.clientConfig;
 import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.serverConfig;
@@ -136,11 +130,6 @@ public class InertiaAntiCheat implements ModInitializer {
         return FabricLoader.getInstance().getConfigDir().resolve("InertiaAntiCheat");
     }
 
-    public static String getIP(SocketAddress address) {
-        String addressString = address.toString();
-        return addressString.substring(addressString.indexOf("/") + 1, addressString.indexOf(":"));
-    }
-
     public static PublicKey retrievePublicKey(PacketByteBuf packetByteBuf) {
         byte[] rawPublicKeyBytes = new byte[packetByteBuf.readableBytes()];
         packetByteBuf.readBytes(rawPublicKeyBytes);
@@ -214,27 +203,6 @@ public class InertiaAntiCheat implements ModInitializer {
             return keyPairGenerator.generateKeyPair();
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Something went wrong while generating new key pairs!", e);
-        }
-    }
-
-    public static byte[] compressData(byte[] data) {
-        byte[] buffer = new byte[8192];
-        Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION, true);
-        deflater.setInput(data);
-        deflater.finish();
-        deflater.deflate(buffer);
-        return buffer;
-    }
-
-    public static byte[] decompressData(byte[] data) {
-        try {
-            Inflater inflater = new Inflater();
-            inflater.setInput(data, 0, data.length);
-            byte[] buffer = new byte[8192];
-            inflater.inflate(buffer);
-            return buffer;
-        } catch (DataFormatException e) {
-            throw new RuntimeException(e);
         }
     }
 }
