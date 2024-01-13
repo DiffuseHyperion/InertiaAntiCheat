@@ -9,9 +9,9 @@ method = "individual"
 # SHA256 is the slowest but most secure.
 # Accepted algorithms: "MD5", "SHA1", "SHA256"
 algorithm = "MD5"
-# The kick message to show to client's when they try to connect without InertiaAntiCheat installed.
+# The kick message to show to clients when they try to connect without InertiaAntiCheat installed.
 vanillaKickMessage = "You were kicked for not sending a response to the anti-cheat!\nThis is probably due to missing the anti-cheat client mod.\nInstall it here: https://modrinth.com/mod/inertiaanticheat"
-# The kick message to show to client's when they fail the modlist check.
+# The kick message to show to clients when they fail the modlist check.
 deniedKickMessage = "You were kicked by the anti-cheat!\nThis is due to having illegal mods.\nPlease contact your server administrator for more details."
 
 
@@ -19,17 +19,25 @@ deniedKickMessage = "You were kicked by the anti-cheat!\nThis is due to having i
 # Immediately kick players who have these mods in their modlist.
 # The mod checks (and kicks) for blacklisted mods first.
 blacklist = ["c20218d611730cfd0eb000897e6968fd"]
-friendlyBlacklist = ["Wrust Client"]
+# The respective names of blacklisted mods to report to clients.
+# Clients will be able to see these mod names in their server browser.
+# You may choose to put arbituary names, extra names, fake names or no names at all here.
+friendlyBlacklist = ["Banned mods: ", "Wrust Client"]
 
 # Immediately kick players who do not have these mods in their modlist.
 whitelist = []
+# The respective names of whitelisted mods to report to clients.
+# Clients will be able to see these mod names in their server browser.
+# You may choose to put arbituary names, fake names or no names at all here.
 friendlyWhitelist = []
 
 [mods.group]
 # The hash for the server to check against.
 # You can add multiple hashes into the list, and the server will check against all of them.
 checksum = []
-friendlyChecksum = "Modpack Name"
+# The name of the modpack to report to clients.
+# Clients will be able to see the modpack name in their server browser.
+friendlyChecksum = ["Requires modpack: ", "Modpack Name"]
 
 # Allow certain mods to be used by players, in addition to your modpack.
 # This allows players to make use of optional client mods if you allow it.
@@ -37,6 +45,6 @@ softWhitelist = []
 
 [debug]
 # Show additional information in server logs.
-debug = false
+debug = true
 # do not touch pls :)
 version = 5

@@ -24,7 +24,9 @@ public class AnticheatDetailsS2CPacket implements Packet<ClientUpgradedQueryPack
                     new ArrayList<>(Arrays.asList(packetByteBuf.readString().split(","))),
                     new ArrayList<>(Arrays.asList(packetByteBuf.readString().split(","))));
         } else if (ordinal == 1) {
-            this.details = new GroupAnticheatDetails(packetByteBuf.readString());
+            this.details = new GroupAnticheatDetails(
+                    new ArrayList<>(Arrays.asList(packetByteBuf.readString().split(",")))
+            );
         } else {
             throw new RuntimeException("Unknown ordinal given");
         }
@@ -37,7 +39,7 @@ public class AnticheatDetailsS2CPacket implements Packet<ClientUpgradedQueryPack
             buf.writeString(String.join(",", individualDetails.blacklistedMods()));
             buf.writeString(String.join(",", individualDetails.whitelistedMods()));
         } else if (this.details instanceof GroupAnticheatDetails groupDetails) {
-            buf.writeString(groupDetails.modpackName());
+            buf.writeString(String.join(",", groupDetails.modpackDetails()));
         }
     }
 
