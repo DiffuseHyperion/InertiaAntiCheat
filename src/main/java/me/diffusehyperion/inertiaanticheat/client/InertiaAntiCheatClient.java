@@ -44,6 +44,9 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
         try {
             File modDirectory = FabricLoader.getInstance().getGameDir().resolve("mods").toFile();
             for (File modFile : Objects.requireNonNull(modDirectory.listFiles())) {
+                if (!modFile.isDirectory()) {
+                    continue;
+                }
                 InertiaAntiCheatClient.allModData.add(Files.readAllBytes(modFile.toPath()));
             }
         } catch (IOException e) {

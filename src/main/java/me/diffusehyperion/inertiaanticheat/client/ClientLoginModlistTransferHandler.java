@@ -68,7 +68,7 @@ public class ClientLoginModlistTransferHandler {
     }
 
     private void onDisconnect(ClientLoginNetworkHandler clientLoginNetworkHandler, MinecraftClient minecraftClient) {
-        ClientLoginNetworking.unregisterGlobalReceiver(this.modTransferID);
+        ClientLoginNetworking.unregisterReceiver(this.modTransferID);
     }
 
 

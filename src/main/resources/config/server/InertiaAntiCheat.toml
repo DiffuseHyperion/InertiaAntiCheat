@@ -45,6 +45,6 @@ softWhitelist = []
 
 [debug]
 # Show additional information in server logs.
-debug = true
+debug = false
 # do not touch pls :)
 version = 5

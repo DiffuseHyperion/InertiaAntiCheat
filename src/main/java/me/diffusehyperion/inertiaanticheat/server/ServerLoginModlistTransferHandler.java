@@ -76,9 +76,7 @@ public class ServerLoginModlistTransferHandler {
         ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) serverLoginNetworkHandler;
         InertiaAntiCheat.debugInfo("Received response from address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress());
         if (!b) {
-            //serverLoginNetworkHandler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.vanillaKickMessage")));
-            serverLoginNetworkHandler.disconnect(Text.of("start mod transfer not understood"));
-
+            serverLoginNetworkHandler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.vanillaKickMessage")));
             return;
         }
 
@@ -96,8 +94,7 @@ public class ServerLoginModlistTransferHandler {
     private void continueModTransfer(MinecraftServer minecraftServer, ServerLoginNetworkHandler serverLoginNetworkHandler, boolean b, PacketByteBuf packetByteBuf, ServerLoginNetworking.LoginSynchronizer loginSynchronizer, PacketSender packetSender) {
         InertiaAntiCheat.debugInfo("Receiving mod " + this.currentIndex);
         if (!b) {
-            //serverLoginNetworkHandler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.vanillaKickMessage")));
-            serverLoginNetworkHandler.disconnect(Text.of("continue mod transfer not understood"));
+            serverLoginNetworkHandler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.vanillaKickMessage")));
             return;
         }
 
@@ -118,7 +115,10 @@ public class ServerLoginModlistTransferHandler {
         this.buffer = ArrayUtils.addAll(this.buffer, fileData);
 
         if (isFinalChunk) {
+            InertiaAntiCheat.debugInfo("Adding mod, checksum: " + InertiaAntiCheat.getChecksum(this.buffer, HashAlgorithm.MD5));
+
             this.collectedMods.add(this.buffer);
+            this.buffer = new byte[]{};
             this.currentIndex += 1;
         }
 
@@ -127,7 +127,7 @@ public class ServerLoginModlistTransferHandler {
             if (!checkModlist(this.collectedMods)) {
                 serverLoginNetworkHandler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.deniedKickMessage")));
             }
-            ServerLoginNetworking.unregisterGlobalReceiver(this.modTransferID);
+            ServerLoginNetworking.unregisterReceiver(serverLoginNetworkHandler, this.modTransferID);
             this.future.complete(null);
 
             InertiaAntiCheat.debugLine();
@@ -165,7 +165,7 @@ public class ServerLoginModlistTransferHandler {
                 InertiaAntiCheat.debugLine();
             }
             if (!whitelistedMods.isEmpty()) {
-                InertiaAntiCheat.debugInfo("Whitelist not fufilled");
+                InertiaAntiCheat.debugInfo("Whitelist not fulfilled");
                 InertiaAntiCheat.debugLine();
                 return false;
             }
