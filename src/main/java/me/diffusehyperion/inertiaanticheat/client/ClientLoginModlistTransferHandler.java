@@ -3,6 +3,7 @@ package me.diffusehyperion.inertiaanticheat.client;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
+import me.diffusehyperion.inertiaanticheat.util.HashAlgorithm;
 import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
@@ -13,12 +14,8 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 
 import javax.crypto.SecretKey;
-import java.math.BigInteger;
-import java.nio.file.Files;
 import java.security.PublicKey;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -38,7 +35,7 @@ public class ClientLoginModlistTransferHandler {
         InertiaAntiCheat.debugInfo("Transfer to be done on channel path: " + modTransferID.getPath());
 
         ClientLoginModlistTransferHandler handler = new ClientLoginModlistTransferHandler(publicKey, InertiaAntiCheatClient.allModData.size(), modTransferID);
-        ClientLoginNetworking.registerGlobalReceiver(modTransferID, handler::transferMod);
+        ClientLoginNetworking.registerReceiver(modTransferID, handler::transferMod);
         InertiaAntiCheat.debugInfo("Registered new handler for channel");
 
         PacketByteBuf responseBuf = PacketByteBufs.create();
@@ -86,6 +83,7 @@ public class ClientLoginModlistTransferHandler {
             InertiaAntiCheat.debugInfo("Sending part of next file");
 
             byte[] chunk = Arrays.copyOf(this.currentFile, this.MAX_SIZE);
+            InertiaAntiCheat.debugInfo("Checksum of chunk: " + InertiaAntiCheat.getChecksum(chunk, HashAlgorithm.MD5));
 
             byte[] encryptedAESFileData = InertiaAntiCheat.encryptAESBytes(chunk, this.secretKey);
             byte[] encryptedRSASecretKey = InertiaAntiCheat.encryptRSABytes(this.secretKey.getEncoded(), this.publicKey);
@@ -97,6 +95,8 @@ public class ClientLoginModlistTransferHandler {
             this.currentFile = Arrays.copyOfRange(this.currentFile, this.MAX_SIZE, this.currentFile.length);
         } else {
             InertiaAntiCheat.debugInfo("Sending entirety of next file");
+
+            InertiaAntiCheat.debugInfo("Checksum of chunk: " + InertiaAntiCheat.getChecksum(this.currentFile, HashAlgorithm.MD5));
 
             byte[] encryptedAESFileData = InertiaAntiCheat.encryptAESBytes(this.currentFile, this.secretKey);
             byte[] encryptedRSASecretKey = InertiaAntiCheat.encryptRSABytes(this.secretKey.getEncoded(), this.publicKey);
@@ -112,6 +112,7 @@ public class ClientLoginModlistTransferHandler {
                 ClientLoginNetworking.unregisterGlobalReceiver(this.modTransferID);
             }
         }
+        InertiaAntiCheat.debugLine();
         return CompletableFuture.completedFuture(responseBuf);
     }
 

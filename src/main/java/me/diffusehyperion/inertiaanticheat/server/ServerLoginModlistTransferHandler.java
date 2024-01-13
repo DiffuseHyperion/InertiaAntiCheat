@@ -30,8 +30,8 @@ public class ServerLoginModlistTransferHandler {
         ServerLoginConnectionEvents.QUERY_START.register(ServerLoginModlistTransferHandler::requestModTransfer);
     }
 
-    private static void requestModTransfer(ServerLoginNetworkHandler serverLoginNetworkHandler, MinecraftServer ignored2, PacketSender packetSender, ServerLoginNetworking.LoginSynchronizer ignored3) {
-        ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) serverLoginNetworkHandler;
+    private static void requestModTransfer(ServerLoginNetworkHandler handler, MinecraftServer server, PacketSender sender, ServerLoginNetworking.LoginSynchronizer synchronizer) {
+        ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) handler;
 
         InertiaAntiCheat.debugLine();
         InertiaAntiCheat.debugInfo("Checking if " + upgradedHandler.inertiaAntiCheat$getGameProfile().getName() + " has bypass permissions");
@@ -41,10 +41,7 @@ public class ServerLoginModlistTransferHandler {
             InertiaAntiCheat.debugLine();
             return;
         }
-        if (InertiaAntiCheat.inDebug()) {
-            InertiaAntiCheat.debugInfo("Not allowed to bypass, sending request to address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress());
-            InertiaAntiCheat.debugLine();
-        }
+        InertiaAntiCheat.debugInfo("Not allowed to bypass, sending request to address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress());
 
         KeyPair keyPair = InertiaAntiCheat.createRSAPair();
         Identifier identifier = new InertiaAntiCheatConstants.modTransferOngoingFactory().getIdentifier();
@@ -52,10 +49,12 @@ public class ServerLoginModlistTransferHandler {
         response.writeString(identifier.getPath());
         response.writeBytes(keyPair.getPublic().getEncoded());
 
-        ServerLoginModlistTransferHandler handler = new ServerLoginModlistTransferHandler(keyPair, identifier);
-        ServerLoginNetworking.registerGlobalReceiver(InertiaAntiCheatConstants.MOD_TRANSFER_START_ID, handler::startModTransfer);
-        packetSender.sendPacket(InertiaAntiCheatConstants.MOD_TRANSFER_START_ID, response);
+        ServerLoginModlistTransferHandler transferHandler = new ServerLoginModlistTransferHandler(keyPair, identifier);
+        ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.MOD_TRANSFER_START_ID, transferHandler::startModTransfer);
+        sender.sendPacket(InertiaAntiCheatConstants.MOD_TRANSFER_START_ID, response);
+        synchronizer.waitFor(transferHandler.future);
 
+        InertiaAntiCheat.debugLine();
     }
 
     private final KeyPair keyPair;
@@ -86,10 +85,12 @@ public class ServerLoginModlistTransferHandler {
         this.maxIndex = packetByteBuf.readInt();
         InertiaAntiCheat.debugInfo("Max index: " + this.maxIndex);
 
-        ServerLoginNetworking.registerGlobalReceiver(this.modTransferID, this::continueModTransfer);
+        ServerLoginNetworking.registerReceiver(serverLoginNetworkHandler, this.modTransferID, this::continueModTransfer);
         packetSender.sendPacket(this.modTransferID, PacketByteBufs.empty());
 
         loginSynchronizer.waitFor(this.future);
+
+        InertiaAntiCheat.debugLine();
     }
 
     private void continueModTransfer(MinecraftServer minecraftServer, ServerLoginNetworkHandler serverLoginNetworkHandler, boolean b, PacketByteBuf packetByteBuf, ServerLoginNetworking.LoginSynchronizer loginSynchronizer, PacketSender packetSender) {
@@ -112,23 +113,29 @@ public class ServerLoginModlistTransferHandler {
         packetByteBuf.readBytes(encryptedData);
         byte[] fileData = InertiaAntiCheat.decryptAESBytes(encryptedData, secretKey);
 
+        InertiaAntiCheat.debugInfo("Checksum of chunk: " + InertiaAntiCheat.getChecksum(fileData, HashAlgorithm.MD5));
+
+        this.buffer = ArrayUtils.addAll(this.buffer, fileData);
+
         if (isFinalChunk) {
-            this.collectedMods.add(fileData);
+            this.collectedMods.add(this.buffer);
             this.currentIndex += 1;
-        } else {
-            this.buffer = ArrayUtils.addAll(this.buffer, fileData);
         }
 
         if (this.currentIndex >= this.maxIndex) {
             InertiaAntiCheat.debugInfo("Finishing transfer, checking mods now");
             if (!checkModlist(this.collectedMods)) {
-                serverLoginNetworkHandler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.vanillaKickMessage")));
+                serverLoginNetworkHandler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.deniedKickMessage")));
             }
             ServerLoginNetworking.unregisterGlobalReceiver(this.modTransferID);
             this.future.complete(null);
+
+            InertiaAntiCheat.debugLine();
         } else {
             InertiaAntiCheat.debugInfo("Continuing transfer");
             packetSender.sendPacket(this.modTransferID, PacketByteBufs.empty());
+
+            InertiaAntiCheat.debugLine();
         }
     }
 
