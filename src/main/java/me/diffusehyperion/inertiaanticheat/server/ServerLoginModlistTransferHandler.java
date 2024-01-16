@@ -45,12 +45,10 @@ public class ServerLoginModlistTransferHandler {
         InertiaAntiCheat.debugInfo("Not allowed to bypass, sending request to address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress());
 
         KeyPair keyPair = InertiaAntiCheat.createRSAPair();
-        Identifier identifier = new InertiaAntiCheatConstants.modTransferOngoingFactory().getIdentifier();
         PacketByteBuf response = PacketByteBufs.create();
-        response.writeString(identifier.getPath());
         response.writeBytes(keyPair.getPublic().getEncoded());
 
-        ServerLoginModlistTransferHandler transferHandler = new ServerLoginModlistTransferHandler(keyPair, identifier);
+        ServerLoginModlistTransferHandler transferHandler = new ServerLoginModlistTransferHandler(keyPair, InertiaAntiCheatConstants.MOD_TRANSFER_CONTINUE_ID);
         ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.MOD_TRANSFER_START_ID, transferHandler::startModTransfer);
         sender.sendPacket(InertiaAntiCheatConstants.MOD_TRANSFER_START_ID, response);
         synchronizer.waitFor(transferHandler.future);

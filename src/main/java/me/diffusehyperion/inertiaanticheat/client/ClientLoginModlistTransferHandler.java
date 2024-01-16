@@ -31,12 +31,10 @@ public class ClientLoginModlistTransferHandler {
         InertiaAntiCheat.debugLine();
         InertiaAntiCheat.debugInfo("Received request to start mod transfer");
 
-        Identifier modTransferID = new Identifier("inertiaanticheat", packetByteBuf.readString());
         PublicKey publicKey = InertiaAntiCheat.retrievePublicKey(packetByteBuf);
-        InertiaAntiCheat.debugInfo("Transfer to be done on channel path: " + modTransferID.getPath());
 
-        ClientLoginModlistTransferHandler handler = new ClientLoginModlistTransferHandler(publicKey, InertiaAntiCheatClient.allModData.size(), modTransferID);
-        ClientLoginNetworking.registerReceiver(modTransferID, handler::transferMod);
+        ClientLoginModlistTransferHandler handler = new ClientLoginModlistTransferHandler(publicKey, InertiaAntiCheatClient.allModData.size(), InertiaAntiCheatConstants.MOD_TRANSFER_CONTINUE_ID);
+        ClientLoginNetworking.registerReceiver(InertiaAntiCheatConstants.MOD_TRANSFER_CONTINUE_ID, handler::transferMod);
         InertiaAntiCheat.debugInfo("Registered new handler for channel");
 
         PacketByteBuf responseBuf = PacketByteBufs.create();

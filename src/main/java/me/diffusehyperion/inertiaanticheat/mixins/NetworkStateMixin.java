@@ -1,6 +1,7 @@
 package me.diffusehyperion.inertiaanticheat.mixins;
 
 import me.diffusehyperion.inertiaanticheat.packets.S2C.AnticheatDetailsS2CPacket;
+import me.diffusehyperion.inertiaanticheat.packets.UpgradedClientQueryNetworkHandler;
 import net.minecraft.network.NetworkState;
 import net.minecraft.network.PacketByteBuf;
 import org.spongepowered.asm.mixin.Mixin;
@@ -39,8 +40,8 @@ public class NetworkStateMixin {
                             args = "stringValue=status"
                     )
             ))
-    private static NetworkState.InternalPacketHandler registerClientbound(NetworkState.InternalPacketHandler packetSet) {
-        packetSet.register(AnticheatDetailsS2CPacket.class, o -> new AnticheatDetailsS2CPacket((PacketByteBuf) o));
+    private static NetworkState.InternalPacketHandler<UpgradedClientQueryNetworkHandler> registerClientbound(NetworkState.InternalPacketHandler<UpgradedClientQueryNetworkHandler> packetSet) {
+        packetSet.register(AnticheatDetailsS2CPacket.class, AnticheatDetailsS2CPacket::new);
         return packetSet;
     }
 }
