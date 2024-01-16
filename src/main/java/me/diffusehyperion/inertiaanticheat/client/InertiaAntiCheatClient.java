@@ -3,7 +3,6 @@ package me.diffusehyperion.inertiaanticheat.client;
 import com.moandjiezana.toml.Toml;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
-import me.diffusehyperion.inertiaanticheat.util.Scheduler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -16,7 +15,6 @@ import java.util.Objects;
 
 public class InertiaAntiCheatClient implements ClientModInitializer {
     public static Toml clientConfig;
-    public static final Scheduler clientScheduler = new Scheduler();
     public static final List<byte[]> allModData = new ArrayList<>();
 
     @Override
@@ -26,8 +24,6 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
         this.setupModDataList();
         ClientLoginModlistTransferHandler.init();
     }
-
-
 
     public void setupModDataList() {
         try {

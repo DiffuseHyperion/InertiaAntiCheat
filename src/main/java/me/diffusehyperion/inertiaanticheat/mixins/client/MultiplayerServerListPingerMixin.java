@@ -3,7 +3,6 @@ package me.diffusehyperion.inertiaanticheat.mixins.client;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient;
 import me.diffusehyperion.inertiaanticheat.interfaces.ClientConnectionMixinInterface;
 import me.diffusehyperion.inertiaanticheat.interfaces.ServerInfoInterface;
 import me.diffusehyperion.inertiaanticheat.packets.ClientUpgradedQueryPacketListener;
@@ -61,11 +60,5 @@ public abstract class MultiplayerServerListPingerMixin {
         ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setInertiaInstalled(null);
         ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAnticheatDetails(null);
         ((ClientConnectionMixinInterface) connection).inertiaAntiCheat$connect(host, port, listener);
-    }
-
-    @Inject(method = "tick",
-            at = @At(value = "HEAD"))
-    private void tick(CallbackInfo ci) {
-        InertiaAntiCheatClient.clientScheduler.tick();
     }
 }

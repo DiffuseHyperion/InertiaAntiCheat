@@ -2,29 +2,16 @@ package me.diffusehyperion.inertiaanticheat.server;
 
 import com.moandjiezana.toml.Toml;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
-import me.diffusehyperion.inertiaanticheat.interfaces.ServerLoginNetworkHandlerInterface;
 import me.diffusehyperion.inertiaanticheat.util.HashAlgorithm;
 import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
 import me.diffusehyperion.inertiaanticheat.util.ModlistCheckMethod;
-import me.diffusehyperion.inertiaanticheat.util.Scheduler;
-import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.DedicatedServerModInitializer;
-import net.fabricmc.fabric.api.networking.v1.*;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerLoginNetworkHandler;
-
-import java.security.KeyPair;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
 
     public static Toml serverConfig;
     public static ModlistCheckMethod modlistCheckMethod;
     public static HashAlgorithm hashAlgorithm;
-
-    public static final Scheduler serverScheduler = new Scheduler();
 
     @Override
     public void onInitializeServer() {
