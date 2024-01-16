@@ -3,7 +3,6 @@ package me.diffusehyperion.inertiaanticheat.mixins;
 import me.diffusehyperion.inertiaanticheat.packets.S2C.AnticheatDetailsS2CPacket;
 import me.diffusehyperion.inertiaanticheat.packets.UpgradedClientQueryNetworkHandler;
 import net.minecraft.network.NetworkState;
-import net.minecraft.network.PacketByteBuf;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;

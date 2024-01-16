@@ -4,8 +4,6 @@ import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.UUID;
-
 public class InertiaAntiCheatConstants {
     public static final Identifier MOD_TRANSFER_START_ID = new Identifier("inertiaanticheat", "mod_transfer_start");
     public static final Identifier MOD_TRANSFER_CONTINUE_ID = new Identifier("inertiaanticheat", "mod_transfer_continue");
