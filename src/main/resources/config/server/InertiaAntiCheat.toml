@@ -18,18 +18,18 @@ deniedKickMessage = "You were kicked by the anti-cheat!\nThis is due to having i
 [mods.individual]
 # Immediately kick players who have these mods in their modlist.
 # The mod checks (and kicks) for blacklisted mods first.
-blacklist = ["c20218d611730cfd0eb000897e6968fd"]
+blacklist = []
 # The respective names of blacklisted mods to report to clients.
 # Clients will be able to see these mod names in their server browser.
 # You may choose to put arbituary names, extra names, fake names or no names at all here.
-friendlyBlacklist = ["Banned mods: ", "Wrust Client"]
+friendlyBlacklist = ["Banned mods: ", "None"]
 
 # Immediately kick players who do not have these mods in their modlist.
 whitelist = []
 # The respective names of whitelisted mods to report to clients.
 # Clients will be able to see these mod names in their server browser.
 # You may choose to put arbituary names, fake names or no names at all here.
-friendlyWhitelist = []
+friendlyWhitelist = ["Whitelisted mods: ", "None"]
 
 [mods.group]
 # The hash for the server to check against.
