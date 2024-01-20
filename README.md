@@ -22,7 +22,7 @@ At the moment, resource packs are not checked. This allows people to use advanta
 
 Download the mod from [Modrinth](https://modrinth.com/mod/inertiaanticheat).
 
-Check [here](https://github.com/DiffuseHyperion/InertiaAntiCheat/wiki/Installation) for more details after downloading the mod.
+Check [here](https://github.com/DiffuseHyperion/InertiaAntiCheat/wiki) for more details after downloading the mod.
 
 ## Permissions
 
