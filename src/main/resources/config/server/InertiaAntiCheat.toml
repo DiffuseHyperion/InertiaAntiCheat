@@ -1,3 +1,6 @@
+# IMPORTANT!
+# Please check https://github.com/DiffuseHyperion/InertiaAntiCheat/wiki/Modern-(Version-1.0.0-and-above) on how to configure this mod.
+# You will likely need https://iac.diffusehyperion.me/ in the process of configuring this mod.
 [mods]
 # The method to check client's mod list.
 # If you prefer blacklisting/whitelisting certain mods from being used, use "individual".
@@ -13,7 +16,6 @@ algorithm = "MD5"
 vanillaKickMessage = "You were kicked for not sending a response to the anti-cheat!\nThis is probably due to missing the anti-cheat client mod.\nInstall it here: https://modrinth.com/mod/inertiaanticheat"
 # The kick message to show to clients when they fail the modlist check.
 deniedKickMessage = "You were kicked by the anti-cheat!\nThis is due to having illegal mods.\nPlease contact your server administrator for more details."
-
 
 [mods.individual]
 # Immediately kick players who have these mods in their modlist.
