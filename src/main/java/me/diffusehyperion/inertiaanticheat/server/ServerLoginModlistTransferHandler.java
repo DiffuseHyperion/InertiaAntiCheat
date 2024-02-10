@@ -112,12 +112,12 @@ public class ServerLoginModlistTransferHandler {
         packetByteBuf.readBytes(encryptedData);
         byte[] fileData = InertiaAntiCheat.decryptAESBytes(encryptedData, secretKey);
 
-        InertiaAntiCheat.debugInfo("Checksum of chunk: " + InertiaAntiCheat.getChecksum(fileData, HashAlgorithm.MD5));
+        InertiaAntiCheat.debugInfo("Checksum of chunk: " + InertiaAntiCheat.getHash(fileData, HashAlgorithm.MD5));
 
         this.buffer = ArrayUtils.addAll(this.buffer, fileData);
 
         if (isFinalChunk) {
-            InertiaAntiCheat.debugInfo("Adding mod, checksum: " + InertiaAntiCheat.getChecksum(this.buffer, HashAlgorithm.MD5));
+            InertiaAntiCheat.debugInfo("Adding mod, checksum: " + InertiaAntiCheat.getHash(this.buffer, HashAlgorithm.MD5));
 
             this.collectedMods.add(this.buffer);
             this.buffer = new byte[]{};
@@ -152,7 +152,7 @@ public class ServerLoginModlistTransferHandler {
             InertiaAntiCheat.debugInfo("Whitelisted mods: " + String.join(", ", whitelistedMods));
             InertiaAntiCheat.debugLine();
             for (byte[] mod : mods) {
-                String fileHash = InertiaAntiCheat.getChecksum(mod, InertiaAntiCheatServer.hashAlgorithm);
+                String fileHash = InertiaAntiCheat.getHash(mod, InertiaAntiCheatServer.hashAlgorithm);
                 InertiaAntiCheat.debugInfo("File hash: " + fileHash + "; with algorithm " + InertiaAntiCheatServer.hashAlgorithm);
 
                 if (blacklistedMods.contains(fileHash)) {
@@ -181,7 +181,7 @@ public class ServerLoginModlistTransferHandler {
             List<String> hashes = new ArrayList<>();
             List<String> copySoftWhitelistedMods = new ArrayList<>(softWhitelistedMods);
             for (byte[] mod : mods) {
-                String fileHash = InertiaAntiCheat.getChecksum(mod, InertiaAntiCheatServer.hashAlgorithm);
+                String fileHash = InertiaAntiCheat.getHash(mod, InertiaAntiCheatServer.hashAlgorithm);
                 if (copySoftWhitelistedMods.contains(fileHash)) {
                     copySoftWhitelistedMods.remove(fileHash);
                 } else {
@@ -190,12 +190,12 @@ public class ServerLoginModlistTransferHandler {
             }
             Collections.sort(hashes);
             String combinedHash = String.join("|", hashes);
-            String finalHash = InertiaAntiCheat.getChecksum(combinedHash.getBytes(), HashAlgorithm.MD5); // no need to be cryptographically safe here
+            String finalHash = InertiaAntiCheat.getHash(combinedHash.getBytes(), HashAlgorithm.MD5); // no need to be cryptographically safe here
             InertiaAntiCheat.debugInfo("Final hash: " + finalHash);
             InertiaAntiCheat.debugInfo("Combined hash: " + combinedHash);
 
 
-            boolean success = InertiaAntiCheatServer.serverConfig.getList("mods.group.checksum").contains(finalHash);
+            boolean success = InertiaAntiCheatServer.serverConfig.getList("mods.group.hash").contains(finalHash);
             if (success) {
                 InertiaAntiCheat.debugInfo("Passed");
             } else {

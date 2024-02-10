@@ -36,10 +36,10 @@ friendlyWhitelist = ["Whitelisted mods: ", "None"]
 [mods.group]
 # The hash for the server to check against.
 # You can add multiple hashes into the list, and the server will check against all of them.
-checksum = []
+hash = []
 # The name of the modpack to report to clients.
 # Clients will be able to see the modpack name in their server browser.
-friendlyChecksum = ["Requires modpack: ", "Modpack Name"]
+friendlyHash = ["Requires modpack: ", "Modpack Name"]
 
 # Allow certain mods to be used by players, in addition to your modpack.
 # This allows players to make use of optional client mods if you allow it.
@@ -49,4 +49,4 @@ softWhitelist = []
 # Show additional information in server logs.
 debug = false
 # do not touch pls :)
-version = 5
+version = 6

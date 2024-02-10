@@ -78,15 +78,15 @@ public class InertiaAntiCheat implements ModInitializer {
         return (Objects.nonNull(serverConfig) && serverConfig.getBoolean("debug.debug")) || (Objects.nonNull(clientConfig) && clientConfig.getBoolean("debug.debug"));
     }
 
-    public static String getChecksum(byte[] input, HashAlgorithm algorithm) {
+    public static String getHash(byte[] input, HashAlgorithm algorithm) {
         try {
             MessageDigest md = MessageDigest.getInstance(algorithm.toString());
-            byte[] checksum = md.digest(input);
-            StringBuilder checksumBuilder = new StringBuilder(new BigInteger(1, checksum).toString(16));
-            while (checksumBuilder.length() < algorithm.getLength()) {
-                checksumBuilder.insert(0, "0");
+            byte[] hash = md.digest(input);
+            StringBuilder hashBuilder = new StringBuilder(new BigInteger(1, hash).toString(16));
+            while (hashBuilder.length() < algorithm.getLength()) {
+                hashBuilder.insert(0, "0");
             }
-            return checksumBuilder.toString();
+            return hashBuilder.toString();
         } catch (NoSuchAlgorithmException e){
             throw new RuntimeException("Invalid algorithm provided! Please report this on this project's Github!", e);
         }

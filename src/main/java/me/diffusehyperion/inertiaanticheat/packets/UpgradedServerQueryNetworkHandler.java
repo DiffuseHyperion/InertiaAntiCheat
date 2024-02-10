@@ -60,7 +60,7 @@ public class  UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPa
         } else {
             GroupAnticheatDetails details =
                     new GroupAnticheatDetails(
-                            InertiaAntiCheatServer.serverConfig.getList("mods.group.friendlyChecksum"));
+                            InertiaAntiCheatServer.serverConfig.getList("mods.group.friendlyHash"));
             this.connection.send(new AnticheatDetailsS2CPacket(details));
         }
 

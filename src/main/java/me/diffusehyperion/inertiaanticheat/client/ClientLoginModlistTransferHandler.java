@@ -82,7 +82,7 @@ public class ClientLoginModlistTransferHandler {
             InertiaAntiCheat.debugInfo("Sending part of next file");
 
             byte[] chunk = Arrays.copyOf(this.currentFile, this.MAX_SIZE);
-            InertiaAntiCheat.debugInfo("Checksum of chunk: " + InertiaAntiCheat.getChecksum(chunk, HashAlgorithm.MD5));
+            InertiaAntiCheat.debugInfo("Hash of chunk: " + InertiaAntiCheat.getHash(chunk, HashAlgorithm.MD5));
 
             byte[] encryptedAESFileData = InertiaAntiCheat.encryptAESBytes(chunk, this.secretKey);
             byte[] encryptedRSASecretKey = InertiaAntiCheat.encryptRSABytes(this.secretKey.getEncoded(), this.publicKey);
@@ -95,7 +95,7 @@ public class ClientLoginModlistTransferHandler {
         } else {
             InertiaAntiCheat.debugInfo("Sending entirety of next file");
 
-            InertiaAntiCheat.debugInfo("Checksum of chunk: " + InertiaAntiCheat.getChecksum(this.currentFile, HashAlgorithm.MD5));
+            InertiaAntiCheat.debugInfo("Hash of chunk: " + InertiaAntiCheat.getHash(this.currentFile, HashAlgorithm.MD5));
 
             byte[] encryptedAESFileData = InertiaAntiCheat.encryptAESBytes(this.currentFile, this.secretKey);
             byte[] encryptedRSASecretKey = InertiaAntiCheat.encryptRSABytes(this.secretKey.getEncoded(), this.publicKey);
