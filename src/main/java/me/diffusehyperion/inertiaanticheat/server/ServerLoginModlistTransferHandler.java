@@ -179,10 +179,11 @@ public class ServerLoginModlistTransferHandler {
             List<String> softWhitelistedMods = InertiaAntiCheatServer.serverConfig.getList("mods.group.softWhitelist");
             InertiaAntiCheat.debugInfo("Soft whitelisted mods: " + String.join(", ", softWhitelistedMods));
             List<String> hashes = new ArrayList<>();
+            List<String> copySoftWhitelistedMods = new ArrayList<>(softWhitelistedMods);
             for (byte[] mod : mods) {
                 String fileHash = InertiaAntiCheat.getChecksum(mod, InertiaAntiCheatServer.hashAlgorithm);
-                if (softWhitelistedMods.contains(fileHash)) {
-                    softWhitelistedMods.remove(fileHash);
+                if (copySoftWhitelistedMods.contains(fileHash)) {
+                    copySoftWhitelistedMods.remove(fileHash);
                 } else {
                     hashes.add(fileHash);
                 }
