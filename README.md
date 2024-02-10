@@ -1,6 +1,8 @@
 # Inertia Anti Cheat
 
-**Stop people from using unwanted mods on your server!**
+![Stop people from using unwanted mods on your server!](https://cdn.modrinth.com/data/cached_images/1028d552bad40c52fd94cd12eefbddc17cbe4826.png)
+
+![Require players to use your modpack on your server!](https://cdn.modrinth.com/data/cached_images/0487061e47d8ba4f102d479f853a0242315a86fe.png)
 
 *This was heavily inspired and named after https://www.curseforge.com/minecraft/mc-mods/kinetic-anti-cheat*
 
@@ -22,7 +24,7 @@ At the moment, resource packs are not checked. This allows people to use advanta
 
 Download the mod from [Modrinth](https://modrinth.com/mod/inertiaanticheat).
 
-Check [here](https://github.com/DiffuseHyperion/InertiaAntiCheat/wiki/Installation) for more details after downloading the mod.
+Check [here](https://github.com/DiffuseHyperion/InertiaAntiCheat/wiki) for more details after downloading the mod.
 
 ## Permissions
 
