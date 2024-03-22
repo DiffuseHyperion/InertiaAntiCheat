@@ -18,7 +18,7 @@ import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.
 
 public class ModListResponseC2SPacket {
     public static void receive(MinecraftServer server, ServerPlayerEntity serverPlayerEntity, ServerPlayNetworkHandler serverPlayNetworkHandler, PacketByteBuf packetByteBuf, PacketSender packetSender) {
-        debugInfo("Received mod list response from " + serverPlayerEntity.getEntityName() + ".");
+        debugInfo("Received mod list response from " + serverPlayerEntity.getName() + ".");
 
         impendingPlayers.remove(serverPlayerEntity);
         if (!serverConfig.getString("grace.titleText").isEmpty()) {
@@ -28,7 +28,7 @@ public class ModListResponseC2SPacket {
         String response;
         String kickMessage = null;
         if (packetByteBuf.readableBytes() <= 0) {
-            debugInfo("Kicking " + serverPlayerEntity.getEntityName() + " as they do not support E2EE.");
+            debugInfo("Kicking " + serverPlayerEntity.getName() + " as they do not support E2EE.");
             kickMessage = serverConfig.getString("e2ee.unsupportedMessage");
         } else {
             if (Objects.nonNull(serverE2EEKeyPair)) {
@@ -52,10 +52,10 @@ public class ModListResponseC2SPacket {
             // hashes should only be calculated using getModlistHash!!
 
             if (serverConfig.getBoolean("mods.showMods")) {
-                info(serverPlayerEntity.getEntityName() + " is joining with the following modlist: " + modList);
+                info(serverPlayerEntity.getName() + " is joining with the following modlist: " + modList);
             }
             if (serverConfig.getBoolean("hash.showHash")) {
-                new Thread(() -> info(serverPlayerEntity.getEntityName() + "'s modlist hash: " + getModlistHash(modList))).start();
+                new Thread(() -> info(serverPlayerEntity.getName() + "'s modlist hash: " + getModlistHash(modList))).start();
             }
 
             if (serverConfig.getList("hash.hash").isEmpty()) {
@@ -94,9 +94,9 @@ public class ModListResponseC2SPacket {
 
         if (Objects.nonNull(kickMessage)) {
             serverPlayerEntity.networkHandler.disconnect(Text.of(kickMessage));
-            debugInfo("Kicked " + serverPlayerEntity.getEntityName() + " for " + kickMessage + ".");
+            debugInfo("Kicked " + serverPlayerEntity.getName() + " for " + kickMessage + ".");
         } else {
-            debugInfo("Accepted " + serverPlayerEntity.getEntityName() + " into the server.");
+            debugInfo("Accepted " + serverPlayerEntity.getName() + " into the server.");
         }
     }
 

@@ -41,7 +41,6 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
 
     @Override
     public void onInitializeServer() {
-        info("Initializing InertiaAntiCheat!");
         serverConfig = initializeConfig("/config/server/InertiaAntiCheat.toml", CURRENT_SERVER_CONFIG_VERSION);
         debugInfo("Initializing listeners...");
         initializeListeners();
@@ -60,7 +59,7 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
         ServerPlayerEntity player = serverPlayNetworkHandler.player;
 
         if (Permissions.check(player, "inertiaanticheat.bypass")) {
-            debugInfo("Player " + player.getEntityName() + " joined the server. Immediately allowing access as they have the bypass permission.");
+            debugInfo("Player " + player.getName() + " joined the server. Immediately allowing access as they have the bypass permission.");
             return;
         }
 
