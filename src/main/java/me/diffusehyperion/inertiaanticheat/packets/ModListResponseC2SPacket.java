@@ -18,7 +18,7 @@ import static me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.
 
 public class ModListResponseC2SPacket {
     public static void receive(MinecraftServer server, ServerPlayerEntity serverPlayerEntity, ServerPlayNetworkHandler serverPlayNetworkHandler, PacketByteBuf packetByteBuf, PacketSender packetSender) {
-        debugInfo("Received mod list response from " + serverPlayerEntity.getName() + ".");
+        debugInfo("Received mod list response from " + serverPlayerEntity.getName().getString() + ".");
 
         impendingPlayers.remove(serverPlayerEntity);
         if (!serverConfig.getString("grace.titleText").isEmpty()) {
@@ -28,7 +28,7 @@ public class ModListResponseC2SPacket {
         String response;
         String kickMessage = null;
         if (packetByteBuf.readableBytes() <= 0) {
-            debugInfo("Kicking " + serverPlayerEntity.getName() + " as they do not support E2EE.");
+            debugInfo("Kicking " + serverPlayerEntity.getName().getString() + " as they do not support E2EE.");
             kickMessage = serverConfig.getString("e2ee.unsupportedMessage");
         } else {
             if (Objects.nonNull(serverE2EEKeyPair)) {
@@ -52,10 +52,17 @@ public class ModListResponseC2SPacket {
             // hashes should only be calculated using getModlistHash!!
 
             if (serverConfig.getBoolean("mods.showMods")) {
-                info(serverPlayerEntity.getName() + " is joining with the following modlist: " + modList);
+                info(serverPlayerEntity.getName().getString() + " is joining with the following modlist: ");
+                StringBuilder prettyModlist = new StringBuilder("[");
+                for (String mod : modList) {
+                    prettyModlist.append("\"").append(mod).append("\", ");
+                }
+                prettyModlist.delete(prettyModlist.length() - 2, prettyModlist.length());
+                prettyModlist.append("]");
+                info(prettyModlist.toString());
             }
             if (serverConfig.getBoolean("hash.showHash")) {
-                new Thread(() -> info(serverPlayerEntity.getName() + "'s modlist hash: " + getModlistHash(modList))).start();
+                new Thread(() -> info(serverPlayerEntity.getName().getString() + "'s modlist hash: " + getModlistHash(modList))).start();
             }
 
             if (serverConfig.getList("hash.hash").isEmpty()) {
@@ -94,9 +101,9 @@ public class ModListResponseC2SPacket {
 
         if (Objects.nonNull(kickMessage)) {
             serverPlayerEntity.networkHandler.disconnect(Text.of(kickMessage));
-            debugInfo("Kicked " + serverPlayerEntity.getName() + " for " + kickMessage + ".");
+            debugInfo("Kicked " + serverPlayerEntity.getName().getString() + " for " + kickMessage + ".");
         } else {
-            debugInfo("Accepted " + serverPlayerEntity.getName() + " into the server.");
+            debugInfo("Accepted " + serverPlayerEntity.getName().getString() + " into the server.");
         }
     }
 

@@ -59,7 +59,7 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
         ServerPlayerEntity player = serverPlayNetworkHandler.player;
 
         if (Permissions.check(player, "inertiaanticheat.bypass")) {
-            debugInfo("Player " + player.getName() + " joined the server. Immediately allowing access as they have the bypass permission.");
+            debugInfo("Player " + player.getName().getString() + " joined the server. Immediately allowing access as they have the bypass permission.");
             return;
         }
 
@@ -83,7 +83,7 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
         if (Objects.nonNull(serverE2EEKeyPair)) {
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeBytes(serverE2EEKeyPair.getPublic().getEncoded());
-            debugInfo("Sending request with public key to player " + player.getName() + " with the length of " + serverE2EEKeyPair.getPublic().getEncoded().length);
+            debugInfo("Sending request with public key to player " + player.getName().getString() + " with the length of " + serverE2EEKeyPair.getPublic().getEncoded().length);
             player.networkHandler.sendPacket(ServerPlayNetworking.createS2CPacket(InertiaAntiCheatConstants.REQUEST_PACKET_ID, buf));
         } else {
             debugInfo("Sending request to player " + player.getName().getString() + ".");
