@@ -1,5 +1,15 @@
 package me.diffusehyperion.inertiaanticheat.util;
 
-public interface AnticheatDetails {
-    ModlistCheckMethod getCheckMethod();
+public abstract class AnticheatDetails {
+    private final boolean showInstalled;
+
+    public abstract ModlistCheckMethod getCheckMethod();
+
+    public AnticheatDetails(boolean showInstalled) {
+        this.showInstalled = showInstalled;
+    }
+
+    public boolean showInstalled() {
+        return showInstalled;
+    }
 }

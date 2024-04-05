@@ -2,7 +2,18 @@ package me.diffusehyperion.inertiaanticheat.util;
 
 import java.util.List;
 
-public record GroupAnticheatDetails(List<String> modpackDetails) implements AnticheatDetails{
+public class GroupAnticheatDetails extends AnticheatDetails {
+    private final List<String> modpackDetails;
+
+    public GroupAnticheatDetails(boolean showInstalled, List<String> modpackDetails) {
+        super(showInstalled);
+        this.modpackDetails = modpackDetails;
+    }
+
+    public List<String> getModpackDetails() {
+        return modpackDetails;
+    }
+
     @Override
     public ModlistCheckMethod getCheckMethod() {
         return ModlistCheckMethod.GROUP;

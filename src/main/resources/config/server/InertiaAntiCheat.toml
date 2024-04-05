@@ -1,6 +1,6 @@
 # IMPORTANT!
 # Please check https://github.com/DiffuseHyperion/InertiaAntiCheat/wiki/Modern-(Version-1.0.0-and-above) on how to configure this mod.
-# You will likely need https://iac.diffusehyperion.me/ in the process of configuring this mod.
+# You will likely need https://iac.diffusehyperion.com/ in the process of configuring this mod.
 [mods]
 # The method to check client's mod list.
 # If you prefer blacklisting/whitelisting certain mods from being used, use "individual".
@@ -21,32 +21,37 @@ deniedKickMessage = "You were kicked by the anti-cheat!\nThis is due to having i
 # Immediately kick players who have these mods in their modlist.
 # The mod checks (and kicks) for blacklisted mods first.
 blacklist = []
-# The respective names of blacklisted mods to report to clients.
-# Clients will be able to see these mod names in their server browser.
-# You may choose to put arbituary names, extra names, fake names or no names at all here.
-friendlyBlacklist = ["Banned mods: ", "None"]
-
 # Immediately kick players who do not have these mods in their modlist.
 whitelist = []
-# The respective names of whitelisted mods to report to clients.
-# Clients will be able to see these mod names in their server browser.
-# You may choose to put arbituary names, fake names or no names at all here.
-friendlyWhitelist = ["Whitelisted mods: ", "None"]
 
 [mods.group]
 # The hash for the server to check against.
 # You can add multiple hashes into the list, and the server will check against all of them.
 hash = []
-# The name of the modpack to report to clients.
-# Clients will be able to see the modpack name in their server browser.
-friendlyHash = ["Requires modpack: ", "Modpack Name"]
-
 # Allow certain mods to be used by players, in addition to your modpack.
 # This allows players to make use of optional client mods if you allow it.
 softWhitelist = []
+
+[motd]
+# Whether to show an icon on client's server list indicating that InertiaAntiCheat is installed.
+showInstalled = true
+# The names of blacklisted mods to report to clients.
+# Clients will be able to see these mod names in their server browser.
+# You may choose to put arbituary names, extra names, fake names or no names at all here.
+# Setting this to be an empty list will cause the icon to not show up.
+blacklist = ["Banned mods: ", "None"]
+# The names of whitelisted mods to report to clients.
+# Clients will be able to see these mod names in their server browser.
+# You may choose to put arbituary names, fake names or no names at all here.
+# Setting this to be an empty list will cause the icon to not show up.
+whitelist = ["Whitelisted mods: ", "None"]
+# The name of the modpack to report to clients.
+# Clients will be able to see the modpack name in their server browser.
+# Setting this to be an empty list will cause the icon to not show up.
+hash = ["Requires modpack: ", "Modpack Name"]
 
 [debug]
 # Show additional information in server logs.
 debug = false
 # do not touch pls :)
-version = 6
+version = 7

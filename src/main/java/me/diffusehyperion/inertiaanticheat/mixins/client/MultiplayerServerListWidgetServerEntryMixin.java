@@ -47,7 +47,7 @@ public abstract class MultiplayerServerListWidgetServerEntryMixin {
         ServerInfoInterface upgradedServerInfo = ((ServerInfoInterface) server);
         Boolean installed = upgradedServerInfo.inertiaAntiCheat$isInertiaInstalled();
         AnticheatDetails anticheatDetails = upgradedServerInfo.inertiaAntiCheat$getAnticheatDetails();
-        if (Objects.nonNull(installed) && installed.equals(true)) {
+        if (Objects.nonNull(installed) && installed.equals(true) && anticheatDetails.showInstalled()) {
             int iconX = x + entryWidth - 15;
             int iconY = y + 10;
             context.drawTexture(ICON_ENABLED, iconX, iconY, 0.0f, 0.0f, 10, 10, 10, 10);
@@ -59,31 +59,32 @@ public abstract class MultiplayerServerListWidgetServerEntryMixin {
             if (anticheatDetails.getCheckMethod() == ModlistCheckMethod.INDIVIDUAL) {
                 IndividualAnticheatDetails details = (IndividualAnticheatDetails) anticheatDetails;
 
-                if ((details.whitelistedMods().size() == 1 && !Objects.equals(details.whitelistedMods().get(0), "")) || details.whitelistedMods().size() >= 2) {
+                if ((details.getWhitelistedMods().size() == 1 && !Objects.equals(details.getWhitelistedMods().get(0), "")) || details.getWhitelistedMods().size() >= 2) {
                     int whitelistIconX = x + entryWidth - 25;
                     int whitelistIconY = y + 20;
                     context.drawTexture(ICON_WHITELIST, whitelistIconX, whitelistIconY, 0.0f, 0.0f, 10, 10, 10, 10);
                     if (mouseX > whitelistIconX && mouseX < whitelistIconX + 10 && mouseY > whitelistIconY && mouseY < whitelistIconY + 10) {
-                        screen.setMultiplayerScreenTooltip(details.whitelistedMods().stream().map(Text::of).toList());
+                        screen.setMultiplayerScreenTooltip(details.getWhitelistedMods().stream().map(Text::of).toList());
                     }
                 }
 
-                if ((details.blacklistedMods().size() == 1 && !Objects.equals(details.blacklistedMods().get(0), "")) || details.blacklistedMods().size() >= 2) {
+                if ((details.getBlacklistedMods().size() == 1 && !Objects.equals(details.getBlacklistedMods().get(0), "")) || details.getBlacklistedMods().size() >= 2) {
                     int blacklistIconX = x + entryWidth - 15;
                     int blacklistIconY = y + 20;
                     context.drawTexture(ICON_BLACKLIST, blacklistIconX, blacklistIconY, 0.0f, 0.0f, 10, 10, 10, 10);
                     if (mouseX > blacklistIconX && mouseX < blacklistIconX + 10 && mouseY > blacklistIconY && mouseY < blacklistIconY + 10) {
-                        screen.setMultiplayerScreenTooltip(details.blacklistedMods().stream().map(Text::of).toList());
+                        screen.setMultiplayerScreenTooltip(details.getBlacklistedMods().stream().map(Text::of).toList());
                     }
                 }
             } else {
                 GroupAnticheatDetails details = (GroupAnticheatDetails) anticheatDetails;
-
-                int blacklistIconX = x + entryWidth - 15;
-                int blacklistIconY = y + 20;
-                context.drawTexture(ICON_MODPACK, blacklistIconX, blacklistIconY, 0.0f, 0.0f, 10, 10, 10, 10);
-                if (mouseX > blacklistIconX && mouseX < blacklistIconX + 10 && mouseY > blacklistIconY && mouseY < blacklistIconY + 10) {
-                    screen.setMultiplayerScreenTooltip(details.modpackDetails().stream().map(Text::of).toList());
+                if ((details.getModpackDetails().size() == 1 && !Objects.equals(details.getModpackDetails().get(0), "")) || details.getModpackDetails().size() >= 2) {
+                    int blacklistIconX = x + entryWidth - 15;
+                    int blacklistIconY = y + 20;
+                    context.drawTexture(ICON_MODPACK, blacklistIconX, blacklistIconY, 0.0f, 0.0f, 10, 10, 10, 10);
+                    if (mouseX > blacklistIconX && mouseX < blacklistIconX + 10 && mouseY > blacklistIconY && mouseY < blacklistIconY + 10) {
+                        screen.setMultiplayerScreenTooltip(details.getModpackDetails().stream().map(Text::of).toList());
+                    }
                 }
             }
         }

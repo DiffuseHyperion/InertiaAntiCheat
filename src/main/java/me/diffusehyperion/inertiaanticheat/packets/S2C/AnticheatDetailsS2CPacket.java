@@ -21,10 +21,12 @@ public class AnticheatDetailsS2CPacket implements Packet<ClientUpgradedQueryPack
         int ordinal = packetByteBuf.readInt();
         if (ordinal == 0) {
             this.details = new IndividualAnticheatDetails(
+                    packetByteBuf.readBoolean(),
                     new ArrayList<>(Arrays.asList(packetByteBuf.readString().split(","))),
                     new ArrayList<>(Arrays.asList(packetByteBuf.readString().split(","))));
         } else if (ordinal == 1) {
             this.details = new GroupAnticheatDetails(
+                    packetByteBuf.readBoolean(),
                     new ArrayList<>(Arrays.asList(packetByteBuf.readString().split(",")))
             );
         } else {
@@ -36,10 +38,10 @@ public class AnticheatDetailsS2CPacket implements Packet<ClientUpgradedQueryPack
     public void write(PacketByteBuf buf) {
         buf.writeInt(this.details.getCheckMethod().ordinal());
         if (this.details instanceof IndividualAnticheatDetails individualDetails) {
-            buf.writeString(String.join(",", individualDetails.blacklistedMods()));
-            buf.writeString(String.join(",", individualDetails.whitelistedMods()));
+            buf.writeString(String.join(",", individualDetails.getBlacklistedMods()));
+            buf.writeString(String.join(",", individualDetails.getWhitelistedMods()));
         } else if (this.details instanceof GroupAnticheatDetails groupDetails) {
-            buf.writeString(String.join(",", groupDetails.modpackDetails()));
+            buf.writeString(String.join(",", groupDetails.getModpackDetails()));
         }
     }
 

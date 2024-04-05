@@ -54,13 +54,15 @@ public class  UpgradedServerQueryNetworkHandler implements ServerUpgradedQueryPa
         if (InertiaAntiCheatServer.modlistCheckMethod == ModlistCheckMethod.INDIVIDUAL) {
             IndividualAnticheatDetails details =
                     new IndividualAnticheatDetails(
-                            InertiaAntiCheatServer.serverConfig.getList("mods.individual.friendlyBlacklist"),
-                            InertiaAntiCheatServer.serverConfig.getList("mods.individual.friendlyWhitelist"));
+                            InertiaAntiCheatServer.serverConfig.getBoolean("motd.showInstalled"),
+                            InertiaAntiCheatServer.serverConfig.getList("motd.blacklist"),
+                            InertiaAntiCheatServer.serverConfig.getList("motd.whitelist"));
             this.connection.send(new AnticheatDetailsS2CPacket(details));
         } else {
             GroupAnticheatDetails details =
                     new GroupAnticheatDetails(
-                            InertiaAntiCheatServer.serverConfig.getList("mods.group.friendlyHash"));
+                            InertiaAntiCheatServer.serverConfig.getBoolean("motd.showInstalled"),
+                            InertiaAntiCheatServer.serverConfig.getList("motd.hash"));
             this.connection.send(new AnticheatDetailsS2CPacket(details));
         }
 
