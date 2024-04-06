@@ -38,9 +38,11 @@ public class AnticheatDetailsS2CPacket implements Packet<ClientUpgradedQueryPack
     public void write(PacketByteBuf buf) {
         buf.writeInt(this.details.getCheckMethod().ordinal());
         if (this.details instanceof IndividualAnticheatDetails individualDetails) {
+            buf.writeBoolean(individualDetails.showInstalled());
             buf.writeString(String.join(",", individualDetails.getBlacklistedMods()));
             buf.writeString(String.join(",", individualDetails.getWhitelistedMods()));
         } else if (this.details instanceof GroupAnticheatDetails groupDetails) {
+            buf.writeBoolean(groupDetails.showInstalled());
             buf.writeString(String.join(",", groupDetails.getModpackDetails()));
         }
     }
