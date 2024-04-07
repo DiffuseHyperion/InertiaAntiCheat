@@ -3,10 +3,6 @@
   "minVersion": "0.8",
   "package": "me.diffusehyperion.inertiaanticheat.mixins",
   "compatibilityLevel": "JAVA_8",
-  "server": [
-    "server.ServerHandshakeNetworkHandlerMixin",
-    "server.ServerLoginNetworkHandlerMixin"
-  ],
   "injectors": {
     "defaultRequire": 1
   },
@@ -16,6 +12,10 @@
     "client.MultiplayerServerListPingerMixin",
     "client.MultiplayerServerListWidgetServerEntryMixin",
     "client.ServerInfoMixin"
+  ],
+  "server": [
+    "server.ServerLoginNetworkHandlerMixin",
+    "server.ServerQueryNetworkHandlerMixin"
   ],
   "mixins": [
     "NetworkStateMixin"
