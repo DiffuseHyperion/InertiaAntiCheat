@@ -48,7 +48,7 @@ public class ModListResponseC2SPacket {
             response = response.replace("[", "").replace("]", "");
             // arrays.aslist creates a fixed size list, so linkedlist is required
             List<String> modList = new LinkedList<>(Arrays.asList(response.split(", ")));
-
+            String hash = null;
             // hashes should only be calculated using getModlistHash!!
 
             if (serverConfig.getBoolean("mods.showMods")) {
@@ -62,7 +62,8 @@ public class ModListResponseC2SPacket {
                 info(prettyModlist.toString());
             }
             if (serverConfig.getBoolean("hash.showHash")) {
-                new Thread(() -> info(serverPlayerEntity.getName().getString() + "'s modlist hash: " + getModlistHash(modList))).start();
+                hash = getModlistHash(modList);
+                info(serverPlayerEntity.getName().getString() + "'s modlist hash: " + hash);
             }
 
             if (serverConfig.getList("hash.hash").isEmpty()) {
@@ -91,7 +92,9 @@ public class ModListResponseC2SPacket {
                             .replace("${whitelisted}", listToPrettyString(notFoundWhitelistedMods));
                 }
             } else {
-                String hash = getModlistHash(modList);
+                if (hash == null) {
+                    hash = getModlistHash(modList);
+                }
                 List<String> acceptedHashes = serverConfig.getList("hash.hash");
                 if (!acceptedHashes.contains(hash)) {
                     kickMessage = serverConfig.getString("hash.hashMessage");
