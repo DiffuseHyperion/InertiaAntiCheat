@@ -48,13 +48,10 @@ public class ModListResponseC2SPacket {
             response = response.replace("[", "").replace("]", "");
             // arrays.aslist creates a fixed size list, so linkedlist is required
             List<String> modList = new LinkedList<>(Arrays.asList(response.split(", ")));
+            String hash = null;
 
             // hashes should only be calculated using getModlistHash!!
-
-            if (serverConfig.getBoolean("mods.showMods")) {
-                info(serverPlayerEntity.getName().getString() + " is joining with the following modlist: " + modList);
-            }
-            if (serverConfig.getBoolean("hash.showHash")) {
+            if (serverConfig.getBoolean("hash.showMods")) {
                 info(serverPlayerEntity.getName().getString() + " is joining with the following modlist: ");
                 StringBuilder prettyModlist = new StringBuilder("[");
                 for (String mod : modList) {
@@ -63,6 +60,10 @@ public class ModListResponseC2SPacket {
                 prettyModlist.delete(prettyModlist.length() - 2, prettyModlist.length());
                 prettyModlist.append("]");
                 info(prettyModlist.toString());
+            }
+            if (serverConfig.getBoolean("mods.showHash")) {
+                hash = getModlistHash(modList);
+                info(serverPlayerEntity.getName().getString() + "'s modlist hash: " + hash));
             }
             if (serverConfig.getList("hash.hash").isEmpty()) {
                 // hash empty, use blacklist/whitelist
@@ -90,7 +91,9 @@ public class ModListResponseC2SPacket {
                             .replace("${whitelisted}", listToPrettyString(notFoundWhitelistedMods));
                 }
             } else {
-                String hash = getModlistHash(modList);
+                if (hash == null) {
+                    hash = getModlistHash(modList);    
+                }
                 List<String> acceptedHashes = serverConfig.getList("hash.hash");
                 if (!acceptedHashes.contains(hash)) {
                     kickMessage = serverConfig.getString("hash.hashMessage");
