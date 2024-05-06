@@ -63,7 +63,7 @@ public class ModListResponseC2SPacket {
             }
             if (serverConfig.getBoolean("mods.showHash")) {
                 hash = getModlistHash(modList);
-                info(serverPlayerEntity.getName().getString() + "'s modlist hash: " + hash));
+                info(serverPlayerEntity.getName().getString() + "'s modlist hash: " + hash);
             }
             if (serverConfig.getList("hash.hash").isEmpty()) {
                 // hash empty, use blacklist/whitelist
