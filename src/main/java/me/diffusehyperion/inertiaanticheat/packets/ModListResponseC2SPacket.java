@@ -51,7 +51,7 @@ public class ModListResponseC2SPacket {
             String hash = null;
 
             // hashes should only be calculated using getModlistHash!!
-            if (serverConfig.getBoolean("hash.showMods")) {
+            if (serverConfig.getBoolean("mods.showMods")) {
                 info(serverPlayerEntity.getName().getString() + " is joining with the following modlist: ");
                 StringBuilder prettyModlist = new StringBuilder("[");
                 for (String mod : modList) {
@@ -61,7 +61,7 @@ public class ModListResponseC2SPacket {
                 prettyModlist.append("]");
                 info(prettyModlist.toString());
             }
-            if (serverConfig.getBoolean("mods.showHash")) {
+            if (serverConfig.getBoolean("hash.showHash")) {
                 hash = getModlistHash(modList);
                 info(serverPlayerEntity.getName().getString() + "'s modlist hash: " + hash);
             }
