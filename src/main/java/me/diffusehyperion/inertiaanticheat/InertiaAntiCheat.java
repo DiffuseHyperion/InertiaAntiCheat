@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
@@ -55,11 +58,11 @@ public class InertiaAntiCheat implements ModInitializer {
                 return "";
             }
             case 1 -> {
-                return list.get(0);
+                return list.getFirst();
             }
             default -> {
                 StringBuilder builder = new StringBuilder();
-                builder.append(list.get(0));
+                builder.append(list.getFirst());
                 for (int i = 1; i < list.size(); i++) {
                     if (i != (list.size() - 1)) {
                         builder.append(", ");
@@ -127,6 +130,16 @@ public class InertiaAntiCheat implements ModInitializer {
         return FabricLoader.getInstance().getConfigDir().resolve("InertiaAntiCheat");
     }
 
+    public static SecretKey generateSecretKey() {
+        try {
+            KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+            keyGenerator.init(256);
+            return keyGenerator.generateKey();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static byte[] encryptBytes(byte[] input, SecretKey secretKey) {
         try {
             Cipher cipher = Cipher.getInstance("AES");
@@ -167,6 +180,26 @@ public class InertiaAntiCheat implements ModInitializer {
             return cipher.doFinal(input);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException |
                  InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static PublicKey readPublicKey(byte[] input) {
+        try {
+            X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(input);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            return keyFactory.generatePublic(publicKeySpec);
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static PrivateKey readPrivateKey(byte[] input) {
+        try {
+            PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(input);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            return keyFactory.generatePrivate(privateKeySpec);
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }

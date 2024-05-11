@@ -1,11 +1,5 @@
-[e2ee]
-# Enable support for joining servers with end-to-end encryption enabled.
-enable = true
-# Name of the secret key file to use for E2EE.
-secretKeyName = "secret.key"
-
 [debug]
 # Show additional information in server logs.
 debug = false
 # do not touch pls :)
-version = 1
+version = 2

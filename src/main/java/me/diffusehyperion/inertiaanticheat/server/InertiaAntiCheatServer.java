@@ -2,18 +2,20 @@ package me.diffusehyperion.inertiaanticheat.server;
 
 import com.moandjiezana.toml.Toml;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
-import me.diffusehyperion.inertiaanticheat.InertiaAntiCheatConstants;
-import me.diffusehyperion.inertiaanticheat.packets.ModListResponseC2SPacket;
+import me.diffusehyperion.inertiaanticheat.packets.ModListRequestS2CPayload;
+import me.diffusehyperion.inertiaanticheat.packets.ModListResponseC2SPayload;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.common.DisconnectS2CPacket;
-import net.minecraft.network.packet.s2c.play.*;
+import net.minecraft.network.packet.s2c.play.ClearTitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -25,9 +27,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 
 import static me.diffusehyperion.inertiaanticheat.InertiaAntiCheat.*;
@@ -51,7 +50,9 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
     private void initializeListeners() {
         ServerPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
         ServerTickEvents.END_SERVER_TICK.register(this::onEndServerTick);
-        ServerPlayNetworking.registerGlobalReceiver(InertiaAntiCheatConstants.RESPONSE_PACKET_ID, ModListResponseC2SPacket::receive);
+        PayloadTypeRegistry.playS2C().register(ModListRequestS2CPayload.ID, ModListRequestS2CPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ModListResponseC2SPayload.ID, ModListResponseC2SPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(ModListResponseC2SPayload.ID, ModListResponseC2SPayload::onReceive);
         debugInfo("Finished initializing listeners.");
     }
 
@@ -81,13 +82,11 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
         }
 
         if (Objects.nonNull(serverE2EEKeyPair)) {
-            PacketByteBuf buf = PacketByteBufs.create();
-            buf.writeBytes(serverE2EEKeyPair.getPublic().getEncoded());
             debugInfo("Sending request with public key to player " + player.getName().getString() + " with the length of " + serverE2EEKeyPair.getPublic().getEncoded().length);
-            player.networkHandler.sendPacket(ServerPlayNetworking.createS2CPacket(InertiaAntiCheatConstants.REQUEST_PACKET_ID, buf));
+            packetSender.sendPacket(new ModListRequestS2CPayload(serverE2EEKeyPair.getPublic()));
         } else {
             debugInfo("Sending request to player " + player.getName().getString() + ".");
-            player.networkHandler.sendPacket(ServerPlayNetworking.createS2CPacket(InertiaAntiCheatConstants.REQUEST_PACKET_ID, PacketByteBufs.empty()));
+            packetSender.sendPacket(new ModListRequestS2CPayload());
         }
     }
 
@@ -160,19 +159,16 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
             try {
                 Path privateKeyFilePath = Paths.get(privateKeyFile.toURI());
                 byte[] privateKeyFileBytes = Files.readAllBytes(privateKeyFilePath);
-                PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyFileBytes);
 
                 Path publicKeyFilePath = Paths.get(publicKeyFile.toURI());
                 byte[] publicKeyFileBytes = Files.readAllBytes(publicKeyFilePath);
-                X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyFileBytes);
 
-                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-                privateKey = keyFactory.generatePrivate(privateKeySpec);
-                publicKey = keyFactory.generatePublic(publicKeySpec);
+                privateKey = readPrivateKey(privateKeyFileBytes);
+                publicKey = readPublicKey(publicKeyFileBytes);
 
                 debugInfo("Private key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(privateKey.getEncoded()), "MD5"));
                 debugInfo("Public key MD5 hash: " + InertiaAntiCheat.getHash(Arrays.toString(publicKey.getEncoded()), "MD5"));
-            } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+            } catch (IOException e) {
                 throw new RuntimeException("Something went wrong while reading key pairs!", e);
             }
         }

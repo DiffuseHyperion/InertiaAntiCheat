@@ -65,11 +65,8 @@ enable = false
 privateKeyName = "private.key"
 publicKeyName = "public.key"
 
-# The reason for kicking a player due to them disabling support for E2EE.
-unsupportedMessage = "The server is using E2EE, but you have disabled support for E2EE!\nPlease look in your config file for more information."
-
 [debug]
 # Show additional information in server logs.
 debug = false
 # do not touch pls :)
-version = 4
+version = 5
