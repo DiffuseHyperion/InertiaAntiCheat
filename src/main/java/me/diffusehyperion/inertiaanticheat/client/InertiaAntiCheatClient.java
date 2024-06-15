@@ -32,6 +32,9 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
                 if (modFile.isDirectory()) {
                     continue;
                 }
+                if (!modFile.getAbsolutePath().endsWith(".jar")) {
+                    continue;
+                }
                 InertiaAntiCheatClient.allModData.add(Files.readAllBytes(modFile.toPath()));
             }
         } catch (IOException e) {
