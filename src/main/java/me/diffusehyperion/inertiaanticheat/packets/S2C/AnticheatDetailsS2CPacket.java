@@ -1,22 +1,19 @@
 package me.diffusehyperion.inertiaanticheat.packets.S2C;
 
 import me.diffusehyperion.inertiaanticheat.packets.AnticheatPackets;
-import me.diffusehyperion.inertiaanticheat.packets.ClientUpgradedQueryPacketListener;
+import me.diffusehyperion.inertiaanticheat.packets.UpgradedClientQueryPacketListener;
 import me.diffusehyperion.inertiaanticheat.util.AnticheatDetails;
 import me.diffusehyperion.inertiaanticheat.util.GroupAnticheatDetails;
 import me.diffusehyperion.inertiaanticheat.util.IndividualAnticheatDetails;
-import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
-import net.minecraft.network.NetworkSide;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.PacketType;
-import net.minecraft.network.packet.s2c.query.QueryResponseS2CPacket;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public record AnticheatDetailsS2CPacket(AnticheatDetails details) implements Packet<ClientUpgradedQueryPacketListener> {
+public record AnticheatDetailsS2CPacket(AnticheatDetails details) implements Packet<UpgradedClientQueryPacketListener> {
     public static final PacketCodec<PacketByteBuf, AnticheatDetailsS2CPacket> CODEC = Packet.createCodec(AnticheatDetailsS2CPacket::write, AnticheatDetailsS2CPacket::new);
 
     private AnticheatDetailsS2CPacket(PacketByteBuf packetByteBuf) {
@@ -52,12 +49,12 @@ public record AnticheatDetailsS2CPacket(AnticheatDetails details) implements Pac
         }
     }
 
-    public void apply(ClientUpgradedQueryPacketListener listener) {
+    public void apply(UpgradedClientQueryPacketListener listener) {
         listener.onReceiveAnticheatDetails(this);
     }
 
     @Override
-    public PacketType<? extends Packet<ClientUpgradedQueryPacketListener>> getPacketId() {
+    public PacketType<? extends Packet<UpgradedClientQueryPacketListener>> getPacketId() {
         return AnticheatPackets.DETAILS_RESPONSE;
     }
 }

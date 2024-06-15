@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPacketListener {
+public class UpgradedClientQueryNetworkHandler implements UpgradedClientQueryPacketListener {
     /* ---------- vanilla fields ----------*/
 
     private final ServerInfo serverInfo;

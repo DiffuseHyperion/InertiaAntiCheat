@@ -5,7 +5,7 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import me.diffusehyperion.inertiaanticheat.interfaces.ClientConnectionMixinInterface;
 import me.diffusehyperion.inertiaanticheat.interfaces.ServerInfoInterface;
-import me.diffusehyperion.inertiaanticheat.packets.ClientUpgradedQueryPacketListener;
+import me.diffusehyperion.inertiaanticheat.packets.UpgradedClientQueryPacketListener;
 import me.diffusehyperion.inertiaanticheat.packets.UpgradedClientQueryNetworkHandler;
 import net.minecraft.client.network.MultiplayerServerListPinger;
 import net.minecraft.client.network.ServerAddress;
@@ -56,7 +56,7 @@ public abstract class MultiplayerServerListPingerMixin {
         Runnable saver = runnableLocalRef.get();
         Runnable pingCallback = pingCallbackLocalRef.get();
 
-        ClientUpgradedQueryPacketListener listener =
+        UpgradedClientQueryPacketListener listener =
                 new UpgradedClientQueryNetworkHandler(serverInfo, saver, pingCallback,
                         connection, inetSocketAddress, serverAddress,
                 this::showError,
