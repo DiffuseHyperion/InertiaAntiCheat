@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.PacketCallbacks;
 import net.minecraft.util.Identifier;
 
 import javax.crypto.SecretKey;
@@ -27,11 +28,11 @@ public class ClientLoginModlistTransferHandler {
         ClientLoginNetworking.registerGlobalReceiver(InertiaAntiCheatConstants.MOD_TRANSFER_START_ID, ClientLoginModlistTransferHandler::startModTransfer);
     }
 
-    private static CompletableFuture<PacketByteBuf> startModTransfer(MinecraftClient client, ClientLoginNetworkHandler clientLoginNetworkHandler, PacketByteBuf packetByteBuf, Consumer<GenericFutureListener<? extends Future<? super Void>>> genericFutureListenerConsumer) {
+    private static CompletableFuture<PacketByteBuf> startModTransfer(MinecraftClient client, ClientLoginNetworkHandler loginNetworkHandler, PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
         InertiaAntiCheat.debugLine();
         InertiaAntiCheat.debugInfo("Received request to start mod transfer");
 
-        PublicKey publicKey = InertiaAntiCheat.retrievePublicKey(packetByteBuf);
+        PublicKey publicKey = InertiaAntiCheat.retrievePublicKey(buf);
 
         ClientLoginModlistTransferHandler handler = new ClientLoginModlistTransferHandler(publicKey, InertiaAntiCheatClient.allModData.size(), InertiaAntiCheatConstants.MOD_TRANSFER_CONTINUE_ID);
         ClientLoginNetworking.registerReceiver(InertiaAntiCheatConstants.MOD_TRANSFER_CONTINUE_ID, handler::transferMod);
@@ -71,7 +72,7 @@ public class ClientLoginModlistTransferHandler {
     }
 
 
-    private CompletableFuture<PacketByteBuf> transferMod(MinecraftClient client, ClientLoginNetworkHandler clientLoginNetworkHandler, PacketByteBuf packetByteBuf, Consumer<GenericFutureListener<? extends Future<? super Void>>> genericFutureListenerConsumer) {
+    private CompletableFuture<PacketByteBuf> transferMod(MinecraftClient client, ClientLoginNetworkHandler handler, PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
         InertiaAntiCheat.debugInfo("Sending mod " + this.currentIndex);
         if (this.currentIndex + 1 >= this.maxIndex && Objects.isNull(this.currentFile)) {
             throw new RuntimeException("Not expected to send anymore mods");

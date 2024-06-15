@@ -33,11 +33,11 @@ public abstract class MultiplayerServerListPingerMixin {
 
     @Inject(method = "add",
             at = @At(value = "HEAD"))
-    private void pingServer(ServerInfo entry, Runnable runnable, CallbackInfo ci,
+    private void pingServer(ServerInfo entry, Runnable saver, Runnable pingCallback, CallbackInfo ci,
                             @Share("serverData") LocalRef<ServerInfo> serverDataLocalRef,
                             @Share("runnable") LocalRef<Runnable> runnableLocalRef) {
         serverDataLocalRef.set(entry);
-        runnableLocalRef.set(runnable);
+        runnableLocalRef.set(saver);
     }
 
     @Redirect(method = "add",

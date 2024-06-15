@@ -1,40 +1,45 @@
 package me.diffusehyperion.inertiaanticheat.packets.S2C;
 
+import me.diffusehyperion.inertiaanticheat.packets.AnticheatPackets;
 import me.diffusehyperion.inertiaanticheat.packets.ClientUpgradedQueryPacketListener;
 import me.diffusehyperion.inertiaanticheat.util.AnticheatDetails;
 import me.diffusehyperion.inertiaanticheat.util.GroupAnticheatDetails;
 import me.diffusehyperion.inertiaanticheat.util.IndividualAnticheatDetails;
+import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
+import net.minecraft.network.NetworkSide;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.PacketType;
+import net.minecraft.network.packet.s2c.query.QueryResponseS2CPacket;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class AnticheatDetailsS2CPacket implements Packet<ClientUpgradedQueryPacketListener> {
-    private final AnticheatDetails details;
+public record AnticheatDetailsS2CPacket(AnticheatDetails details) implements Packet<ClientUpgradedQueryPacketListener> {
+    public static final PacketCodec<PacketByteBuf, AnticheatDetailsS2CPacket> CODEC = Packet.createCodec(AnticheatDetailsS2CPacket::write, AnticheatDetailsS2CPacket::new);
 
-    public AnticheatDetailsS2CPacket(AnticheatDetails details) {
-        this.details = details;
+    private AnticheatDetailsS2CPacket(PacketByteBuf packetByteBuf) {
+        this(bufToDetails(packetByteBuf));
     }
 
-    public AnticheatDetailsS2CPacket(PacketByteBuf packetByteBuf) {
-        int ordinal = packetByteBuf.readInt();
+    private static AnticheatDetails bufToDetails(PacketByteBuf buf) {
+        int ordinal = buf.readInt();
         if (ordinal == 0) {
-            this.details = new IndividualAnticheatDetails(
-                    packetByteBuf.readBoolean(),
-                    new ArrayList<>(Arrays.asList(packetByteBuf.readString().split(","))),
-                    new ArrayList<>(Arrays.asList(packetByteBuf.readString().split(","))));
+            return new IndividualAnticheatDetails(
+                    buf.readBoolean(),
+                    new ArrayList<>(Arrays.asList(buf.readString().split(","))),
+                    new ArrayList<>(Arrays.asList(buf.readString().split(","))));
         } else if (ordinal == 1) {
-            this.details = new GroupAnticheatDetails(
-                    packetByteBuf.readBoolean(),
-                    new ArrayList<>(Arrays.asList(packetByteBuf.readString().split(",")))
+            return new GroupAnticheatDetails(
+                    buf.readBoolean(),
+                    new ArrayList<>(Arrays.asList(buf.readString().split(",")))
             );
         } else {
             throw new RuntimeException("Unknown ordinal given");
         }
     }
 
-    @Override
     public void write(PacketByteBuf buf) {
         buf.writeInt(this.details.getCheckMethod().ordinal());
         if (this.details instanceof IndividualAnticheatDetails individualDetails) {
@@ -47,12 +52,12 @@ public class AnticheatDetailsS2CPacket implements Packet<ClientUpgradedQueryPack
         }
     }
 
-    @Override
     public void apply(ClientUpgradedQueryPacketListener listener) {
         listener.onReceiveAnticheatDetails(this);
     }
 
-    public AnticheatDetails getDetails() {
-        return this.details;
+    @Override
+    public PacketType<? extends Packet<ClientUpgradedQueryPacketListener>> getPacketId() {
+        return AnticheatPackets.DETAILS_RESPONSE;
     }
 }

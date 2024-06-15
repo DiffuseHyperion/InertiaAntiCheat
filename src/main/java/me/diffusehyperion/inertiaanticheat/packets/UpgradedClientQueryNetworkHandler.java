@@ -9,6 +9,7 @@ import net.minecraft.client.network.MultiplayerServerListPinger;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.network.ClientConnection;
+import net.minecraft.network.DisconnectionInfo;
 import net.minecraft.network.packet.c2s.query.QueryPingC2SPacket;
 import net.minecraft.network.packet.s2c.query.PingResultS2CPacket;
 import net.minecraft.network.packet.s2c.query.QueryResponseS2CPacket;
@@ -65,7 +66,7 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
     @Override
     public void onReceiveAnticheatDetails(AnticheatDetailsS2CPacket var1) {
         ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setInertiaInstalled(true);
-        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAnticheatDetails(var1.getDetails());
+        ((ServerInfoInterface) serverInfo).inertiaAntiCheat$setAnticheatDetails(var1.details());
     }
 
 
@@ -123,9 +124,9 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
     }
 
     @Override
-    public void onDisconnected(Text reason) {
+    public void onDisconnected(DisconnectionInfo info) {
         if (!this.sentQuery) {
-            showErrorMethod.accept(reason, serverInfo);
+            showErrorMethod.accept(info.reason(), serverInfo);
             pingMethod.accept(inetSocketAddress, serverAddress, serverInfo);
         }
     }

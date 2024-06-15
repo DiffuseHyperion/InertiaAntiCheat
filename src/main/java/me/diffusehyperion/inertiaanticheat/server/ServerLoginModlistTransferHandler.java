@@ -6,10 +6,7 @@ import me.diffusehyperion.inertiaanticheat.util.HashAlgorithm;
 import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
 import me.diffusehyperion.inertiaanticheat.util.ModlistCheckMethod;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking;
+import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerLoginNetworkHandler;
@@ -31,7 +28,7 @@ public class ServerLoginModlistTransferHandler {
         ServerLoginConnectionEvents.QUERY_START.register(ServerLoginModlistTransferHandler::requestModTransfer);
     }
 
-    private static void requestModTransfer(ServerLoginNetworkHandler handler, MinecraftServer server, PacketSender sender, ServerLoginNetworking.LoginSynchronizer synchronizer) {
+    private static void requestModTransfer(ServerLoginNetworkHandler handler, MinecraftServer minecraftServer, LoginPacketSender sender, ServerLoginNetworking.LoginSynchronizer synchronizer) {
         ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) handler;
 
         InertiaAntiCheat.debugLine();
@@ -71,8 +68,10 @@ public class ServerLoginModlistTransferHandler {
         this.modTransferID = modTransferID;
     }
 
-    protected void startModTransfer(MinecraftServer minecraftServer, ServerLoginNetworkHandler serverLoginNetworkHandler, boolean b, PacketByteBuf packetByteBuf, ServerLoginNetworking.LoginSynchronizer loginSynchronizer, PacketSender packetSender) {
+    protected void startModTransfer(MinecraftServer minecraftServer, ServerLoginNetworkHandler serverLoginNetworkHandler, boolean b, PacketByteBuf packetByteBuf, ServerLoginNetworking.LoginSynchronizer synchronizer, PacketSender packetSender) {
         ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) serverLoginNetworkHandler;
+        LoginPacketSender sender = (LoginPacketSender) packetSender; // im 75% sure they forgot to change PacketSender to LoginPacketSender lmao
+
         InertiaAntiCheat.debugInfo("Received response from address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress());
         if (!b) {
             serverLoginNetworkHandler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.vanillaKickMessage")));
@@ -86,14 +85,15 @@ public class ServerLoginModlistTransferHandler {
         InertiaAntiCheat.debugInfo("Max index: " + this.maxIndex);
 
         ServerLoginNetworking.registerReceiver(serverLoginNetworkHandler, this.modTransferID, this::continueModTransfer);
-        packetSender.sendPacket(this.modTransferID, PacketByteBufs.empty());
+        sender.sendPacket(this.modTransferID, PacketByteBufs.empty());
 
-        loginSynchronizer.waitFor(this.future);
+        synchronizer.waitFor(this.future);
 
         InertiaAntiCheat.debugLine();
     }
 
     private void continueModTransfer(MinecraftServer minecraftServer, ServerLoginNetworkHandler serverLoginNetworkHandler, boolean b, PacketByteBuf packetByteBuf, ServerLoginNetworking.LoginSynchronizer loginSynchronizer, PacketSender packetSender) {
+        LoginPacketSender sender = (LoginPacketSender) packetSender; // im 75% sure they forgot to change PacketSender to LoginPacketSender lmao
         InertiaAntiCheat.debugInfo("Receiving mod " + this.currentIndex);
         if (!b) {
             serverLoginNetworkHandler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.vanillaKickMessage")));
@@ -135,7 +135,7 @@ public class ServerLoginModlistTransferHandler {
             InertiaAntiCheat.debugLine();
         } else {
             InertiaAntiCheat.debugInfo("Continuing transfer");
-            packetSender.sendPacket(this.modTransferID, PacketByteBufs.empty());
+            sender.sendPacket(this.modTransferID, PacketByteBufs.empty());
 
             InertiaAntiCheat.debugLine();
         }
