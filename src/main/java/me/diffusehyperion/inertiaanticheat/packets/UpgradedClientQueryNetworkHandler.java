@@ -1,8 +1,6 @@
 package me.diffusehyperion.inertiaanticheat.packets;
 
 import com.mojang.authlib.GameProfile;
-import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
-import me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient;
 import me.diffusehyperion.inertiaanticheat.interfaces.ServerInfoInterface;
 import me.diffusehyperion.inertiaanticheat.packets.S2C.AnticheatDetailsS2CPacket;
 import net.minecraft.client.network.MultiplayerServerListPinger;
@@ -19,20 +17,19 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
 import org.apache.logging.log4j.util.TriConsumer;
 
-import javax.crypto.SecretKey;
 import java.net.InetSocketAddress;
-import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.BiConsumer;
 
 public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPacketListener {
     /* ---------- vanilla fields ----------*/
 
     private final ServerInfo serverInfo;
-    private final Runnable runnable;
+    private final Runnable saver;
+    private final Runnable pingCallback;
+
     private final ClientConnection connection;
 
     private final InetSocketAddress inetSocketAddress;
@@ -45,14 +42,16 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
     private boolean received;
     private long startTime;
 
-    public UpgradedClientQueryNetworkHandler(ServerInfo serverInfo, Runnable runnable, ClientConnection connection,
+    public UpgradedClientQueryNetworkHandler(ServerInfo serverInfo, Runnable saver, Runnable pingCallback, ClientConnection connection,
                                              InetSocketAddress inetSocketAddress, ServerAddress serverAddress,
                                              BiConsumer<Text, ServerInfo> showErrorMethod,
                                              TriConsumer<InetSocketAddress, ServerAddress, ServerInfo> pingMethod) {
         /* ---------- vanilla fields ----------*/
 
         this.serverInfo = serverInfo;
-        this.runnable = runnable;
+        this.saver = saver;
+        this.pingCallback = pingCallback;
+
         this.connection = connection;
 
         this.inetSocketAddress = inetSocketAddress;
@@ -107,7 +106,7 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
         serverMetadata.favicon().ifPresent(favicon -> {
             if (!Arrays.equals(favicon.iconBytes(), serverInfo.getFavicon())) {
                 serverInfo.setFavicon(ServerInfo.validateFavicon(favicon.iconBytes()));
-                runnable.run();
+                saver.run();
             }
         });
         this.startTime = Util.getMeasuringTimeMs();
@@ -121,6 +120,7 @@ public class UpgradedClientQueryNetworkHandler implements ClientUpgradedQueryPac
         long m = Util.getMeasuringTimeMs();
         serverInfo.ping = m - l;
         this.connection.disconnect(Text.translatable("multiplayer.status.finished"));
+        this.pingCallback.run();
     }
 
     @Override

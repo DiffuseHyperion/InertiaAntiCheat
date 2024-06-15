@@ -34,26 +34,31 @@ public abstract class MultiplayerServerListPingerMixin {
     @Inject(method = "add",
             at = @At(value = "HEAD"))
     private void pingServer(ServerInfo entry, Runnable saver, Runnable pingCallback, CallbackInfo ci,
-                            @Share("serverData") LocalRef<ServerInfo> serverDataLocalRef,
-                            @Share("runnable") LocalRef<Runnable> runnableLocalRef) {
+                            @Share("serverInfo") LocalRef<ServerInfo> serverDataLocalRef,
+                            @Share("saver") LocalRef<Runnable> saverLocalRef,
+                            @Share("pingCallback") LocalRef<Runnable> pingCallbackLocalRef) {
         serverDataLocalRef.set(entry);
-        runnableLocalRef.set(saver);
+        saverLocalRef.set(saver);
+        pingCallbackLocalRef.set(pingCallback);
     }
 
     @Redirect(method = "add",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;connect(Ljava/lang/String;ILnet/minecraft/network/listener/ClientQueryPacketListener;)V"))
     private void initiateServerboundUpgradedStatusConnection(
             ClientConnection connection, String host, int port, ClientQueryPacketListener clientQueryPacketListener,
-            @Share("serverData") LocalRef<ServerInfo> serverDataLocalRef,
-            @Share("runnable") LocalRef<Runnable> runnableLocalRef,
+            @Share("serverInfo") LocalRef<ServerInfo> serverDataLocalRef,
+            @Share("saver") LocalRef<Runnable> runnableLocalRef,
+            @Share("pingCallback") LocalRef<Runnable> pingCallbackLocalRef,
             @Local InetSocketAddress inetSocketAddress,
             @Local ServerAddress serverAddress) {
 
         ServerInfo serverInfo = serverDataLocalRef.get();
-        Runnable runnable = runnableLocalRef.get();
+        Runnable saver = runnableLocalRef.get();
+        Runnable pingCallback = pingCallbackLocalRef.get();
 
         ClientUpgradedQueryPacketListener listener =
-                new UpgradedClientQueryNetworkHandler(serverInfo, runnable, connection, inetSocketAddress, serverAddress,
+                new UpgradedClientQueryNetworkHandler(serverInfo, saver, pingCallback,
+                        connection, inetSocketAddress, serverAddress,
                 this::showError,
                 this::ping);
 
