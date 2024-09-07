@@ -15,17 +15,18 @@ import java.util.Objects;
 
 public class InertiaAntiCheatClient implements ClientModInitializer {
     public static Toml clientConfig;
+    public static final List<String> allModNames = new ArrayList<>();
     public static final List<byte[]> allModData = new ArrayList<>();
 
     @Override
     public void onInitializeClient() {
         InertiaAntiCheatClient.clientConfig = InertiaAntiCheat.initializeConfig("/config/client/InertiaAntiCheat.toml", InertiaAntiCheatConstants.CURRENT_CLIENT_CONFIG_VERSION);
 
-        this.setupModDataList();
+        this.setupModlist();
         ClientLoginModlistTransferHandler.init();
     }
 
-    public void setupModDataList() {
+    public void setupModlist() {
         try {
             File modDirectory = FabricLoader.getInstance().getGameDir().resolve("mods").toFile();
             for (File modFile : Objects.requireNonNull(modDirectory.listFiles())) {
@@ -35,6 +36,7 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
                 if (!modFile.getAbsolutePath().endsWith(".jar")) {
                     continue;
                 }
+                InertiaAntiCheatClient.allModNames.add(modFile.getName());
                 InertiaAntiCheatClient.allModData.add(Files.readAllBytes(modFile.toPath()));
             }
         } catch (IOException e) {

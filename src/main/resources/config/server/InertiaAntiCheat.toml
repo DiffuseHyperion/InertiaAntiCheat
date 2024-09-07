@@ -12,6 +12,9 @@ method = "individual"
 # SHA256 is the slowest but most secure.
 # Accepted algorithms: "MD5", "SHA1", "SHA256"
 algorithm = "MD5"
+# Whether to only check for mod names, or the data of client mods when clients join the server.
+# Checking only names is much quicker and preferred on large modpacks, but is inherently less secure.
+quickCheck = false
 # The kick message to show to clients when they try to connect without InertiaAntiCheat installed.
 vanillaKickMessage = "You were kicked for not sending a response to the anti-cheat!\nThis is probably due to missing the anti-cheat client mod.\nInstall it here: https://modrinth.com/mod/inertiaanticheat"
 # The kick message to show to clients when they fail the modlist check.
@@ -54,4 +57,4 @@ hash = ["Requires modpack: ", "Modpack Name"]
 # Show additional information in server logs.
 debug = false
 # do not touch pls :)
-version = 7
+version = 8
