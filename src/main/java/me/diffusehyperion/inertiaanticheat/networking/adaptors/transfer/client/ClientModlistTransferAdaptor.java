@@ -1,4 +1,4 @@
-package me.diffusehyperion.inertiaanticheat.client.adaptors;
+package me.diffusehyperion.inertiaanticheat.networking.adaptors.transfer.client;
 
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;

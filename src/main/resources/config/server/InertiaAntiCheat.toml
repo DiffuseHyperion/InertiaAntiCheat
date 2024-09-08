@@ -2,11 +2,6 @@
 # Please check https://github.com/DiffuseHyperion/InertiaAntiCheat/wiki/Modern-(Version-1.0.0-and-above) on how to configure this mod.
 # You will likely need https://iac.diffusehyperion.com/ in the process of configuring this mod.
 [mods]
-# The method to check client's mod list.
-# If you prefer blacklisting/whitelisting certain mods from being used, use "individual".
-# If you prefer ensuring client's have a modpack installed, use "group".
-# Accepted types: "individual", "group"
-method = "individual"
 # The hashing algorithm for the mod to use.
 # MD5 is the fastest but most insecure.
 # SHA256 is the slowest but most secure.
@@ -14,20 +9,33 @@ method = "individual"
 algorithm = "MD5"
 # Whether to only check for mod names, or the data of client mods when clients join the server.
 # Checking only names is much quicker and preferred on large modpacks, but is inherently less secure.
-quickCheck = false
 # The kick message to show to clients when they try to connect without InertiaAntiCheat installed.
 vanillaKickMessage = "You were kicked for not sending a response to the anti-cheat!\nThis is probably due to missing the anti-cheat client mod.\nInstall it here: https://modrinth.com/mod/inertiaanticheat"
 # The kick message to show to clients when they fail the modlist check.
 deniedKickMessage = "You were kicked by the anti-cheat!\nThis is due to having illegal mods.\nPlease contact your server administrator for more details."
 
-[mods.individual]
+[transfer]
+# The method for client's to use to transfer their modlist to the server.
+# Clients can send the entirety of their mods to the server. This is more secure.
+# Clients can also only send the name of their mods only to the server. This is much quicker and prefered with large modpacks.
+# Accepted types: "data", "name"
+method = "data"
+
+[validation]
+# The method to check client's mod list.
+# If you prefer blacklisting/whitelisting certain mods from being used, use "individual".
+# If you prefer ensuring client's have a modpack installed, use "group".
+# Accepted types: "individual", "group"
+method = "individual"
+
+[validation.individual]
 # Immediately kick players who have these mods in their modlist.
 # The mod checks (and kicks) for blacklisted mods first.
 blacklist = []
 # Immediately kick players who do not have these mods in their modlist.
 whitelist = []
 
-[mods.group]
+[validation.group]
 # The hash for the server to check against.
 # You can add multiple hashes into the list, and the server will check against all of them.
 hash = []

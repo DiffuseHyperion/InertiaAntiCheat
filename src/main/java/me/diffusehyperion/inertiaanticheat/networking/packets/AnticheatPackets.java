@@ -1,6 +1,6 @@
-package me.diffusehyperion.inertiaanticheat.packets;
+package me.diffusehyperion.inertiaanticheat.networking.packets;
 
-import me.diffusehyperion.inertiaanticheat.packets.S2C.AnticheatDetailsS2CPacket;
+import me.diffusehyperion.inertiaanticheat.networking.packets.S2C.AnticheatDetailsS2CPacket;
 import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
 import net.minecraft.network.NetworkSide;
 import net.minecraft.network.packet.PacketType;

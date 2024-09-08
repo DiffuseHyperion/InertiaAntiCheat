@@ -1,6 +1,6 @@
 package me.diffusehyperion.inertiaanticheat.mixins.server;
 
-import me.diffusehyperion.inertiaanticheat.packets.S2C.AnticheatDetailsS2CPacket;
+import me.diffusehyperion.inertiaanticheat.networking.packets.S2C.AnticheatDetailsS2CPacket;
 import me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer;
 import me.diffusehyperion.inertiaanticheat.util.GroupAnticheatDetails;
 import me.diffusehyperion.inertiaanticheat.util.IndividualAnticheatDetails;

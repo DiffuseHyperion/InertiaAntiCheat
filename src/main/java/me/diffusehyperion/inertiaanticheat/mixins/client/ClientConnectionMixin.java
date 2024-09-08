@@ -1,7 +1,7 @@
 package me.diffusehyperion.inertiaanticheat.mixins.client;
 
 import me.diffusehyperion.inertiaanticheat.interfaces.ClientConnectionMixinInterface;
-import me.diffusehyperion.inertiaanticheat.packets.UpgradedClientQueryPacketListener;
+import me.diffusehyperion.inertiaanticheat.networking.packets.UpgradedClientQueryPacketListener;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.NetworkState;
 import net.minecraft.network.listener.ClientPacketListener;

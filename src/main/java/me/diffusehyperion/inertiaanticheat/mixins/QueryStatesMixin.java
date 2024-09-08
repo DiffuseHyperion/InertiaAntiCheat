@@ -1,7 +1,7 @@
 package me.diffusehyperion.inertiaanticheat.mixins;
 
-import me.diffusehyperion.inertiaanticheat.packets.AnticheatPackets;
-import me.diffusehyperion.inertiaanticheat.packets.S2C.AnticheatDetailsS2CPacket;
+import me.diffusehyperion.inertiaanticheat.networking.packets.AnticheatPackets;
+import me.diffusehyperion.inertiaanticheat.networking.packets.S2C.AnticheatDetailsS2CPacket;
 import net.minecraft.network.NetworkStateBuilder;
 import net.minecraft.network.state.QueryStates;
 import org.spongepowered.asm.mixin.Mixin;

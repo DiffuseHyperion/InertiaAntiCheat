@@ -1,6 +1,6 @@
 package me.diffusehyperion.inertiaanticheat.interfaces;
 
-import me.diffusehyperion.inertiaanticheat.packets.UpgradedClientQueryPacketListener;
+import me.diffusehyperion.inertiaanticheat.networking.packets.UpgradedClientQueryPacketListener;
 
 public interface ClientConnectionMixinInterface {
 

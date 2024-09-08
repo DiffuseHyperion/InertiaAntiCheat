@@ -1,4 +1,4 @@
-package me.diffusehyperion.inertiaanticheat.client.adaptors;
+package me.diffusehyperion.inertiaanticheat.networking.adaptors.transfer.client;
 
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient;
@@ -14,12 +14,12 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class NameTransferAdaptor extends ClientModlistTransferAdaptor {
+public class ClientNameTransferAdaptor extends ClientModlistTransferAdaptor {
     private final int maxIndex;
     private int currentIndex;
     private String currentName;
 
-    public NameTransferAdaptor(PublicKey publicKey, Identifier modTransferID) {
+    public ClientNameTransferAdaptor(PublicKey publicKey, Identifier modTransferID) {
         super(publicKey, modTransferID);
         this.maxIndex = InertiaAntiCheatClient.allModNames.size();
         this.currentIndex = 0;

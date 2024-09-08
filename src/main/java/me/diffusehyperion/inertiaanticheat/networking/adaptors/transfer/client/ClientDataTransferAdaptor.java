@@ -1,9 +1,8 @@
-package me.diffusehyperion.inertiaanticheat.client.adaptors;
+package me.diffusehyperion.inertiaanticheat.networking.adaptors.transfer.client;
 
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient;
 import me.diffusehyperion.inertiaanticheat.util.HashAlgorithm;
-import net.fabricmc.fabric.api.client.networking.v1.ClientLoginConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
@@ -12,19 +11,18 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.PacketCallbacks;
 import net.minecraft.util.Identifier;
 
-import javax.crypto.SecretKey;
 import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class DataTransferAdaptor extends ClientModlistTransferAdaptor{
+public class ClientDataTransferAdaptor extends ClientModlistTransferAdaptor{
     private final int maxIndex;
     private int currentIndex;
     private byte[] currentFile;
 
-    public DataTransferAdaptor(PublicKey publicKey, Identifier modTransferID) {
+    public ClientDataTransferAdaptor(PublicKey publicKey, Identifier modTransferID) {
         super(publicKey, modTransferID);
         this.maxIndex = InertiaAntiCheatClient.allModData.size();
         this.currentIndex = 0;

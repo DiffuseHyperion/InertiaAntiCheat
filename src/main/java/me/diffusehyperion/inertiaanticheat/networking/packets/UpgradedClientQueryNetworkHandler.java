@@ -1,8 +1,8 @@
-package me.diffusehyperion.inertiaanticheat.packets;
+package me.diffusehyperion.inertiaanticheat.networking.packets;
 
 import com.mojang.authlib.GameProfile;
 import me.diffusehyperion.inertiaanticheat.interfaces.ServerInfoInterface;
-import me.diffusehyperion.inertiaanticheat.packets.S2C.AnticheatDetailsS2CPacket;
+import me.diffusehyperion.inertiaanticheat.networking.packets.S2C.AnticheatDetailsS2CPacket;
 import net.minecraft.client.network.MultiplayerServerListPinger;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.network.ServerInfo;
