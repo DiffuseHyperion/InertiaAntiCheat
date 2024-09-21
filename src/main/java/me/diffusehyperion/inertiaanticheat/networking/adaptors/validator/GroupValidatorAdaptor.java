@@ -3,7 +3,6 @@ package me.diffusehyperion.inertiaanticheat.networking.adaptors.validator;
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer;
 import me.diffusehyperion.inertiaanticheat.util.HashAlgorithm;
-import me.diffusehyperion.inertiaanticheat.util.ModlistCheckMethod;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,8 +10,12 @@ import java.util.List;
 
 public class GroupValidatorAdaptor extends ServerModlistValidatorAdaptor{
 
+    public GroupValidatorAdaptor() {
+        super();
+    }
+
     @Override
-    public boolean checkModlist() {
+    public boolean validateModlist() {
         InertiaAntiCheat.debugLine2();
         InertiaAntiCheat.debugInfo("Checking modlist now, using group method");
         List<String> softWhitelistedMods = InertiaAntiCheatServer.serverConfig.getList("mods.group.softWhitelist");

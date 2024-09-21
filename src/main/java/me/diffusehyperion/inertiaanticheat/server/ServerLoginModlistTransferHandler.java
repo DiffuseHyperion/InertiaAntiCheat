@@ -16,9 +16,12 @@ import net.minecraft.server.network.ServerLoginNetworkHandler;
 import net.minecraft.text.Text;
 
 import java.security.KeyPair;
+import java.security.PublicKey;
 
 public class ServerLoginModlistTransferHandler {
     private KeyPair serverKeyPair;
+    private PublicKey clientKey;
+
     public static void init() {
         ServerLoginConnectionEvents.QUERY_START.register(ServerLoginModlistTransferHandler::initiateConnection);
     }
@@ -52,7 +55,7 @@ public class ServerLoginModlistTransferHandler {
      */
     private static void
     checkConnection(MinecraftServer minecraftServer, ServerLoginNetworkHandler handler,
-                    boolean b, PacketByteBuf packetByteBuf,
+                    boolean b, PacketByteBuf buf,
                     ServerLoginNetworking.LoginSynchronizer synchronizer, PacketSender packetSender) {
         synchronizer.waitFor(minecraftServer.submit(() -> {
             LoginPacketSender sender = (LoginPacketSender) packetSender;
@@ -78,14 +81,18 @@ public class ServerLoginModlistTransferHandler {
     }
 
     /**
-     * Creates transfer and validator adaptor instances, before informing the client which adaptor to use
+     * Retrieves and stores the client's public key
+     * Afterward, inform client on which adaptor to use
      */
     private void
-    setAdaptor(MinecraftServer minecraftServer, ServerLoginNetworkHandler handler,
-               boolean b, PacketByteBuf packetByteBuf,
+    setAdaptor(MinecraftServer server, ServerLoginNetworkHandler handler,
+               boolean b, PacketByteBuf buf,
                ServerLoginNetworking.LoginSynchronizer synchronizer, PacketSender packetSender) {
-        synchronizer.waitFor(minecraftServer.submit(() -> {
+        synchronizer.waitFor(server.submit(() -> {
             LoginPacketSender sender = (LoginPacketSender) packetSender;
+
+            this.clientKey = InertiaAntiCheat.retrievePublicKey(buf);
+
             PacketByteBuf response = PacketByteBufs.create();
 
             // TODO: switch from hardcode to config
@@ -98,25 +105,39 @@ public class ServerLoginModlistTransferHandler {
     }
 
     /**
-     * Creates transfer and validator adaptor instances, before informing the client which adaptor to use
+     * Creates transfer and validator adaptor instances
      */
     private void
-    beginModTransfer(MinecraftServer minecraftServer, ServerLoginNetworkHandler handler,
+    beginModTransfer(MinecraftServer server, ServerLoginNetworkHandler handler,
                boolean b, PacketByteBuf packetByteBuf,
                ServerLoginNetworking.LoginSynchronizer synchronizer, PacketSender packetSender) {
         LoginPacketSender sender = (LoginPacketSender) packetSender;
-        PacketByteBuf response = PacketByteBufs.create();
+        ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) handler;
 
-        // TODO: switch from hardcode to config
-        ServerModlistTransferAdaptor transferHandler = new ServerDataTransferAdaptor(this.serverKeyPair, InertiaAntiCheatConstants.SET_ADAPTOR);
-        ServerModlistValidatorAdaptor validatorHandler = new IndividualValidatorAdaptor();
-        response.writeInt(TransferAdaptors.DATA.ordinal());
+        synchronizer.waitFor(server.submit(() -> {
 
-        ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.INITIATE_E2EE, transferHandler::transferMod);
-        sender.sendPacket(InertiaAntiCheatConstants.INITIATE_E2EE, response);
+            ServerModlistValidatorAdaptor validatorHandler = new IndividualValidatorAdaptor(
+                    () -> {
+                        InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " failed modlist check");
+                        handler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.deniedKickMessage")));
+                    },
+                    () -> {
+                        InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " passed modlist check");
+                    },
+                    () -> {
+                        InertiaAntiCheat.debugInfo("Finishing transfer, checking mods now");
+                        ServerLoginNetworking.unregisterReceiver(handler, InertiaAntiCheatConstants.SEND_MOD);
+                    }
+            );
 
-        synchronizer.waitFor(validatorHandler.future);
+            // TODO: switch from hardcode to config
+            ServerModlistTransferAdaptor transferHandler = new ServerDataTransferAdaptor(this.serverKeyPair, InertiaAntiCheatConstants.SEND_MOD, validatorHandler);
 
+            ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.SEND_MOD, transferHandler::transferMod);
+            sender.sendPacket(InertiaAntiCheatConstants.SEND_MOD, PacketByteBufs.empty());
+
+            synchronizer.waitFor(validatorHandler.future);
+        }));
         InertiaAntiCheat.debugLine();
     }
 }

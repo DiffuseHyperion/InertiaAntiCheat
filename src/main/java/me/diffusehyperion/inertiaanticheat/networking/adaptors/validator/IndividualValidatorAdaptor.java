@@ -7,8 +7,12 @@ import java.util.List;
 
 public class IndividualValidatorAdaptor extends ServerModlistValidatorAdaptor{
 
+    public IndividualValidatorAdaptor(Runnable failureTask, Runnable successTask, Runnable finishTask) {
+        super(failureTask, successTask, finishTask);
+    }
+
     @Override
-    public boolean checkModlist() {
+    public boolean validateModlist() {
         InertiaAntiCheat.debugLine2();
         InertiaAntiCheat.debugInfo("Checking modlist now, using individual method");
         InertiaAntiCheat.debugInfo("Mod list size: " + this.collectedMods.size());

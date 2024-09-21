@@ -22,37 +22,54 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class ClientLoginModlistTransferHandler {
+    private PublicKey serverKey;
+    private KeyPair clientKeyPair;
+
     public static void init() {
         InertiaAntiCheat.debugInfo("Creating mod transfer handler");
         ClientLoginNetworking.registerGlobalReceiver(InertiaAntiCheatConstants.CHECK_CONNECTION, ClientLoginModlistTransferHandler::confirmConnection);
-
     }
 
+    /**
+     * Responds to any connection check packets
+     * This also creates an instance of this class and begins listening for key exchange requests.
+     */
     private static CompletableFuture<@Nullable PacketByteBuf>
     confirmConnection(MinecraftClient client, ClientLoginNetworkHandler handler,
                       PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
         InertiaAntiCheat.debugLine();
         InertiaAntiCheat.debugInfo("Received request to start mod transfer");
 
-        ClientLoginNetworking.registerReceiver(InertiaAntiCheatConstants.INITIATE_E2EE, ClientLoginModlistTransferHandler::exchangeKey);
+        ClientLoginModlistTransferHandler transferHandler = new ClientLoginModlistTransferHandler();
+        ClientLoginNetworking.registerReceiver(InertiaAntiCheatConstants.INITIATE_E2EE, transferHandler::exchangeKey);
         return CompletableFuture.completedFuture(null);
     }
 
-    private static CompletableFuture<@Nullable PacketByteBuf>
+    /**
+     * Responds to key exchange requests
+     * Saves server's public key and generates a client keypair to send
+     */
+    private CompletableFuture<@Nullable PacketByteBuf>
     exchangeKey(MinecraftClient client, ClientLoginNetworkHandler loginNetworkHandler,
                 PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
         InertiaAntiCheat.debugInfo("Exchanging keys with server");
 
-        PacketByteBuf responseBuf = PacketByteBufs.create();
-        KeyPair keyPair = InertiaAntiCheat.createRSAPair();
-        responseBuf.writeBytes(keyPair.getPublic().getEncoded());
+        this.serverKey = InertiaAntiCheat.retrievePublicKey(buf);
 
-        ClientLoginNetworking.registerReceiver(InertiaAntiCheatConstants.SET_ADAPTOR, ClientLoginModlistTransferHandler::setAdaptor);
+        PacketByteBuf responseBuf = PacketByteBufs.create();
+        this.clientKeyPair = InertiaAntiCheat.createRSAPair();
+        responseBuf.writeBytes(this.clientKeyPair.getPublic().getEncoded());
+
+        ClientLoginNetworking.registerReceiver(InertiaAntiCheatConstants.SET_ADAPTOR, this::createAdaptors);
         return CompletableFuture.completedFuture(responseBuf);
     }
 
-    private static CompletableFuture<@Nullable PacketByteBuf>
-    setAdaptor(MinecraftClient client, ClientLoginNetworkHandler loginNetworkHandler,
+    /**
+     * Responds to server's chosen adaptor and creates appropriate instances
+     *
+     */
+    private CompletableFuture<@Nullable PacketByteBuf>
+    createAdaptors(MinecraftClient client, ClientLoginNetworkHandler loginNetworkHandler,
                 PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
 
         TransferAdaptors transferAdaptorIndex = TransferAdaptors.values()[buf.readInt()];
@@ -60,8 +77,8 @@ public class ClientLoginModlistTransferHandler {
 
         ClientModlistTransferAdaptor transferAdaptor;
         switch (transferAdaptorIndex) {
-            case DATA -> transferAdaptor = new ClientDataTransferAdaptor(publicKey, InertiaAntiCheatConstants.SET_ADAPTOR);
-            case NAME -> transferAdaptor = new ClientNameTransferAdaptor(publicKey, InertiaAntiCheatConstants.SET_ADAPTOR);
+            case DATA -> transferAdaptor = new ClientDataTransferAdaptor(publicKey, InertiaAntiCheatConstants.SEND_MOD);
+            case NAME -> transferAdaptor = new ClientNameTransferAdaptor(publicKey, InertiaAntiCheatConstants.SEND_MOD);
             default -> throw new IllegalStateException("Unexpected value: " + transferAdaptorIndex);
         }
 
@@ -69,12 +86,7 @@ public class ClientLoginModlistTransferHandler {
 
         InertiaAntiCheat.debugInfo("Registered new handler for channel");
 
-        PacketByteBuf responseBuf = PacketByteBufs.create();
-        responseBuf.writeBytes(InertiaAntiCheat.encryptRSABytes(BigInteger.valueOf(InertiaAntiCheatClient.allModData.size()).toByteArray(), publicKey));
-        InertiaAntiCheat.debugInfo("Responding with mod size of " + InertiaAntiCheatClient.allModData.size());
-        InertiaAntiCheat.debugLine();
-
-        return CompletableFuture.completedFuture(responseBuf);
+        return CompletableFuture.completedFuture(PacketByteBufs.empty());
     }
 
 

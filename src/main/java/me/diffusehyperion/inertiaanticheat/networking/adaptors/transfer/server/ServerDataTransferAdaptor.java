@@ -1,6 +1,7 @@
 package me.diffusehyperion.inertiaanticheat.networking.adaptors.transfer.server;
 
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
+import me.diffusehyperion.inertiaanticheat.networking.adaptors.validator.ServerModlistValidatorAdaptor;
 import me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer;
 import me.diffusehyperion.inertiaanticheat.util.HashAlgorithm;
 import net.fabricmc.fabric.api.networking.v1.LoginPacketSender;
@@ -26,8 +27,8 @@ public class ServerDataTransferAdaptor extends ServerModlistTransferAdaptor {
     private final List<byte[]> collectedMods = new ArrayList<>();
     private byte[] buffer;
 
-    public ServerDataTransferAdaptor(KeyPair keyPair, Identifier modTransferID) {
-        super(keyPair, modTransferID);
+    public ServerDataTransferAdaptor(KeyPair keyPair, Identifier modTransferID, ServerModlistValidatorAdaptor validator) {
+        super(keyPair, modTransferID, validator);
     }
 
     @Override
@@ -60,14 +61,7 @@ public class ServerDataTransferAdaptor extends ServerModlistTransferAdaptor {
         }
 
         if (this.currentIndex >= this.maxIndex) {
-            InertiaAntiCheat.debugInfo("Finishing transfer, checking mods now");
-            if (!checkModlist()) {
-                serverLoginNetworkHandler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.deniedKickMessage")));
-            }
-            ServerLoginNetworking.unregisterReceiver(serverLoginNetworkHandler, this.modTransferID);
-            this.future.complete(null);
-
-            InertiaAntiCheat.debugLine();
+            completeModTransfer();
         } else {
             InertiaAntiCheat.debugInfo("Continuing transfer");
             sender.sendPacket(this.modTransferID, PacketByteBufs.empty());
