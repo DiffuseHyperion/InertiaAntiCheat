@@ -1,10 +1,10 @@
 package me.diffusehyperion.inertiaanticheat.client;
 
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
-import me.diffusehyperion.inertiaanticheat.networking.adaptors.transfer.TransferAdaptors;
-import me.diffusehyperion.inertiaanticheat.networking.adaptors.transfer.client.ClientModlistTransferAdaptor;
-import me.diffusehyperion.inertiaanticheat.networking.adaptors.transfer.client.ClientDataTransferAdaptor;
-import me.diffusehyperion.inertiaanticheat.networking.adaptors.transfer.client.ClientNameTransferAdaptor;
+import me.diffusehyperion.inertiaanticheat.networking.method.CheckingTypes;
+import me.diffusehyperion.inertiaanticheat.networking.method.TransferHandler;
+import me.diffusehyperion.inertiaanticheat.networking.method.data.ClientDataTransferHandler;
+import me.diffusehyperion.inertiaanticheat.networking.method.name.ClientNameTransferHandler;
 import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
@@ -15,14 +15,13 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.PacketCallbacks;
 import org.jetbrains.annotations.Nullable;
 
-import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class ClientLoginModlistTransferHandler {
-    private PublicKey serverKey;
+    private PublicKey serverPublicKey;
     private KeyPair clientKeyPair;
 
     public static void init() {
@@ -42,7 +41,7 @@ public class ClientLoginModlistTransferHandler {
 
         ClientLoginModlistTransferHandler transferHandler = new ClientLoginModlistTransferHandler();
         ClientLoginNetworking.registerReceiver(InertiaAntiCheatConstants.INITIATE_E2EE, transferHandler::exchangeKey);
-        return CompletableFuture.completedFuture(null);
+        return CompletableFuture.completedFuture(PacketByteBufs.empty());
     }
 
     /**
@@ -54,7 +53,7 @@ public class ClientLoginModlistTransferHandler {
                 PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
         InertiaAntiCheat.debugInfo("Exchanging keys with server");
 
-        this.serverKey = InertiaAntiCheat.retrievePublicKey(buf);
+        this.serverPublicKey = InertiaAntiCheat.retrievePublicKey(buf);
 
         PacketByteBuf responseBuf = PacketByteBufs.create();
         this.clientKeyPair = InertiaAntiCheat.createRSAPair();
@@ -72,19 +71,17 @@ public class ClientLoginModlistTransferHandler {
     createAdaptors(MinecraftClient client, ClientLoginNetworkHandler loginNetworkHandler,
                 PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
 
-        TransferAdaptors transferAdaptorIndex = TransferAdaptors.values()[buf.readInt()];
-        PublicKey publicKey = InertiaAntiCheat.retrievePublicKey(buf);
+        CheckingTypes transferAdaptorIndex = CheckingTypes.values()[buf.readInt()];
 
-        ClientModlistTransferAdaptor transferAdaptor;
-        switch (transferAdaptorIndex) {
-            case DATA -> transferAdaptor = new ClientDataTransferAdaptor(publicKey, InertiaAntiCheatConstants.SEND_MOD);
-            case NAME -> transferAdaptor = new ClientNameTransferAdaptor(publicKey, InertiaAntiCheatConstants.SEND_MOD);
-            default -> throw new IllegalStateException("Unexpected value: " + transferAdaptorIndex);
-        }
+        TransferHandler transferAdaptor = switch (transferAdaptorIndex) {
+            case DATA -> new ClientDataTransferHandler(this.serverPublicKey, InertiaAntiCheatConstants.SEND_MOD);
+            case NAME -> new ClientNameTransferHandler(this.serverPublicKey, InertiaAntiCheatConstants.SEND_MOD);
+        };
 
         ClientLoginConnectionEvents.DISCONNECT.register(transferAdaptor::onDisconnect);
 
         InertiaAntiCheat.debugInfo("Registered new handler for channel");
+        InertiaAntiCheat.debugLine();
 
         return CompletableFuture.completedFuture(PacketByteBufs.empty());
     }

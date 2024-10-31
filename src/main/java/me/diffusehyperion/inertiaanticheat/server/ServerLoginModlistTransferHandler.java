@@ -2,11 +2,16 @@ package me.diffusehyperion.inertiaanticheat.server;
 
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import me.diffusehyperion.inertiaanticheat.interfaces.ServerLoginNetworkHandlerInterface;
-import me.diffusehyperion.inertiaanticheat.networking.adaptors.transfer.TransferAdaptors;
-import me.diffusehyperion.inertiaanticheat.networking.adaptors.transfer.server.ServerDataTransferAdaptor;
-import me.diffusehyperion.inertiaanticheat.networking.adaptors.transfer.server.ServerModlistTransferAdaptor;
-import me.diffusehyperion.inertiaanticheat.networking.adaptors.validator.IndividualValidatorAdaptor;
-import me.diffusehyperion.inertiaanticheat.networking.adaptors.validator.ServerModlistValidatorAdaptor;
+import me.diffusehyperion.inertiaanticheat.networking.method.CheckingTypes;
+import me.diffusehyperion.inertiaanticheat.networking.method.ValidatorHandler;
+import me.diffusehyperion.inertiaanticheat.networking.method.data.ServerDataGroupValidatorHandler;
+import me.diffusehyperion.inertiaanticheat.networking.method.data.ServerDataIndividualValidatorHandler;
+import me.diffusehyperion.inertiaanticheat.networking.method.data.ServerDataReceiverHandler;
+import me.diffusehyperion.inertiaanticheat.networking.method.data.handlers.DataValidationHandler;
+import me.diffusehyperion.inertiaanticheat.networking.method.name.ServerNameGroupValidatorHandler;
+import me.diffusehyperion.inertiaanticheat.networking.method.name.ServerNameIndividualValidatorHandler;
+import me.diffusehyperion.inertiaanticheat.networking.method.name.ServerNameReceiverHandler;
+import me.diffusehyperion.inertiaanticheat.networking.method.name.handlers.NameValidationHandler;
 import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.networking.v1.*;
@@ -82,7 +87,7 @@ public class ServerLoginModlistTransferHandler {
 
     /**
      * Retrieves and stores the client's public key
-     * Afterward, inform client on which adaptor to use
+     * Afterward, inform client on which transfer method to use
      */
     private void
     setAdaptor(MinecraftServer server, ServerLoginNetworkHandler handler,
@@ -95,12 +100,19 @@ public class ServerLoginModlistTransferHandler {
 
             PacketByteBuf response = PacketByteBufs.create();
 
-            // TODO: switch from hardcode to config
-            response.writeInt(TransferAdaptors.DATA.ordinal());
+            switch (InertiaAntiCheatServer.serverConfig.getString("mods.type")) {
+                case "data":
+                    response.writeInt(CheckingTypes.DATA.ordinal());
+                    break;
+                case "name":
+                    response.writeInt(CheckingTypes.NAME.ordinal());
+                    break;
+                default:
+                    throw new RuntimeException("Invalid or no given checking method type given in server config!");
+            }
 
             ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.SET_ADAPTOR, this::beginModTransfer);
             sender.sendPacket(InertiaAntiCheatConstants.SET_ADAPTOR, response);
-            InertiaAntiCheat.debugLine();
         }));
     }
 
@@ -114,30 +126,55 @@ public class ServerLoginModlistTransferHandler {
         LoginPacketSender sender = (LoginPacketSender) packetSender;
         ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) handler;
 
-        synchronizer.waitFor(server.submit(() -> {
+        Runnable failureTask = () -> {
+            InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " failed modlist check");
+            handler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.deniedKickMessage")));
+        };
+        Runnable successTask = () -> {
+            InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " passed modlist check");
+        };
+        Runnable finishTask = () -> {
+            InertiaAntiCheat.debugInfo("Finishing transfer, checking mods now");
+            ServerLoginNetworking.unregisterReceiver(handler, InertiaAntiCheatConstants.SEND_MOD);
+        };
 
-            ServerModlistValidatorAdaptor validatorHandler = new IndividualValidatorAdaptor(
-                    () -> {
-                        InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " failed modlist check");
-                        handler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.deniedKickMessage")));
-                    },
-                    () -> {
-                        InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " passed modlist check");
-                    },
-                    () -> {
-                        InertiaAntiCheat.debugInfo("Finishing transfer, checking mods now");
-                        ServerLoginNetworking.unregisterReceiver(handler, InertiaAntiCheatConstants.SEND_MOD);
-                    }
-            );
+        ValidatorHandler validatorAdaptor;
 
-            // TODO: switch from hardcode to config
-            ServerModlistTransferAdaptor transferHandler = new ServerDataTransferAdaptor(this.serverKeyPair, InertiaAntiCheatConstants.SEND_MOD, validatorHandler);
+        switch (InertiaAntiCheatServer.serverConfig.getString("mods.type")) {
+            case "data": {
+                validatorAdaptor = switch (InertiaAntiCheatServer.serverConfig.getString("mods.method")) {
+                    case "individual" ->
+                            new ServerDataIndividualValidatorHandler(failureTask, successTask, finishTask);
+                    case "group" ->
+                            new ServerDataGroupValidatorHandler(failureTask, successTask, finishTask);
+                    default ->
+                            throw new RuntimeException("Invalid or no given checking method type given in server config!");
+                };
 
-            ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.SEND_MOD, transferHandler::transferMod);
-            sender.sendPacket(InertiaAntiCheatConstants.SEND_MOD, PacketByteBufs.empty());
+                new ServerDataReceiverHandler(this.serverKeyPair, InertiaAntiCheatConstants.SEND_MOD, handler, (DataValidationHandler) validatorAdaptor);
+                sender.sendPacket(InertiaAntiCheatConstants.SEND_MOD, PacketByteBufs.empty());
+                break;
+            }
+            case "name": {
+                validatorAdaptor = switch (InertiaAntiCheatServer.serverConfig.getString("mods.method")) {
+                    case "individual" ->
+                            new ServerNameIndividualValidatorHandler(failureTask, successTask, finishTask);
+                    case "group" ->
+                            new ServerNameGroupValidatorHandler(failureTask, successTask, finishTask);
+                    default ->
+                            throw new RuntimeException("Invalid or no given checking method type given in server config!");
+                };
 
-            synchronizer.waitFor(validatorHandler.future);
-        }));
+                new ServerNameReceiverHandler(this.serverKeyPair, InertiaAntiCheatConstants.SEND_MOD, handler, (NameValidationHandler) validatorAdaptor);
+                sender.sendPacket(InertiaAntiCheatConstants.SEND_MOD, PacketByteBufs.empty());
+                break;
+            }
+            default: {
+                throw new RuntimeException("Invalid or no given checking method type given in server config!");
+            }
+        }
+
+        synchronizer.waitFor(validatorAdaptor.future);
         InertiaAntiCheat.debugLine();
     }
 }

@@ -1,27 +1,28 @@
-package me.diffusehyperion.inertiaanticheat.networking.adaptors.validator;
+package me.diffusehyperion.inertiaanticheat.networking.method.data;
 
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
+import me.diffusehyperion.inertiaanticheat.networking.method.data.handlers.DataValidationHandler;
 import me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer;
 
 import java.util.List;
 
-public class IndividualValidatorAdaptor extends ServerModlistValidatorAdaptor{
+public class ServerDataIndividualValidatorHandler extends DataValidationHandler {
 
-    public IndividualValidatorAdaptor(Runnable failureTask, Runnable successTask, Runnable finishTask) {
+    public ServerDataIndividualValidatorHandler(Runnable failureTask, Runnable successTask, Runnable finishTask) {
         super(failureTask, successTask, finishTask);
     }
 
     @Override
-    public boolean validateModlist() {
+    public boolean validateMods(List<byte[]> modlist) {
         InertiaAntiCheat.debugLine2();
         InertiaAntiCheat.debugInfo("Checking modlist now, using individual method");
-        InertiaAntiCheat.debugInfo("Mod list size: " + this.collectedMods.size());
+        InertiaAntiCheat.debugInfo("Mod list size: " + modlist.size());
         List<String> blacklistedMods = InertiaAntiCheatServer.serverConfig.getList("mods.individual.blacklist");
         InertiaAntiCheat.debugInfo("Blacklisted mods: " + String.join(", ", blacklistedMods));
         List<String> whitelistedMods = InertiaAntiCheatServer.serverConfig.getList("mods.individual.whitelist");
         InertiaAntiCheat.debugInfo("Whitelisted mods: " + String.join(", ", whitelistedMods));
         InertiaAntiCheat.debugLine();
-        for (byte[] mod : this.collectedMods) {
+        for (byte[] mod : modlist) {
             String fileHash = InertiaAntiCheat.getHash(mod, InertiaAntiCheatServer.hashAlgorithm);
             InertiaAntiCheat.debugInfo("File hash: " + fileHash + "; with algorithm " + InertiaAntiCheatServer.hashAlgorithm);
 

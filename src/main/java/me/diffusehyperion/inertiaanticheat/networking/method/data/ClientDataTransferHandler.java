@@ -1,8 +1,10 @@
-package me.diffusehyperion.inertiaanticheat.networking.adaptors.transfer.client;
+package me.diffusehyperion.inertiaanticheat.networking.method.data;
 
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient;
+import me.diffusehyperion.inertiaanticheat.networking.method.TransferHandler;
 import me.diffusehyperion.inertiaanticheat.util.HashAlgorithm;
+import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
@@ -11,67 +13,73 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.PacketCallbacks;
 import net.minecraft.util.Identifier;
 
+import javax.crypto.SecretKey;
 import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class ClientDataTransferAdaptor extends ClientModlistTransferAdaptor{
+public class ClientDataTransferHandler extends TransferHandler {
     private final int maxIndex;
     private int currentIndex;
     private byte[] currentFile;
 
-    public ClientDataTransferAdaptor(PublicKey publicKey, Identifier modTransferID) {
+    public ClientDataTransferHandler(PublicKey publicKey, Identifier modTransferID) {
         super(publicKey, modTransferID);
+
         this.maxIndex = InertiaAntiCheatClient.allModData.size();
         this.currentIndex = 0;
         this.currentFile = InertiaAntiCheatClient.allModData.get(currentIndex);
     }
 
     @Override
-    public CompletableFuture<PacketByteBuf> transferMod(MinecraftClient client, ClientLoginNetworkHandler handler, PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
-        InertiaAntiCheat.debugInfo("Sending mod " + this.currentIndex);
-        if (this.currentIndex + 1 >= this.maxIndex && Objects.isNull(this.currentFile)) {
-            throw new RuntimeException("Not expected to send anymore mods");
+    public CompletableFuture<PacketByteBuf> transferMod(MinecraftClient ignored1, ClientLoginNetworkHandler ignored2, PacketByteBuf ignored3, Consumer<PacketCallbacks> ignored4) {
+        if (this.currentIndex + 1 >= this.maxIndex && Objects.isNull(currentFile)) {
+            // All files have been sent, returning null to signify goodbye
+            InertiaAntiCheat.debugInfo("Sending final packet");
+            InertiaAntiCheat.debugLine();
+
+            ClientLoginNetworking.unregisterGlobalReceiver(InertiaAntiCheatConstants.SEND_MOD);
+            return CompletableFuture.completedFuture(null);
+        } else if (Objects.isNull(currentFile)) {
+            loadNextFile();
         }
+
+        InertiaAntiCheat.debugInfo("Sending mod " + this.currentIndex);
+
         PacketByteBuf responseBuf = PacketByteBufs.create();
 
         int MAX_SIZE = 1000000;
+        SecretKey secretKey = InertiaAntiCheat.createAESKey();
+        byte[] chunk;
+
         if (this.currentFile.length > MAX_SIZE) {
             InertiaAntiCheat.debugInfo("Sending part of next file");
 
-            byte[] chunk = Arrays.copyOf(this.currentFile, MAX_SIZE);
+            chunk = Arrays.copyOf(this.currentFile, MAX_SIZE);
             InertiaAntiCheat.debugInfo("Hash of chunk: " + InertiaAntiCheat.getHash(chunk, HashAlgorithm.MD5));
 
-            byte[] encryptedAESFileData = InertiaAntiCheat.encryptAESBytes(chunk, this.secretKey);
-            byte[] encryptedRSASecretKey = InertiaAntiCheat.encryptRSABytes(this.secretKey.getEncoded(), this.publicKey);
-            responseBuf.writeBoolean(false);
-            responseBuf.writeInt(encryptedRSASecretKey.length);
-            responseBuf.writeBytes(encryptedRSASecretKey);
-            responseBuf.writeBytes(encryptedAESFileData);
-
             this.currentFile = Arrays.copyOfRange(this.currentFile, MAX_SIZE, this.currentFile.length);
+            responseBuf.writeBoolean(false);
         } else {
             InertiaAntiCheat.debugInfo("Sending entirety of next file");
 
+            chunk = this.currentFile;
             InertiaAntiCheat.debugInfo("Hash of chunk: " + InertiaAntiCheat.getHash(this.currentFile, HashAlgorithm.MD5));
 
-            byte[] encryptedAESFileData = InertiaAntiCheat.encryptAESBytes(this.currentFile, this.secretKey);
-            byte[] encryptedRSASecretKey = InertiaAntiCheat.encryptRSABytes(this.secretKey.getEncoded(), this.publicKey);
-            responseBuf.writeBoolean(true);
-            responseBuf.writeInt(encryptedRSASecretKey.length);
-            responseBuf.writeBytes(encryptedRSASecretKey);
-            responseBuf.writeBytes(encryptedAESFileData);
-
             this.currentFile = null;
-            if (this.currentIndex + 1 < this.maxIndex) {
-                loadNextFile();
-            } else {
-                ClientLoginNetworking.unregisterGlobalReceiver(this.modTransferID);
-            }
+            responseBuf.writeBoolean(true);
         }
+
+        byte[] encryptedAESFileData = InertiaAntiCheat.encryptAESBytes(chunk, secretKey);
+        byte[] encryptedRSASecretKey = InertiaAntiCheat.encryptRSABytes(secretKey.getEncoded(), this.publicKey);
+        responseBuf.writeInt(encryptedRSASecretKey.length);
+        responseBuf.writeBytes(encryptedRSASecretKey);
+        responseBuf.writeBytes(encryptedAESFileData);
+
         InertiaAntiCheat.debugLine();
+
         return CompletableFuture.completedFuture(responseBuf);
     }
 

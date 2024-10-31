@@ -1,7 +1,10 @@
-package me.diffusehyperion.inertiaanticheat.networking.adaptors.transfer.client;
+package me.diffusehyperion.inertiaanticheat.networking.method.name;
 
 import me.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient;
+import me.diffusehyperion.inertiaanticheat.networking.method.TransferHandler;
+import me.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
+import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
@@ -9,17 +12,19 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.PacketCallbacks;
 import net.minecraft.util.Identifier;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class ClientNameTransferAdaptor extends ClientModlistTransferAdaptor {
+public class ClientNameTransferHandler extends TransferHandler {
     private final int maxIndex;
     private int currentIndex;
     private String currentName;
 
-    public ClientNameTransferAdaptor(PublicKey publicKey, Identifier modTransferID) {
+    public ClientNameTransferHandler(PublicKey publicKey, Identifier modTransferID) {
         super(publicKey, modTransferID);
         this.maxIndex = InertiaAntiCheatClient.allModNames.size();
         this.currentIndex = 0;
@@ -31,11 +36,22 @@ public class ClientNameTransferAdaptor extends ClientModlistTransferAdaptor {
         InertiaAntiCheat.debugInfo("Sending mod " + this.currentIndex);
 
         if (this.currentIndex + 1 >= this.maxIndex && Objects.isNull(this.currentName)) {
-            throw new RuntimeException("Not expected to send anymore mods");
+            // All files have been sent, returning null to signify goodbye
+            InertiaAntiCheat.debugInfo("Sending final packet");
+            InertiaAntiCheat.debugLine();
+
+            ClientLoginNetworking.unregisterGlobalReceiver(InertiaAntiCheatConstants.SEND_MOD);
+            return CompletableFuture.completedFuture(null);
         }
 
+        SecretKey secretKey = InertiaAntiCheat.createAESKey();
         PacketByteBuf responseBuf = PacketByteBufs.create();
-        responseBuf.writeString(this.currentName);
+
+        byte[] encryptedAESNameData = InertiaAntiCheat.encryptAESBytes(this.currentName.getBytes(StandardCharsets.UTF_8), secretKey);
+        byte[] encryptedRSASecretKey = InertiaAntiCheat.encryptRSABytes(secretKey.getEncoded(), this.publicKey);
+        responseBuf.writeInt(encryptedRSASecretKey.length);
+        responseBuf.writeBytes(encryptedRSASecretKey);
+        responseBuf.writeBytes(encryptedAESNameData);
 
         this.currentIndex++;
         this.currentName = InertiaAntiCheatClient.allModNames.get(currentIndex);

@@ -8,6 +8,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.PacketByteBuf;
 
 import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -204,5 +205,16 @@ public class InertiaAntiCheat implements ModInitializer {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Something went wrong while generating new key pairs!", e);
         }
+    }
+
+    public static byte[] decryptAESRSAEncodedBuf(PacketByteBuf buf, PrivateKey privateKey) {
+        int encryptedSecretKeyLength = buf.readInt();
+        byte[] encryptedSecretKey = new byte[encryptedSecretKeyLength];
+        buf.readBytes(encryptedSecretKey);
+        SecretKey secretKey = new SecretKeySpec(InertiaAntiCheat.decryptRSABytes(encryptedSecretKey, privateKey), "AES");
+
+        byte[] encryptedData = new byte[buf.readableBytes()];
+        buf.readBytes(encryptedData);
+        return InertiaAntiCheat.decryptAESBytes(encryptedData, secretKey);
     }
 }

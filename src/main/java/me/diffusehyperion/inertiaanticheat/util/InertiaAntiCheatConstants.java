@@ -12,7 +12,6 @@ public class InertiaAntiCheatConstants {
     public static final Identifier SET_ADAPTOR = Identifier.of("inertiaanticheat", "set_adapter");
     public static final Identifier SEND_MOD = Identifier.of("inertiaanticheat", "send_mod");
 
-
     public static final Logger MODLOGGER = LoggerFactory.getLogger("InertiaAntiCheat");
     public static final String MODID = "inertiaanticheat";
 
