@@ -22,67 +22,69 @@ import net.minecraft.text.Text;
 
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.concurrent.CompletableFuture;
 
 public class ServerLoginModlistTransferHandler {
     private KeyPair serverKeyPair;
     private PublicKey clientKey;
+
+    private final CompletableFuture<Void> loginBlocker = new CompletableFuture<>();
 
     public static void init() {
         ServerLoginConnectionEvents.QUERY_START.register(ServerLoginModlistTransferHandler::initiateConnection);
     }
 
     /**
-     * Does preliminary checks to see if the client has permissions to bypass the mod
+     * Creates an instance of this class to have an instance of loginBlocker to delay logins
+     * Afterward, this does preliminary checks to see if the client has permissions to bypass the mod
      * If not, sends a packet to check if the client understands custom packets from this mod
      */
     private static void initiateConnection(ServerLoginNetworkHandler handler, MinecraftServer minecraftServer, LoginPacketSender sender, ServerLoginNetworking.LoginSynchronizer synchronizer) {
-        synchronizer.waitFor(minecraftServer.submit(() -> {
-            ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) handler;
+        ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) handler;
 
+        ServerLoginModlistTransferHandler transferHandler = new ServerLoginModlistTransferHandler();
+        synchronizer.waitFor(transferHandler.loginBlocker);
+
+        InertiaAntiCheat.debugLine();
+        InertiaAntiCheat.debugInfo("Checking if " + upgradedHandler.inertiaAntiCheat$getGameProfile().getName() + " has bypass permissions");
+        boolean allowed = Permissions.check(upgradedHandler.inertiaAntiCheat$getGameProfile(), "inertiaanticheat.bypass").join();
+        if (allowed) {
+            InertiaAntiCheat.debugInfo(upgradedHandler.inertiaAntiCheat$getGameProfile().getName() + " is allowed to bypass");
             InertiaAntiCheat.debugLine();
-            InertiaAntiCheat.debugInfo("Checking if " + upgradedHandler.inertiaAntiCheat$getGameProfile().getName() + " has bypass permissions");
-            boolean allowed = Permissions.check(upgradedHandler.inertiaAntiCheat$getGameProfile(), "inertiaanticheat.bypass").join();
-            if (allowed) {
-                InertiaAntiCheat.debugInfo(upgradedHandler.inertiaAntiCheat$getGameProfile().getName() + " is allowed to bypass");
-                InertiaAntiCheat.debugLine();
-                return;
-            }
-            InertiaAntiCheat.debugInfo("Not allowed to bypass, checking if address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " responds to mod messages");
+            return;
+        }
+        InertiaAntiCheat.debugInfo("Not allowed to bypass, checking if address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " responds to mod messages");
 
-            ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.CHECK_CONNECTION, ServerLoginModlistTransferHandler::checkConnection);
-            sender.sendPacket(InertiaAntiCheatConstants.CHECK_CONNECTION, PacketByteBufs.empty());
-        }));
+        ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.CHECK_CONNECTION, transferHandler::checkConnection);
+        sender.sendPacket(InertiaAntiCheatConstants.CHECK_CONNECTION, PacketByteBufs.empty());
     }
 
     /**
      * Confirms whether the client understood the custom packet (meaning he has inertia installed too)
-     * Afterward, this creates an instance of this class and starts the key exchanging process
+     * Afterward, this starts the key exchanging process
      */
-    private static void
+    private void
     checkConnection(MinecraftServer minecraftServer, ServerLoginNetworkHandler handler,
                     boolean b, PacketByteBuf buf,
                     ServerLoginNetworking.LoginSynchronizer synchronizer, PacketSender packetSender) {
-        synchronizer.waitFor(minecraftServer.submit(() -> {
-            LoginPacketSender sender = (LoginPacketSender) packetSender;
-            ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) handler;
+        LoginPacketSender sender = (LoginPacketSender) packetSender;
+        ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) handler;
 
-            if (!b) {
-                InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " does not respond to mod messages, kicking now");
-                handler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("validation.vanillaKickMessage")));
-                return;
-            }
-            InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " responds to mod messages, creating handler");
+        if (!b) {
+            InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " does not respond to mod messages, kicking now");
+            handler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("validation.vanillaKickMessage")));
+            return;
+        }
+        InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " responds to mod messages, creating handler");
 
-            ServerLoginModlistTransferHandler transferHandler = new ServerLoginModlistTransferHandler();
 
-            PacketByteBuf response = PacketByteBufs.create();
-            KeyPair keyPair = InertiaAntiCheat.createRSAPair();
-            transferHandler.serverKeyPair = keyPair;
-            response.writeBytes(keyPair.getPublic().getEncoded());
+        PacketByteBuf response = PacketByteBufs.create();
+        KeyPair keyPair = InertiaAntiCheat.createRSAPair();
+        this.serverKeyPair = keyPair;
+        response.writeBytes(keyPair.getPublic().getEncoded());
 
-            ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.INITIATE_E2EE, transferHandler::setAdaptor);
-            sender.sendPacket(InertiaAntiCheatConstants.INITIATE_E2EE, response);
-        }));
+        ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.INITIATE_E2EE, this::setAdaptor);
+        sender.sendPacket(InertiaAntiCheatConstants.INITIATE_E2EE, response);
     }
 
     /**
@@ -93,27 +95,25 @@ public class ServerLoginModlistTransferHandler {
     setAdaptor(MinecraftServer server, ServerLoginNetworkHandler handler,
                boolean b, PacketByteBuf buf,
                ServerLoginNetworking.LoginSynchronizer synchronizer, PacketSender packetSender) {
-        synchronizer.waitFor(server.submit(() -> {
-            LoginPacketSender sender = (LoginPacketSender) packetSender;
+        LoginPacketSender sender = (LoginPacketSender) packetSender;
 
-            this.clientKey = InertiaAntiCheat.retrievePublicKey(buf);
+        this.clientKey = InertiaAntiCheat.retrievePublicKey(buf);
 
-            PacketByteBuf response = PacketByteBufs.create();
+        PacketByteBuf response = PacketByteBufs.create();
 
-            switch (InertiaAntiCheatServer.serverConfig.getString("transfer.method")) {
-                case "data":
-                    response.writeInt(CheckingTypes.DATA.ordinal());
-                    break;
-                case "name":
-                    response.writeInt(CheckingTypes.NAME.ordinal());
-                    break;
-                default:
-                    throw new RuntimeException("Invalid or no given checking method type given in server config!");
-            }
+        switch (InertiaAntiCheatServer.serverConfig.getString("transfer.type")) {
+            case "data":
+                response.writeInt(CheckingTypes.DATA.ordinal());
+                break;
+            case "name":
+                response.writeInt(CheckingTypes.NAME.ordinal());
+                break;
+            default:
+                throw new RuntimeException("Invalid or no given checking method type given in server config!");
+        }
 
-            ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.SET_ADAPTOR, this::beginModTransfer);
-            sender.sendPacket(InertiaAntiCheatConstants.SET_ADAPTOR, response);
-        }));
+        ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.SET_ADAPTOR, this::beginModTransfer);
+        sender.sendPacket(InertiaAntiCheatConstants.SET_ADAPTOR, response);
     }
 
     /**
@@ -140,9 +140,9 @@ public class ServerLoginModlistTransferHandler {
 
         ValidatorHandler validatorAdaptor;
 
-        switch (InertiaAntiCheatServer.serverConfig.getString("transfer.method")) {
+        switch (InertiaAntiCheatServer.serverConfig.getString("transfer.type")) {
             case "data": {
-                validatorAdaptor = switch (InertiaAntiCheatServer.serverConfig.getString("validation.method")) {
+                validatorAdaptor = switch (InertiaAntiCheatServer.serverConfig.getString("validation.type")) {
                     case "individual" ->
                             new ServerDataIndividualValidatorHandler(failureTask, successTask, finishTask);
                     case "group" ->
@@ -156,7 +156,7 @@ public class ServerLoginModlistTransferHandler {
                 break;
             }
             case "name": {
-                validatorAdaptor = switch (InertiaAntiCheatServer.serverConfig.getString("validation.method")) {
+                validatorAdaptor = switch (InertiaAntiCheatServer.serverConfig.getString("validation.type")) {
                     case "individual" ->
                             new ServerNameIndividualValidatorHandler(failureTask, successTask, finishTask);
                     case "group" ->
@@ -174,7 +174,7 @@ public class ServerLoginModlistTransferHandler {
             }
         }
 
-        synchronizer.waitFor(validatorAdaptor.future);
+        validatorAdaptor.future.whenComplete((ignored1, ignored2) -> this.loginBlocker.complete(null));
         InertiaAntiCheat.debugLine();
     }
 }
