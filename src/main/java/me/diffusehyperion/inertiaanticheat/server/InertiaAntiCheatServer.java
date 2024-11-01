@@ -17,7 +17,7 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
     public void onInitializeServer() {
         InertiaAntiCheatServer.serverConfig = InertiaAntiCheat.initializeConfig("/config/server/InertiaAntiCheat.toml", InertiaAntiCheatConstants.CURRENT_SERVER_CONFIG_VERSION);
 
-        switch (InertiaAntiCheatServer.serverConfig.getString("validation.type").toLowerCase()) {
+        switch (InertiaAntiCheatServer.serverConfig.getString("validation.method").toLowerCase()) {
             case "individual" -> InertiaAntiCheatServer.modlistCheckMethod = ModlistCheckMethod.INDIVIDUAL;
             case "group" -> InertiaAntiCheatServer.modlistCheckMethod = ModlistCheckMethod.GROUP;
             default -> {

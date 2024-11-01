@@ -101,7 +101,7 @@ public class ServerLoginModlistTransferHandler {
 
         PacketByteBuf response = PacketByteBufs.create();
 
-        switch (InertiaAntiCheatServer.serverConfig.getString("transfer.type")) {
+        switch (InertiaAntiCheatServer.serverConfig.getString("transfer.method")) {
             case "data":
                 response.writeInt(CheckingTypes.DATA.ordinal());
                 break;
@@ -140,9 +140,9 @@ public class ServerLoginModlistTransferHandler {
 
         ValidatorHandler validatorAdaptor;
 
-        switch (InertiaAntiCheatServer.serverConfig.getString("transfer.type")) {
+        switch (InertiaAntiCheatServer.serverConfig.getString("transfer.method")) {
             case "data": {
-                validatorAdaptor = switch (InertiaAntiCheatServer.serverConfig.getString("validation.type")) {
+                validatorAdaptor = switch (InertiaAntiCheatServer.serverConfig.getString("validation.method")) {
                     case "individual" ->
                             new ServerDataIndividualValidatorHandler(failureTask, successTask, finishTask);
                     case "group" ->
@@ -156,7 +156,7 @@ public class ServerLoginModlistTransferHandler {
                 break;
             }
             case "name": {
-                validatorAdaptor = switch (InertiaAntiCheatServer.serverConfig.getString("validation.type")) {
+                validatorAdaptor = switch (InertiaAntiCheatServer.serverConfig.getString("validation.method")) {
                     case "individual" ->
                             new ServerNameIndividualValidatorHandler(failureTask, successTask, finishTask);
                     case "group" ->

@@ -34,9 +34,9 @@ public class ServerNameIndividualValidatorHandler extends NameValidationHandler 
             }
             if (whitelistedMods.contains(mod)) {
                 InertiaAntiCheat.debugInfo("Found in whitelist");
+                InertiaAntiCheat.debugLine();
                 whitelistedMods.remove(mod);
             }
-            InertiaAntiCheat.debugLine();
         }
         if (!whitelistedMods.isEmpty()) {
             InertiaAntiCheat.debugInfo("Whitelist not fulfilled");
