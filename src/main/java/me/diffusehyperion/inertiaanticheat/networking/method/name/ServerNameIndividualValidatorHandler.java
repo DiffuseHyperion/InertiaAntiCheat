@@ -16,10 +16,15 @@ public class ServerNameIndividualValidatorHandler extends NameValidationHandler 
         InertiaAntiCheat.debugLine2();
         InertiaAntiCheat.debugInfo("Checking modlist now, using individual method");
         InertiaAntiCheat.debugInfo("Mod list size: " + modlist.size());
+
         List<String> blacklistedMods = InertiaAntiCheatServer.serverConfig.getList("validation.individual.blacklist");
+        blacklistedMods.replaceAll((mod) -> (mod.endsWith(".jar") ? mod : mod + ".jar"));
         InertiaAntiCheat.debugInfo("Blacklisted mods: " + String.join(", ", blacklistedMods));
+
         List<String> whitelistedMods = InertiaAntiCheatServer.serverConfig.getList("validation.individual.whitelist");
+        whitelistedMods.replaceAll((mod) -> (mod.endsWith(".jar") ? mod : mod + ".jar"));
         InertiaAntiCheat.debugInfo("Whitelisted mods: " + String.join(", ", whitelistedMods));
+
         InertiaAntiCheat.debugLine();
         for (String mod : modlist) {
             if (blacklistedMods.contains(mod)) {

@@ -18,8 +18,11 @@ public class ServerNameGroupValidatorHandler extends NameValidationHandler {
     protected boolean validateMods(List<String> modlist) {
         InertiaAntiCheat.debugLine2();
         InertiaAntiCheat.debugInfo("Checking modlist now, using group method");
+
         List<String> softWhitelistedMods = InertiaAntiCheatServer.serverConfig.getList("validation.group.softWhitelist");
+        softWhitelistedMods.replaceAll((mod) -> (mod.endsWith(".jar") ? mod : mod + ".jar"));
         InertiaAntiCheat.debugInfo("Soft whitelisted mods: " + String.join(", ", softWhitelistedMods));
+
         List<String> hashes = new ArrayList<>();
         List<String> copySoftWhitelistedMods = new ArrayList<>(softWhitelistedMods);
         for (String mod : modlist) {

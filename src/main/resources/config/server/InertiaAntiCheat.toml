@@ -29,8 +29,14 @@ deniedKickMessage = "You were kicked by the anti-cheat!\nThis is due to having i
 [validation.individual]
 # Immediately kick players who have these mods in their modlist.
 # The mod checks (and kicks) for blacklisted mods first.
+# If you are using the "data" transfer method, refer to https://iac.diffusehyperion.com
+# If you are using the "name" transfer method, add the names of each file you want to blacklist.
+# The file extension ".jar" will be automatically added if it is not already included.
 blacklist = []
 # Immediately kick players who do not have these mods in their modlist.
+# If you are using the "data" transfer method, refer to https://iac.diffusehyperion.com
+# If you are using the "name" transfer method, add the names of each file you want to whitelist.
+# The file extension ".jar" will be automatically added if it is not already included.
 whitelist = []
 
 [validation.group]
@@ -39,6 +45,9 @@ whitelist = []
 hash = []
 # Allow certain mods to be used by players, in addition to your modpack.
 # This allows players to make use of optional client mods if you allow it.
+# If you are using the "data" transfer method, refer to https://iac.diffusehyperion.com
+# If you are using the "name" transfer method, add the names of each file you want to soft-whitelist.
+# The file extension ".jar" will be automatically added if it is not already included.
 softWhitelist = []
 
 [motd]
