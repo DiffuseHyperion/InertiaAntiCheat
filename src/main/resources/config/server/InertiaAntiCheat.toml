@@ -1,7 +1,16 @@
 # IMPORTANT!
 # Please check https://github.com/DiffuseHyperion/InertiaAntiCheat/wiki/Modern-(Version-1.0.0-and-above) on how to configure this mod.
 # You will likely need https://iac.diffusehyperion.com/ in the process of configuring this mod.
-[mods]
+
+[transfer]
+# The method clients should use in transfering their modlist to the server.
+# "data" will have clients send the entirety of each file in their modlist. This is the most secure.
+# "name" will have clients send the name of each file in their modlist. This is significantly faster.
+# Use "name" if you are using large modpacks to make login times reasonable.
+# Accepted types: "data", "name"
+method = "data"
+
+[validation]
 # The method to check client's mod list.
 # If you prefer blacklisting/whitelisting certain mods from being used, use "individual".
 # If you prefer ensuring client's have a modpack installed, use "group".
@@ -17,14 +26,14 @@ vanillaKickMessage = "You were kicked for not sending a response to the anti-che
 # The kick message to show to clients when they fail the modlist check.
 deniedKickMessage = "You were kicked by the anti-cheat!\nThis is due to having illegal mods.\nPlease contact your server administrator for more details."
 
-[mods.individual]
+[validation.individual]
 # Immediately kick players who have these mods in their modlist.
 # The mod checks (and kicks) for blacklisted mods first.
 blacklist = []
 # Immediately kick players who do not have these mods in their modlist.
 whitelist = []
 
-[mods.group]
+[validation.group]
 # The hash for the server to check against.
 # You can add multiple hashes into the list, and the server will check against all of them.
 hash = []

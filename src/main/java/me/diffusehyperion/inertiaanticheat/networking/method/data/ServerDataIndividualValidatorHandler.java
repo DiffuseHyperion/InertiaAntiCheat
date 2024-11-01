@@ -17,9 +17,9 @@ public class ServerDataIndividualValidatorHandler extends DataValidationHandler 
         InertiaAntiCheat.debugLine2();
         InertiaAntiCheat.debugInfo("Checking modlist now, using individual method");
         InertiaAntiCheat.debugInfo("Mod list size: " + modlist.size());
-        List<String> blacklistedMods = InertiaAntiCheatServer.serverConfig.getList("mods.individual.blacklist");
+        List<String> blacklistedMods = InertiaAntiCheatServer.serverConfig.getList("validation.individual.blacklist");
         InertiaAntiCheat.debugInfo("Blacklisted mods: " + String.join(", ", blacklistedMods));
-        List<String> whitelistedMods = InertiaAntiCheatServer.serverConfig.getList("mods.individual.whitelist");
+        List<String> whitelistedMods = InertiaAntiCheatServer.serverConfig.getList("validation.individual.whitelist");
         InertiaAntiCheat.debugInfo("Whitelisted mods: " + String.join(", ", whitelistedMods));
         InertiaAntiCheat.debugLine();
         for (byte[] mod : modlist) {

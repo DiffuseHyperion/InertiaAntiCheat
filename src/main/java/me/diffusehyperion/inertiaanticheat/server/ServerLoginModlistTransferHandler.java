@@ -68,7 +68,7 @@ public class ServerLoginModlistTransferHandler {
 
             if (!b) {
                 InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " does not respond to mod messages, kicking now");
-                handler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.vanillaKickMessage")));
+                handler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("validation.vanillaKickMessage")));
                 return;
             }
             InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " responds to mod messages, creating handler");
@@ -100,7 +100,7 @@ public class ServerLoginModlistTransferHandler {
 
             PacketByteBuf response = PacketByteBufs.create();
 
-            switch (InertiaAntiCheatServer.serverConfig.getString("mods.type")) {
+            switch (InertiaAntiCheatServer.serverConfig.getString("transfer.method")) {
                 case "data":
                     response.writeInt(CheckingTypes.DATA.ordinal());
                     break;
@@ -128,7 +128,7 @@ public class ServerLoginModlistTransferHandler {
 
         Runnable failureTask = () -> {
             InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " failed modlist check");
-            handler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("mods.deniedKickMessage")));
+            handler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("validation.deniedKickMessage")));
         };
         Runnable successTask = () -> {
             InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " passed modlist check");
@@ -140,9 +140,9 @@ public class ServerLoginModlistTransferHandler {
 
         ValidatorHandler validatorAdaptor;
 
-        switch (InertiaAntiCheatServer.serverConfig.getString("mods.type")) {
+        switch (InertiaAntiCheatServer.serverConfig.getString("transfer.method")) {
             case "data": {
-                validatorAdaptor = switch (InertiaAntiCheatServer.serverConfig.getString("mods.method")) {
+                validatorAdaptor = switch (InertiaAntiCheatServer.serverConfig.getString("validation.method")) {
                     case "individual" ->
                             new ServerDataIndividualValidatorHandler(failureTask, successTask, finishTask);
                     case "group" ->
@@ -156,7 +156,7 @@ public class ServerLoginModlistTransferHandler {
                 break;
             }
             case "name": {
-                validatorAdaptor = switch (InertiaAntiCheatServer.serverConfig.getString("mods.method")) {
+                validatorAdaptor = switch (InertiaAntiCheatServer.serverConfig.getString("validation.method")) {
                     case "individual" ->
                             new ServerNameIndividualValidatorHandler(failureTask, successTask, finishTask);
                     case "group" ->

@@ -17,22 +17,22 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
     public void onInitializeServer() {
         InertiaAntiCheatServer.serverConfig = InertiaAntiCheat.initializeConfig("/config/server/InertiaAntiCheat.toml", InertiaAntiCheatConstants.CURRENT_SERVER_CONFIG_VERSION);
 
-        switch (InertiaAntiCheatServer.serverConfig.getString("mods.method").toLowerCase()) {
+        switch (InertiaAntiCheatServer.serverConfig.getString("validation.type").toLowerCase()) {
             case "individual" -> InertiaAntiCheatServer.modlistCheckMethod = ModlistCheckMethod.INDIVIDUAL;
             case "group" -> InertiaAntiCheatServer.modlistCheckMethod = ModlistCheckMethod.GROUP;
             default -> {
-                InertiaAntiCheat.error("There was an error in your config! Invalid method specified under \"mods.method\"! ");
+                InertiaAntiCheat.error("There was an error in your config! Invalid method specified under \"validation.method\"! ");
                 InertiaAntiCheat.error("Defaulting to individual method for now.");
                 InertiaAntiCheatServer.modlistCheckMethod = ModlistCheckMethod.INDIVIDUAL;
             }
         }
 
-        switch (InertiaAntiCheatServer.serverConfig.getString("mods.algorithm").toLowerCase()) {
+        switch (InertiaAntiCheatServer.serverConfig.getString("validation.algorithm").toLowerCase()) {
             case "md5" -> InertiaAntiCheatServer.hashAlgorithm = HashAlgorithm.MD5;
             case "sha1" -> InertiaAntiCheatServer.hashAlgorithm = HashAlgorithm.SHA1;
             case "sha256" -> InertiaAntiCheatServer.hashAlgorithm = HashAlgorithm.SHA256;
             default -> {
-                InertiaAntiCheat.error("There was an error in your config! Invalid algorithm specified under \"mods.algorithm\"! ");
+                InertiaAntiCheat.error("There was an error in your config! Invalid algorithm specified under \"validation.algorithm\"! ");
                 InertiaAntiCheat.error("Defaulting to MD5 algorithm for now.");
                 InertiaAntiCheatServer.hashAlgorithm = HashAlgorithm.MD5;
             }
