@@ -83,12 +83,31 @@ public class ServerLoginModlistTransferHandler {
         this.serverKeyPair = keyPair;
         response.writeBytes(keyPair.getPublic().getEncoded());
 
-        ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.INITIATE_E2EE, this::setAdaptor);
+        ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.INITIATE_E2EE, this::requestResourcePacks);
         sender.sendPacket(InertiaAntiCheatConstants.INITIATE_E2EE, response);
     }
 
     /**
      * Retrieves and stores the client's public key
+     * Afterward, inform the client whether it needs to send its resource packs.
+     */
+    private void
+    requestResourcePacks(MinecraftServer minecraftServer, ServerLoginNetworkHandler handler,
+                         boolean b, PacketByteBuf buf,
+                         ServerLoginNetworking.LoginSynchronizer synchronizer, PacketSender packetSender) {
+        LoginPacketSender sender = (LoginPacketSender) packetSender;
+
+        this.clientKey = InertiaAntiCheat.retrievePublicKey(buf);
+
+        PacketByteBuf response = PacketByteBufs.create();
+        //TODO: add config option
+        response.writeBoolean(true);
+
+        ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.SEND_RESOURCE_PACKS, this::setAdaptor);
+        sender.sendPacket(InertiaAntiCheatConstants.SEND_RESOURCE_PACKS, response);
+    }
+
+    /**
      * Afterward, inform client on which transfer method to use
      */
     private void
