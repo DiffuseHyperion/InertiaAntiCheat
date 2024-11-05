@@ -70,6 +70,23 @@ public class ClientLoginModlistTransferHandler {
         this.clientKeyPair = InertiaAntiCheat.createRSAPair();
         responseBuf.writeBytes(this.clientKeyPair.getPublic().getEncoded());
 
+        ClientLoginNetworking.registerReceiver(InertiaAntiCheatConstants.SEND_RESOURCE_PACKS, this::sendResourcePacks);
+        return CompletableFuture.completedFuture(responseBuf);
+    }
+
+    private CompletableFuture<@Nullable PacketByteBuf>
+    sendResourcePacks(MinecraftClient client, ClientLoginNetworkHandler loginNetworkHandler,
+                PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
+
+        PacketByteBuf responseBuf ;
+
+        if (buf.readBoolean()) {
+            responseBuf = PacketByteBufs.create();
+
+        } else {
+            responseBuf = PacketByteBufs.empty();
+        }
+
         ClientLoginNetworking.registerReceiver(InertiaAntiCheatConstants.SET_ADAPTOR, this::createAdaptors);
         return CompletableFuture.completedFuture(responseBuf);
     }
