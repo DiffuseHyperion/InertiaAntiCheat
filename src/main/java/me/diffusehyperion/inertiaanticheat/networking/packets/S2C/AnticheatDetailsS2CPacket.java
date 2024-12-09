@@ -49,12 +49,12 @@ public record AnticheatDetailsS2CPacket(AnticheatDetails details) implements Pac
         }
     }
 
-    public void apply(UpgradedClientQueryPacketListener listener) {
-        listener.onReceiveAnticheatDetails(this);
+    @Override
+    public PacketType<? extends Packet<UpgradedClientQueryPacketListener>> getPacketType() {
+        return AnticheatPackets.DETAILS_RESPONSE;
     }
 
-    @Override
-    public PacketType<? extends Packet<UpgradedClientQueryPacketListener>> getPacketId() {
-        return AnticheatPackets.DETAILS_RESPONSE;
+    public void apply(UpgradedClientQueryPacketListener listener) {
+        listener.onReceiveAnticheatDetails(this);
     }
 }
