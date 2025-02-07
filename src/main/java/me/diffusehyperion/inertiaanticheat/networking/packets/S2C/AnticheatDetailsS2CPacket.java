@@ -50,7 +50,7 @@ public record AnticheatDetailsS2CPacket(AnticheatDetails details) implements Pac
     }
 
     @Override
-    public PacketType<? extends Packet<UpgradedClientQueryPacketListener>> getPacketType() {
+    public PacketType<? extends Packet<UpgradedClientQueryPacketListener>> getPacketId() {
         return AnticheatPackets.DETAILS_RESPONSE;
     }
 
