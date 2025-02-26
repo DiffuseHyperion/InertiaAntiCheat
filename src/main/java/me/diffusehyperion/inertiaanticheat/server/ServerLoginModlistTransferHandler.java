@@ -51,6 +51,7 @@ public class ServerLoginModlistTransferHandler {
         if (allowed) {
             InertiaAntiCheat.debugInfo(upgradedHandler.inertiaAntiCheat$getGameProfile().getName() + " is allowed to bypass");
             InertiaAntiCheat.debugLine();
+            transferHandler.loginBlocker.complete(null);
             return;
         }
         InertiaAntiCheat.debugInfo("Not allowed to bypass, checking if address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " responds to mod messages");
