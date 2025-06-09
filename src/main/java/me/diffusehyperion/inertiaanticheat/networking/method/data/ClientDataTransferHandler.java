@@ -14,28 +14,38 @@ import net.minecraft.network.PacketCallbacks;
 import net.minecraft.util.Identifier;
 
 import javax.crypto.SecretKey;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.PublicKey;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class ClientDataTransferHandler extends TransferHandler {
-    private final int maxIndex;
-    private int currentIndex;
+
+    private final Queue<Path> allModPathsInstance;
+    private final Deque<byte[]> loadedFiles;
+    private static final int MAX_LOADED_FILES = 10;
+    private boolean completed;
     private byte[] currentFile;
 
     public ClientDataTransferHandler(PublicKey publicKey, Identifier modTransferID) {
         super(publicKey, modTransferID);
 
-        this.maxIndex = InertiaAntiCheatClient.allModData.size();
-        this.currentIndex = 0;
-        this.currentFile = InertiaAntiCheatClient.allModData.get(currentIndex);
+        this.completed = false;
+        this.loadedFiles = new ArrayDeque<>(MAX_LOADED_FILES);
+        this.allModPathsInstance = new LinkedList<>(InertiaAntiCheatClient.allModPaths);
+
+        while (loadedFiles.size() < MAX_LOADED_FILES) {
+            loadNextFile();
+        }
+        stageNextFile();
     }
 
     @Override
     public CompletableFuture<PacketByteBuf> transferMod(MinecraftClient ignored1, ClientLoginNetworkHandler ignored2, PacketByteBuf ignored3, Consumer<PacketCallbacks> ignored4) {
-        if (this.currentIndex + 1 >= this.maxIndex && Objects.isNull(currentFile)) {
+        if (this.completed && this.loadedFiles.isEmpty() && Objects.isNull(currentFile)) {
             // All files have been sent, returning null to signify goodbye
             InertiaAntiCheat.debugInfo("Sending final packet");
             InertiaAntiCheat.debugLine();
@@ -44,9 +54,10 @@ public class ClientDataTransferHandler extends TransferHandler {
             return CompletableFuture.completedFuture(null);
         } else if (Objects.isNull(currentFile)) {
             loadNextFile();
+            stageNextFile();
         }
 
-        InertiaAntiCheat.debugInfo("Sending mod " + this.currentIndex);
+        // InertiaAntiCheat.debugInfo("Sending mod " + this.currentIndex);
 
         PacketByteBuf responseBuf = PacketByteBufs.create();
 
@@ -84,14 +95,25 @@ public class ClientDataTransferHandler extends TransferHandler {
     }
 
     private void loadNextFile() {
-        InertiaAntiCheat.debugLine2();
-        InertiaAntiCheat.debugInfo("Loading next file");
-
-        if (this.currentIndex + 1 >= this.maxIndex) {
-            throw new RuntimeException("No more mods to load");
+        Path path = this.allModPathsInstance.poll();
+        if (Objects.isNull(path)) {
+            this.completed = true;
+            return;
         }
-        this.currentIndex += 1;
-        this.currentFile = InertiaAntiCheatClient.allModData.get(currentIndex);
-        InertiaAntiCheat.debugLine2();
+        try {
+            this.loadedFiles.addLast(Files.readAllBytes(path));
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read mod file at path: " + path, e);
+        } catch (IllegalStateException e) {
+            throw new RuntimeException("Could not load mod file into deque as it was full", e);
+        }
+    }
+
+    private void stageNextFile() {
+        try {
+            this.currentFile = this.loadedFiles.remove();
+        } catch (NoSuchElementException e) {
+            throw new RuntimeException("Could not stage next mod file as deque was empty", e);
+        }
     }
 }
