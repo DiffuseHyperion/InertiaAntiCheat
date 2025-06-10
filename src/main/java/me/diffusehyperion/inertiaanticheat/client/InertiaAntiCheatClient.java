@@ -37,5 +37,6 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
             InertiaAntiCheatClient.allModNames.add(modFile.getName());
             InertiaAntiCheatClient.allModPaths.add(modFile.toPath());
         }
+        InertiaAntiCheat.debugInfo("Found " + InertiaAntiCheatClient.allModNames.size() + " mods");
     }
 }

@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 
 public class ClientDataTransferHandler extends TransferHandler {
 
-    private final Queue<Path> allModPathsInstance;
+    private int allModPathsIndex;
     private final Deque<byte[]> loadedFiles;
     private static final int MAX_LOADED_FILES = 10;
     private boolean completed;
@@ -33,11 +33,13 @@ public class ClientDataTransferHandler extends TransferHandler {
     public ClientDataTransferHandler(PublicKey publicKey, Identifier modTransferID) {
         super(publicKey, modTransferID);
 
+        InertiaAntiCheat.debugInfo("Creating data transfer handler");
+
         this.completed = false;
         this.loadedFiles = new ArrayDeque<>(MAX_LOADED_FILES);
-        this.allModPathsInstance = new LinkedList<>(InertiaAntiCheatClient.allModPaths);
+        this.allModPathsIndex = 0;
 
-        while (loadedFiles.size() < MAX_LOADED_FILES) {
+        while (loadedFiles.size() < MAX_LOADED_FILES && !this.completed) {
             loadNextFile();
         }
         stageNextFile();
@@ -95,12 +97,27 @@ public class ClientDataTransferHandler extends TransferHandler {
     }
 
     private void loadNextFile() {
-        Path path = this.allModPathsInstance.poll();
-        if (Objects.isNull(path)) {
+        InertiaAntiCheat.debugInfo("Attempting to load mod file at index " + this.allModPathsIndex + " into memory");
+
+        if (this.allModPathsIndex >= InertiaAntiCheatClient.allModPaths.size()) {
+            if (this.completed) {
+                throw new RuntimeException("Attempted to load next mod file after already declaring transfer as completed");
+            }
+
+            InertiaAntiCheat.debugInfo("All mod files have been loaded, no longer loading more files");
+
             this.completed = true;
             return;
         }
+
+        Path path = InertiaAntiCheatClient.allModPaths.get(this.allModPathsIndex);
+        this.allModPathsIndex++;
+
+        InertiaAntiCheat.debugInfo("Current number of loaded mod files: " + this.loadedFiles.size());
+
         try {
+            InertiaAntiCheat.debugInfo("Loading mod file: " + path);
+
             this.loadedFiles.addLast(Files.readAllBytes(path));
         } catch (IOException e) {
             throw new RuntimeException("Could not read mod file at path: " + path, e);
@@ -110,6 +127,8 @@ public class ClientDataTransferHandler extends TransferHandler {
     }
 
     private void stageNextFile() {
+        InertiaAntiCheat.debugInfo("Staging next mod file from memory");
+
         try {
             this.currentFile = this.loadedFiles.remove();
         } catch (NoSuchElementException e) {

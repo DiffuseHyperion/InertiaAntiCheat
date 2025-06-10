@@ -65,15 +65,16 @@ public class ClientLoginModlistTransferHandler {
 
     /**
      * Responds to server's chosen adaptor and creates appropriate instances
-     *
      */
     private CompletableFuture<@Nullable PacketByteBuf>
     createAdaptors(MinecraftClient client, ClientLoginNetworkHandler loginNetworkHandler,
                 PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
+        int transferAdaptorIndex = buf.readInt();
+        InertiaAntiCheat.debugInfo("Received adapter index of " + transferAdaptorIndex);
 
-        CheckingTypes transferAdaptorIndex = CheckingTypes.values()[buf.readInt()];
+        CheckingTypes transferAdaptorType = CheckingTypes.values()[transferAdaptorIndex];
 
-        TransferHandler transferAdaptor = switch (transferAdaptorIndex) {
+        TransferHandler transferAdaptor = switch (transferAdaptorType) {
             case DATA -> new ClientDataTransferHandler(this.serverPublicKey, InertiaAntiCheatConstants.SEND_MOD);
             case NAME -> new ClientNameTransferHandler(this.serverPublicKey, InertiaAntiCheatConstants.SEND_MOD);
         };

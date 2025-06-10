@@ -24,6 +24,9 @@ public class ClientNameTransferHandler extends TransferHandler {
 
     public ClientNameTransferHandler(PublicKey publicKey, Identifier modTransferID) {
         super(publicKey, modTransferID);
+
+        InertiaAntiCheat.debugInfo("Creating name transfer handler");
+
         this.maxIndex = InertiaAntiCheatClient.allModNames.size();
         this.currentIndex = 0;
     }

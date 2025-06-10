@@ -46,15 +46,15 @@ public class ServerLoginModlistTransferHandler {
         synchronizer.waitFor(transferHandler.loginBlocker);
 
         InertiaAntiCheat.debugLine();
-        InertiaAntiCheat.debugInfo("Checking if " + upgradedHandler.inertiaAntiCheat$getGameProfile().getName() + " has bypass permissions");
+        InertiaAntiCheat.debugInfo("Checking if " + handler.getConnectionInfo() + " has bypass permissions");
         boolean allowed = Permissions.check(upgradedHandler.inertiaAntiCheat$getGameProfile(), "inertiaanticheat.bypass").join();
         if (allowed) {
-            InertiaAntiCheat.debugInfo(upgradedHandler.inertiaAntiCheat$getGameProfile().getName() + " is allowed to bypass");
+            InertiaAntiCheat.debugInfo(handler.getConnectionInfo() + " is allowed to bypass");
             InertiaAntiCheat.debugLine();
             transferHandler.loginBlocker.complete(null);
             return;
         }
-        InertiaAntiCheat.debugInfo("Not allowed to bypass, checking if address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " responds to mod messages");
+        InertiaAntiCheat.debugInfo("Not allowed to bypass, checking if address " + handler.getConnectionInfo() + " responds to mod messages");
 
         ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.CHECK_CONNECTION, transferHandler::checkConnection);
         sender.sendPacket(InertiaAntiCheatConstants.CHECK_CONNECTION, PacketByteBufs.empty());
@@ -69,14 +69,13 @@ public class ServerLoginModlistTransferHandler {
                     boolean b, PacketByteBuf buf,
                     ServerLoginNetworking.LoginSynchronizer synchronizer, PacketSender packetSender) {
         LoginPacketSender sender = (LoginPacketSender) packetSender;
-        ServerLoginNetworkHandlerInterface upgradedHandler = (ServerLoginNetworkHandlerInterface) handler;
 
         if (!b) {
-            InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " does not respond to mod messages, kicking now");
+            InertiaAntiCheat.debugInfo(handler.getConnectionInfo() + " does not respond to mod messages, kicking now");
             handler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("validation.vanillaKickMessage")));
             return;
         }
-        InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " responds to mod messages, creating handler");
+        InertiaAntiCheat.debugInfo(handler.getConnectionInfo() + " responds to mod messages, creating handler");
 
 
         PacketByteBuf response = PacketByteBufs.create();
@@ -96,6 +95,7 @@ public class ServerLoginModlistTransferHandler {
     setAdaptor(MinecraftServer server, ServerLoginNetworkHandler handler,
                boolean b, PacketByteBuf buf,
                ServerLoginNetworking.LoginSynchronizer synchronizer, PacketSender packetSender) {
+        InertiaAntiCheat.debugInfo("Received " + handler.getConnectionInfo() + " keypair");
         LoginPacketSender sender = (LoginPacketSender) packetSender;
 
         this.clientKey = InertiaAntiCheat.retrievePublicKey(buf);
