@@ -39,10 +39,8 @@ public class ClientDataTransferHandler extends TransferHandler {
         this.loadedFiles = new ArrayDeque<>(MAX_LOADED_FILES);
         this.allModPathsIndex = 0;
 
-        while (loadedFiles.size() < MAX_LOADED_FILES && !this.completed) {
-            loadNextFile();
-        }
-        stageNextFile();
+        Thread fileLoaderThread = new Thread(this::fileLoaderThreadMethod);
+        fileLoaderThread.start();
     }
 
     @Override
@@ -55,11 +53,8 @@ public class ClientDataTransferHandler extends TransferHandler {
             ClientLoginNetworking.unregisterGlobalReceiver(InertiaAntiCheatConstants.SEND_MOD);
             return CompletableFuture.completedFuture(null);
         } else if (Objects.isNull(currentFile)) {
-            loadNextFile();
-            stageNextFile();
+            this.currentFile = stageNextFile();
         }
-
-        // InertiaAntiCheat.debugInfo("Sending mod " + this.currentIndex);
 
         PacketByteBuf responseBuf = PacketByteBufs.create();
 
@@ -96,43 +91,46 @@ public class ClientDataTransferHandler extends TransferHandler {
         return CompletableFuture.completedFuture(responseBuf);
     }
 
-    private void loadNextFile() {
-        InertiaAntiCheat.debugInfo("Attempting to load mod file at index " + this.allModPathsIndex + " into memory");
+    private synchronized void fileLoaderThreadMethod() {
+        try {
+            while (this.allModPathsIndex < InertiaAntiCheatClient.allModPaths.size()) {
+                while (this.loadedFiles.size() >= MAX_LOADED_FILES) {
+                    wait();
+                }
 
-        if (this.allModPathsIndex >= InertiaAntiCheatClient.allModPaths.size()) {
-            if (this.completed) {
-                throw new RuntimeException("Attempted to load next mod file after already declaring transfer as completed");
+                Path path = InertiaAntiCheatClient.allModPaths.get(this.allModPathsIndex);
+                this.allModPathsIndex++;
+
+                try {
+                    this.loadedFiles.addLast(Files.readAllBytes(path));
+                    InertiaAntiCheat.debugInfo("Loaded mod file: " + path);
+                    notifyAll();
+                } catch (IOException e) {
+                    throw new RuntimeException("Could not read mod file at path: " + path, e);
+                } catch (IllegalStateException e) {
+                    throw new RuntimeException("Could not load mod file into deque as it was full", e);
+                }
             }
 
-            InertiaAntiCheat.debugInfo("All mod files have been loaded, no longer loading more files");
-
+            InertiaAntiCheat.debugInfo("Mod file loader thread cleaning up at index " + this.allModPathsIndex);
             this.completed = true;
-            return;
-        }
-
-        Path path = InertiaAntiCheatClient.allModPaths.get(this.allModPathsIndex);
-        this.allModPathsIndex++;
-
-        InertiaAntiCheat.debugInfo("Current number of loaded mod files: " + this.loadedFiles.size());
-
-        try {
-            InertiaAntiCheat.debugInfo("Loading mod file: " + path);
-
-            this.loadedFiles.addLast(Files.readAllBytes(path));
-        } catch (IOException e) {
-            throw new RuntimeException("Could not read mod file at path: " + path, e);
-        } catch (IllegalStateException e) {
-            throw new RuntimeException("Could not load mod file into deque as it was full", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
-    private void stageNextFile() {
-        InertiaAntiCheat.debugInfo("Staging next mod file from memory");
-
+    private synchronized byte[] stageNextFile() {
         try {
-            this.currentFile = this.loadedFiles.remove();
-        } catch (NoSuchElementException e) {
-            throw new RuntimeException("Could not stage next mod file as deque was empty", e);
+            while (this.loadedFiles.isEmpty()) {
+                wait();
+            }
+
+            byte[] loadedFile = this.loadedFiles.remove();
+            InertiaAntiCheat.debugInfo("Staged mod file");
+            notifyAll();
+            return loadedFile;
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Could not stage next mod file from memory", e);
         }
     }
 }

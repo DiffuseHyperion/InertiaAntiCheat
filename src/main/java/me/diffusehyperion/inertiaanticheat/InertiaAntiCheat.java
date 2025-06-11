@@ -35,9 +35,9 @@ public class InertiaAntiCheat implements ModInitializer {
         }
     }
 
-    public static void info(String info) {MODLOGGER.info(info);}
-    public static void warn(String info) {MODLOGGER.warn(info);}
-    public static void error(String info) {MODLOGGER.error(info);}
+    public static void info(String info) {MODLOGGER.info("[InertiaAntiCheat] {}", info);}
+    public static void warn(String info) {MODLOGGER.warn("[InertiaAntiCheat] {}", info);}
+    public static void error(String info) {MODLOGGER.error("[InertiaAntiCheat] {}", info);}
 
     public static void debugInfo(String info) {
         if (inDebug()) {
