@@ -15,13 +15,13 @@
   "environment": "*",
   "entrypoints": {
     "client": [
-      "me.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient"
+      "com.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient"
     ],
     "main": [
-      "me.diffusehyperion.inertiaanticheat.InertiaAntiCheat"
+      "com.diffusehyperion.inertiaanticheat.InertiaAntiCheat"
     ],
     "server": [
-      "me.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer"
+      "com.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer"
     ]
   },
   "mixins": [
