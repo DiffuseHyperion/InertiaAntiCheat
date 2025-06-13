@@ -11,6 +11,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.PacketCallbacks;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 import javax.crypto.SecretKey;
@@ -30,8 +31,8 @@ public class ClientDataTransferHandler extends TransferHandler {
     private boolean completed;
     private byte[] currentFile;
 
-    public ClientDataTransferHandler(PublicKey publicKey, Identifier modTransferID) {
-        super(publicKey, modTransferID);
+    public ClientDataTransferHandler(PublicKey publicKey, Identifier modTransferID, Consumer<Text> secondaryStatusConsumer) {
+        super(publicKey, modTransferID, secondaryStatusConsumer, InertiaAntiCheatClient.allModPaths.size());
 
         InertiaAntiCheat.debugInfo("Creating data transfer handler");
 
@@ -50,9 +51,12 @@ public class ClientDataTransferHandler extends TransferHandler {
             InertiaAntiCheat.debugInfo("Sending final packet");
             InertiaAntiCheat.debugLine();
 
+            this.setCompleteTransferStatus();
+
             ClientLoginNetworking.unregisterGlobalReceiver(InertiaAntiCheatConstants.SEND_MOD);
             return CompletableFuture.completedFuture(null);
         } else if (Objects.isNull(currentFile)) {
+            this.increaseSentModsStatus();
             this.currentFile = stageNextFile();
         }
 

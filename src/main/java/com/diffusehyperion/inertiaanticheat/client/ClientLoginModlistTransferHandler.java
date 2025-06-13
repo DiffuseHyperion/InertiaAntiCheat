@@ -43,7 +43,7 @@ public class ClientLoginModlistTransferHandler {
         InertiaAntiCheat.debugLine();
         InertiaAntiCheat.debugInfo("Received request to start mod transfer");
 
-        upgradedHandler.inertiaAntiCheat$getSecondaryStatusConsumer().accept(Text.of("testing"));
+        upgradedHandler.inertiaAntiCheat$getSecondaryStatusConsumer().accept(Text.of("Preparing mod transfer..."));
 
         ClientLoginModlistTransferHandler transferHandler = new ClientLoginModlistTransferHandler();
         ClientLoginNetworking.registerReceiver(InertiaAntiCheatConstants.INITIATE_E2EE, transferHandler::exchangeKey);
@@ -55,9 +55,13 @@ public class ClientLoginModlistTransferHandler {
      * Saves server's public key and generates a client keypair to send
      */
     private CompletableFuture<@Nullable PacketByteBuf>
-    exchangeKey(MinecraftClient client, ClientLoginNetworkHandler loginNetworkHandler,
+    exchangeKey(MinecraftClient client, ClientLoginNetworkHandler handler,
                 PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
+        UpgradedClientLoginNetworkHandler upgradedHandler = (UpgradedClientLoginNetworkHandler) handler;
+
         InertiaAntiCheat.debugInfo("Exchanging keys with server");
+
+        upgradedHandler.inertiaAntiCheat$getSecondaryStatusConsumer().accept(Text.of("Transferring keys..."));
 
         this.serverPublicKey = InertiaAntiCheat.retrievePublicKey(buf);
 
@@ -73,16 +77,21 @@ public class ClientLoginModlistTransferHandler {
      * Responds to server's chosen adaptor and creates appropriate instances
      */
     private CompletableFuture<@Nullable PacketByteBuf>
-    createAdaptors(MinecraftClient client, ClientLoginNetworkHandler loginNetworkHandler,
+    createAdaptors(MinecraftClient client, ClientLoginNetworkHandler handler,
                 PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
+        UpgradedClientLoginNetworkHandler upgradedHandler = (UpgradedClientLoginNetworkHandler) handler;
+
+        upgradedHandler.inertiaAntiCheat$getSecondaryStatusConsumer().accept(Text.of("Starting for mod transfer..."));
+
         int transferAdaptorIndex = buf.readInt();
+        Consumer<Text> secondaryStatusConsumer = upgradedHandler.inertiaAntiCheat$getSecondaryStatusConsumer();
         InertiaAntiCheat.debugInfo("Received adapter index of " + transferAdaptorIndex);
 
         CheckingTypes transferAdaptorType = CheckingTypes.values()[transferAdaptorIndex];
 
         TransferHandler transferAdaptor = switch (transferAdaptorType) {
-            case DATA -> new ClientDataTransferHandler(this.serverPublicKey, InertiaAntiCheatConstants.SEND_MOD);
-            case NAME -> new ClientNameTransferHandler(this.serverPublicKey, InertiaAntiCheatConstants.SEND_MOD);
+            case DATA -> new ClientDataTransferHandler(this.serverPublicKey, InertiaAntiCheatConstants.SEND_MOD, secondaryStatusConsumer);
+            case NAME -> new ClientNameTransferHandler(this.serverPublicKey, InertiaAntiCheatConstants.SEND_MOD, secondaryStatusConsumer);
         };
 
         ClientLoginConnectionEvents.DISCONNECT.register(transferAdaptor::onDisconnect);

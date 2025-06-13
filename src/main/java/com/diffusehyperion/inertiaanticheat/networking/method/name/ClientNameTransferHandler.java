@@ -10,6 +10,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.PacketCallbacks;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 import javax.crypto.SecretKey;
@@ -22,8 +23,8 @@ public class ClientNameTransferHandler extends TransferHandler {
     private final int maxIndex;
     private int currentIndex;
 
-    public ClientNameTransferHandler(PublicKey publicKey, Identifier modTransferID) {
-        super(publicKey, modTransferID);
+    public ClientNameTransferHandler(PublicKey publicKey, Identifier modTransferID, Consumer<Text> secondaryStatusConsumer) {
+        super(publicKey, modTransferID, secondaryStatusConsumer, InertiaAntiCheatClient.allModNames.size());
 
         InertiaAntiCheat.debugInfo("Creating name transfer handler");
 
@@ -40,6 +41,8 @@ public class ClientNameTransferHandler extends TransferHandler {
             InertiaAntiCheat.debugInfo("Sending final packet");
             InertiaAntiCheat.debugLine();
 
+            this.setCompleteTransferStatus();
+
             ClientLoginNetworking.unregisterGlobalReceiver(InertiaAntiCheatConstants.SEND_MOD);
             return CompletableFuture.completedFuture(null);
         }
@@ -53,6 +56,7 @@ public class ClientNameTransferHandler extends TransferHandler {
         responseBuf.writeBytes(encryptedRSASecretKey);
         responseBuf.writeBytes(encryptedAESNameData);
 
+        this.increaseSentModsStatus();
         this.currentIndex++;
 
         InertiaAntiCheat.debugLine();
