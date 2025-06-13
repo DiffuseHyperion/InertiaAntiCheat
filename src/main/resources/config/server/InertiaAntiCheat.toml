@@ -7,7 +7,7 @@
 # "data" will have clients send the entirety of each file in their modlist. This is the most secure.
 # "name" will have clients send the name of each file in their modlist. This is significantly faster.
 # Use "name" if you are using large modpacks to make login times reasonable.
-# Accepted types: "data", "name"
+# Accepted types: "data", "name", "id"
 method = "data"
 
 [validation]
@@ -72,4 +72,4 @@ hash = ["Requires modpack: ", "Modpack Name"]
 # Show additional information in server logs.
 debug = false
 # do not touch pls :)
-version = 8
+version = 9

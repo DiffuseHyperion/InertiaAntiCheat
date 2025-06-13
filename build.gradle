@@ -1,6 +1,6 @@
 plugins {
-    id 'fabric-loom' version '1.10-SNAPSHOT'
-    id 'maven-publish'
+    id "fabric-loom" version "1.10-SNAPSHOT"
+    id "maven-publish"
 }
 
 version = project.mod_version
@@ -12,7 +12,7 @@ repositories {
     // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html
     // for more information about repositories.
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
 }
 
 dependencies {
@@ -23,9 +23,9 @@ dependencies {
 
         // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    include(implementation 'com.moandjiezana.toml:toml4j:0.7.2')
-    include(modImplementation('me.lucko:fabric-permissions-api:0.2-SNAPSHOT'))
-    include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.2.0")))
+    include(implementation "com.fasterxml.jackson.core:jackson-databind:2.19.0")
+    include(implementation("io.hotmoka:toml4j:0.7.3"))
+    include(modImplementation("me.lucko:fabric-permissions-api:0.2-SNAPSHOT"))
 }
 
 processResources {
