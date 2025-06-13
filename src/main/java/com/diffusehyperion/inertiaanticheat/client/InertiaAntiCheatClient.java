@@ -23,12 +23,15 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
     public static final List<String> allModNames = new ArrayList<>();
     public static final List<Path> allModPaths = new ArrayList<>();
     public static final List<String> allModIds = new ArrayList<>();
+    public static final List<String> allResourcePackNames = new ArrayList<>();
+    public static final List<Path> allResourcePackPaths = new ArrayList<>();
 
     @Override
     public void onInitializeClient() {
         InertiaAntiCheatClient.clientConfig = InertiaAntiCheat.initializeConfig("/config/client/InertiaAntiCheat.toml", InertiaAntiCheatConstants.CURRENT_CLIENT_CONFIG_VERSION);
 
         this.setupModlist();
+        this.setupResourcePackList();
         ClientLoginModlistTransferHandler.init();
     }
 
@@ -61,5 +64,19 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
 
         }
         InertiaAntiCheat.debugInfo("Found " + InertiaAntiCheatClient.allModNames.size() + " mods");
+    }
+
+    private void setupResourcePackList() {
+        File modDirectory = FabricLoader.getInstance().getGameDir().resolve("resourcepacks").toFile();
+        for (File modFile : Objects.requireNonNull(modDirectory.listFiles())) {
+            if (modFile.isDirectory()) {
+                continue;
+            }
+            if (!modFile.getAbsolutePath().endsWith(".zip")) {
+                continue;
+            }
+            InertiaAntiCheatClient.allResourcePackNames.add(modFile.getName());
+            InertiaAntiCheatClient.allResourcePackPaths.add(modFile.toPath());
+        }
     }
 }

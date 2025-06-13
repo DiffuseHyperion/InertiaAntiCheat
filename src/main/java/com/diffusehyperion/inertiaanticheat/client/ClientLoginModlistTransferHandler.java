@@ -77,12 +77,10 @@ public class ClientLoginModlistTransferHandler {
     private CompletableFuture<@Nullable PacketByteBuf>
     sendResourcePacks(MinecraftClient client, ClientLoginNetworkHandler loginNetworkHandler,
                 PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
-
         PacketByteBuf responseBuf ;
 
         if (buf.readBoolean()) {
             responseBuf = PacketByteBufs.create();
-
         } else {
             responseBuf = PacketByteBufs.empty();
         }
