@@ -1,4 +1,4 @@
-package com.diffusehyperion.inertiaanticheat.networking.method.name;
+package com.diffusehyperion.inertiaanticheat.networking.method.id;
 
 import com.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import com.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient;
@@ -17,22 +17,22 @@ import java.security.PublicKey;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class ClientNameTransferHandler extends TransferHandler {
+public class ClientIdTransferHandler extends TransferHandler {
     private final int maxIndex;
     private int currentIndex;
 
-    public ClientNameTransferHandler(PublicKey publicKey, Identifier modTransferID, Consumer<Text> secondaryStatusConsumer) {
-        super(publicKey, modTransferID, secondaryStatusConsumer, InertiaAntiCheatClient.allModNames.size());
+    public ClientIdTransferHandler(PublicKey publicKey, Identifier modTransferID, Consumer<Text> secondaryStatusConsumer) {
+        super(publicKey, modTransferID, secondaryStatusConsumer, InertiaAntiCheatClient.allModIds.size());
 
-        InertiaAntiCheat.debugInfo("Creating name transfer handler");
+        InertiaAntiCheat.debugInfo("Creating id transfer handler");
 
-        this.maxIndex = InertiaAntiCheatClient.allModNames.size();
+        this.maxIndex = InertiaAntiCheatClient.allModIds.size();
         this.currentIndex = 0;
     }
 
     @Override
     public CompletableFuture<PacketByteBuf> transferMod(MinecraftClient client, ClientLoginNetworkHandler handler, PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
-        InertiaAntiCheat.debugInfo("Sending mod " + this.currentIndex);
+        InertiaAntiCheat.debugInfo("Sending mod ID " + this.currentIndex);
 
         if (this.currentIndex >= this.maxIndex) {
             // All files have been sent, returning null to signify goodbye
@@ -44,7 +44,7 @@ public class ClientNameTransferHandler extends TransferHandler {
             ClientLoginNetworking.unregisterGlobalReceiver(InertiaAntiCheatConstants.SEND_MOD);
             return CompletableFuture.completedFuture(null);
         }
-        PacketByteBuf responseBuf = this.preparePacket(InertiaAntiCheatClient.allModNames.get(currentIndex).getBytes(StandardCharsets.UTF_8));
+        PacketByteBuf responseBuf = this.preparePacket(InertiaAntiCheatClient.allModIds.get(currentIndex).getBytes(StandardCharsets.UTF_8));
 
         this.increaseSentModsStatus();
         this.currentIndex++;

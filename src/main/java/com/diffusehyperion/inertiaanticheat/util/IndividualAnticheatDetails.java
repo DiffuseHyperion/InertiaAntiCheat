@@ -22,7 +22,7 @@ public class IndividualAnticheatDetails extends AnticheatDetails {
     }
 
     @Override
-    public ModlistCheckMethod getCheckMethod() {
-        return ModlistCheckMethod.INDIVIDUAL;
+    public ValidationMethod getValidationMethod() {
+        return ValidationMethod.INDIVIDUAL;
     }
 }

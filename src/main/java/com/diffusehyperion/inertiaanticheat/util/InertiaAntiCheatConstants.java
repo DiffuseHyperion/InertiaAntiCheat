@@ -15,6 +15,6 @@ public class InertiaAntiCheatConstants {
     public static final Logger MODLOGGER = LoggerFactory.getLogger("InertiaAntiCheat");
     public static final String MODID = "inertiaanticheat";
 
-    public static final long CURRENT_SERVER_CONFIG_VERSION = 8;
+    public static final long CURRENT_SERVER_CONFIG_VERSION = 9;
     public static final long CURRENT_CLIENT_CONFIG_VERSION = 2;
 }

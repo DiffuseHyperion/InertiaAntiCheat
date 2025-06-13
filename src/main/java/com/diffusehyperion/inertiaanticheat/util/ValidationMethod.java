@@ -1,6 +1,6 @@
 package com.diffusehyperion.inertiaanticheat.util;
 
-public enum ModlistCheckMethod {
+public enum ValidationMethod {
     INDIVIDUAL,
     GROUP
 }

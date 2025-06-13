@@ -4,7 +4,7 @@ import com.diffusehyperion.inertiaanticheat.networking.packets.S2C.AnticheatDeta
 import com.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer;
 import com.diffusehyperion.inertiaanticheat.util.GroupAnticheatDetails;
 import com.diffusehyperion.inertiaanticheat.util.IndividualAnticheatDetails;
-import com.diffusehyperion.inertiaanticheat.util.ModlistCheckMethod;
+import com.diffusehyperion.inertiaanticheat.util.ValidationMethod;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.c2s.query.QueryPingC2SPacket;
 import net.minecraft.server.network.ServerQueryNetworkHandler;
@@ -23,7 +23,7 @@ public abstract class ServerQueryNetworkHandlerMixin {
     @Inject(method = "onQueryPing",
     at = @At(value = "HEAD"))
     private void injectSendAnticheatDetails(QueryPingC2SPacket packet, CallbackInfo ci) {
-        if (InertiaAntiCheatServer.modlistCheckMethod == ModlistCheckMethod.INDIVIDUAL) {
+        if (InertiaAntiCheatServer.validationMethod == ValidationMethod.INDIVIDUAL) {
             IndividualAnticheatDetails details =
                     new IndividualAnticheatDetails(
                             InertiaAntiCheatServer.serverConfig.getBoolean("motd.showInstalled"),

@@ -4,7 +4,7 @@ import com.diffusehyperion.inertiaanticheat.interfaces.UpgradedServerInfo;
 import com.diffusehyperion.inertiaanticheat.util.AnticheatDetails;
 import com.diffusehyperion.inertiaanticheat.util.GroupAnticheatDetails;
 import com.diffusehyperion.inertiaanticheat.util.IndividualAnticheatDetails;
-import com.diffusehyperion.inertiaanticheat.util.ModlistCheckMethod;
+import com.diffusehyperion.inertiaanticheat.util.ValidationMethod;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerServerListWidget;
@@ -56,7 +56,7 @@ public abstract class MultiplayerServerListWidgetServerEntryMixin {
             }
         }
         if (Objects.nonNull(anticheatDetails)) {
-            if (anticheatDetails.getCheckMethod() == ModlistCheckMethod.INDIVIDUAL) {
+            if (anticheatDetails.getValidationMethod() == ValidationMethod.INDIVIDUAL) {
                 IndividualAnticheatDetails details = (IndividualAnticheatDetails) anticheatDetails;
 
                 if ((details.getWhitelistedMods().size() == 1 && !Objects.equals(details.getWhitelistedMods().getFirst(), "")) || details.getWhitelistedMods().size() >= 2) {

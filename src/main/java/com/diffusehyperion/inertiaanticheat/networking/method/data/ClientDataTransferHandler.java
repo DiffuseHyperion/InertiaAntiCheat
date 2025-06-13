@@ -14,7 +14,6 @@ import net.minecraft.network.PacketCallbacks;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,6 +29,8 @@ public class ClientDataTransferHandler extends TransferHandler {
     private static final int MAX_LOADED_FILES = 10;
     private boolean completed;
     private byte[] currentFile;
+    
+    public static final int MAX_SIZE = 1000000;
 
     public ClientDataTransferHandler(PublicKey publicKey, Identifier modTransferID, Consumer<Text> secondaryStatusConsumer) {
         super(publicKey, modTransferID, secondaryStatusConsumer, InertiaAntiCheatClient.allModPaths.size());
@@ -59,21 +60,18 @@ public class ClientDataTransferHandler extends TransferHandler {
             this.increaseSentModsStatus();
             this.currentFile = stageNextFile();
         }
-
-        PacketByteBuf responseBuf = PacketByteBufs.create();
-
-        int MAX_SIZE = 1000000;
-        SecretKey secretKey = InertiaAntiCheat.createAESKey();
+        
+        PacketByteBuf buf = PacketByteBufs.create();
         byte[] chunk;
 
-        if (this.currentFile.length > MAX_SIZE) {
+        if (this.currentFile.length > ClientDataTransferHandler.MAX_SIZE) {
             InertiaAntiCheat.debugInfo("Sending part of next file");
 
-            chunk = Arrays.copyOf(this.currentFile, MAX_SIZE);
+            chunk = Arrays.copyOf(this.currentFile, ClientDataTransferHandler.MAX_SIZE);
             InertiaAntiCheat.debugInfo("Hash of chunk: " + InertiaAntiCheat.getHash(chunk, HashAlgorithm.MD5));
 
-            this.currentFile = Arrays.copyOfRange(this.currentFile, MAX_SIZE, this.currentFile.length);
-            responseBuf.writeBoolean(false);
+            this.currentFile = Arrays.copyOfRange(this.currentFile, ClientDataTransferHandler.MAX_SIZE, this.currentFile.length);
+            buf.writeBoolean(false);
         } else {
             InertiaAntiCheat.debugInfo("Sending entirety of next file");
 
@@ -81,14 +79,9 @@ public class ClientDataTransferHandler extends TransferHandler {
             InertiaAntiCheat.debugInfo("Hash of chunk: " + InertiaAntiCheat.getHash(this.currentFile, HashAlgorithm.MD5));
 
             this.currentFile = null;
-            responseBuf.writeBoolean(true);
+            buf.writeBoolean(true);
         }
-
-        byte[] encryptedAESFileData = InertiaAntiCheat.encryptAESBytes(chunk, secretKey);
-        byte[] encryptedRSASecretKey = InertiaAntiCheat.encryptRSABytes(secretKey.getEncoded(), this.publicKey);
-        responseBuf.writeInt(encryptedRSASecretKey.length);
-        responseBuf.writeBytes(encryptedRSASecretKey);
-        responseBuf.writeBytes(encryptedAESFileData);
+        PacketByteBuf responseBuf = this.preparePacket(buf, chunk);
 
         InertiaAntiCheat.debugLine();
 

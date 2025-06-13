@@ -1,8 +1,9 @@
 package com.diffusehyperion.inertiaanticheat.networking.method;
 
-import com.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient;
+import com.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import com.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.network.PacketByteBuf;
@@ -10,6 +11,7 @@ import net.minecraft.network.PacketCallbacks;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
+import javax.crypto.SecretKey;
 import java.security.PublicKey;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -38,6 +40,24 @@ public abstract class TransferHandler {
 
     public void onDisconnect(ClientLoginNetworkHandler ignored1, MinecraftClient ignored2) {
         ClientLoginNetworking.unregisterReceiver(this.modTransferID);
+    }
+
+    protected PacketByteBuf preparePacket(byte[] data) {
+        PacketByteBuf buf = PacketByteBufs.create();
+
+        return this.preparePacket(buf, data);
+    }
+
+    protected PacketByteBuf preparePacket(PacketByteBuf buf, byte[] data) {
+        SecretKey secretKey = InertiaAntiCheat.createAESKey();
+
+        byte[] encryptedRSASecretKey = InertiaAntiCheat.encryptRSABytes(secretKey.getEncoded(), this.publicKey);
+        byte[] encryptedAESNameData = InertiaAntiCheat.encryptAESBytes(data, secretKey);
+        buf.writeInt(encryptedRSASecretKey.length);
+        buf.writeBytes(encryptedRSASecretKey);
+        buf.writeBytes(encryptedAESNameData);
+
+        return buf;
     }
 
     protected void setCompleteTransferStatus() {

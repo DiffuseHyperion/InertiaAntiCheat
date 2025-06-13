@@ -38,7 +38,7 @@ public record AnticheatDetailsS2CPacket(AnticheatDetails details) implements Pac
     }
 
     public void write(PacketByteBuf buf) {
-        buf.writeInt(this.details.getCheckMethod().ordinal());
+        buf.writeInt(this.details.getValidationMethod().ordinal());
         if (this.details instanceof IndividualAnticheatDetails individualDetails) {
             buf.writeBoolean(individualDetails.showInstalled());
             buf.writeString(String.join(",", individualDetails.getBlacklistedMods()));

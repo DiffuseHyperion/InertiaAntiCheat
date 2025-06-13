@@ -15,7 +15,7 @@ public class GroupAnticheatDetails extends AnticheatDetails {
     }
 
     @Override
-    public ModlistCheckMethod getCheckMethod() {
-        return ModlistCheckMethod.GROUP;
+    public ValidationMethod getValidationMethod() {
+        return ValidationMethod.GROUP;
     }
 }

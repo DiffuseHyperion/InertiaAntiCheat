@@ -5,6 +5,7 @@ import com.diffusehyperion.inertiaanticheat.interfaces.UpgradedClientLoginNetwor
 import com.diffusehyperion.inertiaanticheat.networking.method.CheckingTypes;
 import com.diffusehyperion.inertiaanticheat.networking.method.TransferHandler;
 import com.diffusehyperion.inertiaanticheat.networking.method.data.ClientDataTransferHandler;
+import com.diffusehyperion.inertiaanticheat.networking.method.id.ClientIdTransferHandler;
 import com.diffusehyperion.inertiaanticheat.networking.method.name.ClientNameTransferHandler;
 import com.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginConnectionEvents;
@@ -92,6 +93,7 @@ public class ClientLoginModlistTransferHandler {
         TransferHandler transferAdaptor = switch (transferAdaptorType) {
             case DATA -> new ClientDataTransferHandler(this.serverPublicKey, InertiaAntiCheatConstants.SEND_MOD, secondaryStatusConsumer);
             case NAME -> new ClientNameTransferHandler(this.serverPublicKey, InertiaAntiCheatConstants.SEND_MOD, secondaryStatusConsumer);
+            case ID -> new ClientIdTransferHandler(this.serverPublicKey, InertiaAntiCheatConstants.SEND_MOD, secondaryStatusConsumer);
         };
 
         ClientLoginConnectionEvents.DISCONNECT.register(transferAdaptor::onDisconnect);
@@ -101,6 +103,4 @@ public class ClientLoginModlistTransferHandler {
 
         return CompletableFuture.completedFuture(PacketByteBufs.empty());
     }
-
-
 }
