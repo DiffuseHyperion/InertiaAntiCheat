@@ -4,8 +4,9 @@
 
 [transfer]
 # The method clients should use in transfering their modlist to the server.
-# "data" will have clients send the entirety of each file in their modlist. This is the most secure.
-# "name" will have clients send the name of each file in their modlist. This is significantly faster.
+# "data" will have clients send the entirety of each mod in their mod list. This is the most secure.
+# "name" will have clients send the file name of each mod in their mod list. This is the fastest.
+# "id" will have clients send the id of each mod in their mod list. This is a good compromise.
 # Use "name" if you are using large modpacks to make login times reasonable.
 # Accepted types: "data", "name", "id"
 method = "data"
@@ -31,11 +32,13 @@ deniedKickMessage = "You were kicked by the anti-cheat!\nThis is due to having i
 # The mod checks (and kicks) for blacklisted mods first.
 # If you are using the "data" transfer method, refer to https://iac.diffusehyperion.com
 # If you are using the "name" transfer method, add the names of each file you want to blacklist.
+# If you are using the "id" transfer method, refer to https://iac.diffusehyperion.com
 # The file extension ".jar" will be automatically added if it is not already included.
 blacklist = []
 # Immediately kick players who do not have these mods in their modlist.
 # If you are using the "data" transfer method, refer to https://iac.diffusehyperion.com
 # If you are using the "name" transfer method, add the names of each file you want to whitelist.
+# If you are using the "id" transfer method, refer to https://iac.diffusehyperion.com
 # The file extension ".jar" will be automatically added if it is not already included.
 whitelist = []
 
@@ -47,6 +50,7 @@ hash = []
 # This allows players to make use of optional client mods if you allow it.
 # If you are using the "data" transfer method, refer to https://iac.diffusehyperion.com
 # If you are using the "name" transfer method, add the names of each file you want to soft-whitelist.
+# If you are using the "id" transfer method, refer to https://iac.diffusehyperion.com
 # The file extension ".jar" will be automatically added if it is not already included.
 softWhitelist = []
 
