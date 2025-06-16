@@ -21,9 +21,10 @@ dependencies {
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-        // Fabric API. This is technically optional, but you probably want it anyway.
+    implementation("com.google.code.gson:gson:2.13.1")
+
+    // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    include(implementation "com.fasterxml.jackson.core:jackson-databind:2.19.0")
     include(implementation("io.hotmoka:toml4j:0.7.3"))
     include(modImplementation("me.lucko:fabric-permissions-api:0.2-SNAPSHOT"))
 }

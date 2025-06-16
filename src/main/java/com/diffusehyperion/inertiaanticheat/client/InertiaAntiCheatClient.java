@@ -1,7 +1,7 @@
 package com.diffusehyperion.inertiaanticheat.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.moandjiezana.toml.Toml;
 import com.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import com.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
@@ -11,6 +11,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,31 +36,42 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
     private void setupModlist() {
         File modDirectory = FabricLoader.getInstance().getGameDir().resolve("mods").toFile();
         for (File modFile : Objects.requireNonNull(modDirectory.listFiles())) {
+            InertiaAntiCheat.debugInfo("Attempting to load mod " + modFile.getName());
             if (modFile.isDirectory()) {
+                InertiaAntiCheat.debugWarn("Skipping mod " + modFile.getName() + " as it is a directory");
                 continue;
             }
             if (!modFile.getAbsolutePath().endsWith(".jar")) {
+                InertiaAntiCheat.debugWarn("Skipping mod " + modFile.getName() + " as it does not end with .jar");
                 continue;
             }
+
             try (JarFile jarFile = new JarFile(modFile)) {
                 ZipEntry entry = jarFile.getEntry("fabric.mod.json");
                 if (Objects.isNull(entry)) {
+                    InertiaAntiCheat.debugWarn("Skipping mod " + modFile.getName() + " as it does not contain \"fabric.mod.json\"");
                     continue;
                 }
 
+                Gson gson = new Gson();
                 try (InputStream input = jarFile.getInputStream(entry)) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    JsonNode root = mapper.readTree(input);
+                    JsonObject root = gson.fromJson(new InputStreamReader(input), JsonObject.class);
+
+                    if (!root.has("id")) {
+                        InertiaAntiCheat.debugWarn("Skipping mod " + modFile.getName() + " as it does not contain a mod ID");
+                        continue;
+                    }
 
                     InertiaAntiCheatClient.allModNames.add(modFile.getName());
                     InertiaAntiCheatClient.allModPaths.add(modFile.toPath());
-                    InertiaAntiCheatClient.allModIds.add(root.path("id").asText());
+                    InertiaAntiCheatClient.allModIds.add(root.get("id").getAsString());
+                    InertiaAntiCheat.debugInfo("Successfully loaded " + modFile.getName());
+                    InertiaAntiCheat.debugInfo(root.get("id").getAsString());
                 }
             } catch (IOException e) {
-                throw new RuntimeException("Could not read mod file as a jar file", e);
+                InertiaAntiCheat.debugWarn("Skipping mod " + modFile.getName() + " as it could not be read");
             }
-
         }
-        InertiaAntiCheat.debugInfo("Found " + InertiaAntiCheatClient.allModNames.size() + " mods");
+        InertiaAntiCheat.info("Loaded " + InertiaAntiCheatClient.allModNames.size() + " mods");
     }
 }
