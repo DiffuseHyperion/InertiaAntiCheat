@@ -4,11 +4,11 @@ import com.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import com.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient;
 import com.diffusehyperion.inertiaanticheat.networking.method.TransferHandler;
 import com.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
+import io.netty.channel.ChannelFutureListener;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.PacketCallbacks;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -31,7 +31,7 @@ public class ClientIdTransferHandler extends TransferHandler {
     }
 
     @Override
-    public CompletableFuture<PacketByteBuf> transferMod(MinecraftClient client, ClientLoginNetworkHandler handler, PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
+    public CompletableFuture<PacketByteBuf> transferMod(MinecraftClient client, ClientLoginNetworkHandler handler, PacketByteBuf buf, Consumer<ChannelFutureListener> callbacksConsumer) {
         InertiaAntiCheat.debugInfo("Sending mod ID " + this.currentIndex);
 
         if (this.currentIndex >= this.maxIndex) {

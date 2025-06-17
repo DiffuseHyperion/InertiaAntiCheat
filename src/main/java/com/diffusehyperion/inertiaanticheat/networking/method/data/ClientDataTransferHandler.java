@@ -5,12 +5,12 @@ import com.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient;
 import com.diffusehyperion.inertiaanticheat.networking.method.TransferHandler;
 import com.diffusehyperion.inertiaanticheat.util.HashAlgorithm;
 import com.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
+import io.netty.channel.ChannelFutureListener;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.PacketCallbacks;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -46,7 +46,7 @@ public class ClientDataTransferHandler extends TransferHandler {
     }
 
     @Override
-    public CompletableFuture<PacketByteBuf> transferMod(MinecraftClient ignored1, ClientLoginNetworkHandler ignored2, PacketByteBuf ignored3, Consumer<PacketCallbacks> ignored4) {
+    public CompletableFuture<PacketByteBuf> transferMod(MinecraftClient ignored1, ClientLoginNetworkHandler ignored2, PacketByteBuf ignored3, Consumer<ChannelFutureListener> ignored4) {
         if (this.completed && this.loadedFiles.isEmpty() && Objects.isNull(currentFile)) {
             // All files have been sent, returning null to signify goodbye
             InertiaAntiCheat.debugInfo("Sending final packet");

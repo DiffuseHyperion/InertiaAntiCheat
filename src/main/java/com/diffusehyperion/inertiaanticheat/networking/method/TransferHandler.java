@@ -2,12 +2,12 @@ package com.diffusehyperion.inertiaanticheat.networking.method;
 
 import com.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
 import com.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
+import io.netty.channel.ChannelFutureListener;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.PacketCallbacks;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -36,7 +36,7 @@ public abstract class TransferHandler {
         ClientLoginNetworking.registerReceiver(InertiaAntiCheatConstants.SEND_MOD, this::transferMod);
     }
 
-    protected abstract CompletableFuture<PacketByteBuf> transferMod(MinecraftClient client, ClientLoginNetworkHandler handler, PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer);
+    protected abstract CompletableFuture<PacketByteBuf> transferMod(MinecraftClient client, ClientLoginNetworkHandler handler, PacketByteBuf buf, Consumer<ChannelFutureListener> callbacksConsumer);
 
     public void onDisconnect(ClientLoginNetworkHandler ignored1, MinecraftClient ignored2) {
         ClientLoginNetworking.unregisterReceiver(this.modTransferID);

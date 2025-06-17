@@ -8,13 +8,13 @@ import com.diffusehyperion.inertiaanticheat.networking.method.data.ClientDataTra
 import com.diffusehyperion.inertiaanticheat.networking.method.id.ClientIdTransferHandler;
 import com.diffusehyperion.inertiaanticheat.networking.method.name.ClientNameTransferHandler;
 import com.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
+import io.netty.channel.ChannelFutureListener;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.PacketCallbacks;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +38,7 @@ public class ClientLoginModlistTransferHandler {
      */
     private static CompletableFuture<@Nullable PacketByteBuf>
     confirmConnection(MinecraftClient client, ClientLoginNetworkHandler handler,
-                      PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
+                      PacketByteBuf buf, Consumer<ChannelFutureListener> callbacksConsumer) {
         UpgradedClientLoginNetworkHandler upgradedHandler = (UpgradedClientLoginNetworkHandler) handler;
 
         InertiaAntiCheat.debugLine();
@@ -57,7 +57,7 @@ public class ClientLoginModlistTransferHandler {
      */
     private CompletableFuture<@Nullable PacketByteBuf>
     exchangeKey(MinecraftClient client, ClientLoginNetworkHandler handler,
-                PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
+                PacketByteBuf buf, Consumer<ChannelFutureListener> callbacksConsumer) {
         UpgradedClientLoginNetworkHandler upgradedHandler = (UpgradedClientLoginNetworkHandler) handler;
 
         InertiaAntiCheat.debugInfo("Exchanging keys with server");
@@ -79,7 +79,7 @@ public class ClientLoginModlistTransferHandler {
      */
     private CompletableFuture<@Nullable PacketByteBuf>
     createAdaptors(MinecraftClient client, ClientLoginNetworkHandler handler,
-                PacketByteBuf buf, Consumer<PacketCallbacks> callbacksConsumer) {
+                PacketByteBuf buf, Consumer<ChannelFutureListener> callbacksConsumer) {
         UpgradedClientLoginNetworkHandler upgradedHandler = (UpgradedClientLoginNetworkHandler) handler;
 
         upgradedHandler.inertiaAntiCheat$getSecondaryStatusConsumer().accept(Text.of("Starting for mod transfer..."));
