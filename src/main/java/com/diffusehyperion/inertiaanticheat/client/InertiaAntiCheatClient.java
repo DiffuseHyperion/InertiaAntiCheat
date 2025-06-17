@@ -66,7 +66,6 @@ public class InertiaAntiCheatClient implements ClientModInitializer {
                     InertiaAntiCheatClient.allModPaths.add(modFile.toPath());
                     InertiaAntiCheatClient.allModIds.add(root.get("id").getAsString());
                     InertiaAntiCheat.debugInfo("Successfully loaded " + modFile.getName());
-                    InertiaAntiCheat.debugInfo(root.get("id").getAsString());
                 }
             } catch (IOException e) {
                 InertiaAntiCheat.debugWarn("Skipping mod " + modFile.getName() + " as it could not be read");
