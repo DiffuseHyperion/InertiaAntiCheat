@@ -33,13 +33,11 @@ deniedKickMessage = "You were kicked by the anti-cheat!\nThis is due to having i
 # If you are using the "data" transfer method, refer to https://iac.diffusehyperion.com
 # If you are using the "name" transfer method, add the names of each file you want to blacklist.
 # If you are using the "id" transfer method, refer to https://iac.diffusehyperion.com
-# The file extension ".jar" will be automatically added if it is not already included.
 blacklist = []
 # Immediately kick players who do not have these mods in their modlist.
 # If you are using the "data" transfer method, refer to https://iac.diffusehyperion.com
 # If you are using the "name" transfer method, add the names of each file you want to whitelist.
 # If you are using the "id" transfer method, refer to https://iac.diffusehyperion.com
-# The file extension ".jar" will be automatically added if it is not already included.
 whitelist = []
 
 [validation.group]
@@ -51,7 +49,6 @@ hash = []
 # If you are using the "data" transfer method, refer to https://iac.diffusehyperion.com
 # If you are using the "name" transfer method, add the names of each file you want to soft-whitelist.
 # If you are using the "id" transfer method, refer to https://iac.diffusehyperion.com
-# The file extension ".jar" will be automatically added if it is not already included.
 softWhitelist = []
 
 [motd]
