@@ -45,9 +45,9 @@ public abstract class MultiplayerServerListWidgetServerEntryMixin extends Multip
         Boolean installed = upgradedServerInfo.inertiaAntiCheat$isInertiaInstalled();
         AnticheatDetails anticheatDetails = upgradedServerInfo.inertiaAntiCheat$getAnticheatDetails();
         if (Objects.nonNull(installed) && installed.equals(true) && anticheatDetails.showInstalled()) {
-            int iconX = this.getContentX() - 15; // + entryWidth
-            int iconY = this.getContentY() + 10;
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, ICON_ENABLED, iconX, iconY, 10, 10);
+            int iconX = this.getContentRightEnd() - 10 - 5;
+            int iconY = this.getContentY() + 8 + 2;
+            context.drawTexture(RenderPipelines.GUI_TEXTURED, ICON_ENABLED, iconX, iconY, 0.0f, 0.0f, 10, 10, 10, 10);
             if (mouseX > iconX && mouseX < iconX + 10 && mouseY > iconY && mouseY < iconY + 10) {
                 context.drawTooltip(Text.of("InertiaAntiCheat installed"), mouseX, mouseY);
             }
@@ -57,18 +57,18 @@ public abstract class MultiplayerServerListWidgetServerEntryMixin extends Multip
                 IndividualAnticheatDetails details = (IndividualAnticheatDetails) anticheatDetails;
 
                 if ((details.getWhitelistedMods().size() == 1 && !Objects.equals(details.getWhitelistedMods().getFirst(), "")) || details.getWhitelistedMods().size() >= 2) {
-                    int whitelistIconX = this.getContentX() - 25; // + entryWidth
-                    int whitelistIconY = this.getContentY() + 20;
-                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, ICON_WHITELIST, whitelistIconX, whitelistIconY, 10, 10);
+                    int whitelistIconX = this.getContentRightEnd() - 10 - 5 - 10;
+                    int whitelistIconY = this.getContentY() + 8 + 2 + 10 + 2;
+                    context.drawTexture(RenderPipelines.GUI_TEXTURED, ICON_WHITELIST, whitelistIconX, whitelistIconY, 0.0f, 0.0f, 10, 10, 10, 10);
                     if (mouseX > whitelistIconX && mouseX < whitelistIconX + 10 && mouseY > whitelistIconY && mouseY < whitelistIconY + 10) {
                         context.drawTooltip(details.getWhitelistedMods().stream().map(Text::of).map(Text::asOrderedText).toList(), mouseX, mouseY);
                     }
                 }
 
                 if ((details.getBlacklistedMods().size() == 1 && !Objects.equals(details.getBlacklistedMods().getFirst(), "")) || details.getBlacklistedMods().size() >= 2) {
-                    int blacklistIconX = this.getContentX() - 15; // + entryWidth
-                    int blacklistIconY = this.getContentY() + 20;
-                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, ICON_BLACKLIST, blacklistIconX, blacklistIconY, 10, 10);
+                    int blacklistIconX = this.getContentRightEnd() - 10 - 5;
+                    int blacklistIconY = this.getContentY() + 8 + 2 + 10 + 2;
+                    context.drawTexture(RenderPipelines.GUI_TEXTURED, ICON_BLACKLIST, blacklistIconX, blacklistIconY, 0.0f, 0.0f, 10, 10, 10, 10);
                     if (mouseX > blacklistIconX && mouseX < blacklistIconX + 10 && mouseY > blacklistIconY && mouseY < blacklistIconY + 10) {
                         context.drawTooltip(details.getBlacklistedMods().stream().map(Text::of).map(Text::asOrderedText).toList(), mouseX, mouseY);
                     }
@@ -76,9 +76,9 @@ public abstract class MultiplayerServerListWidgetServerEntryMixin extends Multip
             } else {
                 GroupAnticheatDetails details = (GroupAnticheatDetails) anticheatDetails;
                 if ((details.getModpackDetails().size() == 1 && !Objects.equals(details.getModpackDetails().getFirst(), "")) || details.getModpackDetails().size() >= 2) {
-                    int blacklistIconX = this.getContentX() - 15; // + entryWidth
-                    int blacklistIconY = this.getContentY() + 20;
-                    context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, ICON_MODPACK, blacklistIconX, blacklistIconY, 10, 10);
+                    int blacklistIconX = this.getContentRightEnd() - 10 - 5;
+                    int blacklistIconY = this.getContentY() + 8 + 2 + 10 + 2;
+                    context.drawTexture(RenderPipelines.GUI_TEXTURED, ICON_MODPACK, blacklistIconX, blacklistIconY, 0.0f, 0.0f, 10, 10, 10, 10);
                     if (mouseX > blacklistIconX && mouseX < blacklistIconX + 10 && mouseY > blacklistIconY && mouseY < blacklistIconY + 10) {
                         context.drawTooltip(details.getModpackDetails().stream().map(Text::of).map(Text::asOrderedText).toList(), mouseX, mouseY);
                     }
