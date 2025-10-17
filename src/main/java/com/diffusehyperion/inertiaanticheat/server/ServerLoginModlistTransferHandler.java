@@ -1,21 +1,21 @@
 package com.diffusehyperion.inertiaanticheat.server;
 
-import com.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
-import com.diffusehyperion.inertiaanticheat.interfaces.UpgradedServerLoginNetworkHandler;
-import com.diffusehyperion.inertiaanticheat.networking.method.ValidatorHandler;
-import com.diffusehyperion.inertiaanticheat.networking.method.data.ServerDataGroupValidatorHandler;
-import com.diffusehyperion.inertiaanticheat.networking.method.data.ServerDataIndividualValidatorHandler;
-import com.diffusehyperion.inertiaanticheat.networking.method.data.ServerDataReceiverHandler;
-import com.diffusehyperion.inertiaanticheat.networking.method.data.handlers.DataValidationHandler;
-import com.diffusehyperion.inertiaanticheat.networking.method.id.ServerIdGroupValidatorHandler;
-import com.diffusehyperion.inertiaanticheat.networking.method.id.ServerIdIndividualValidatorHandler;
-import com.diffusehyperion.inertiaanticheat.networking.method.id.ServerIdReceiverHandler;
-import com.diffusehyperion.inertiaanticheat.networking.method.id.handlers.IdValidationHandler;
-import com.diffusehyperion.inertiaanticheat.networking.method.name.ServerNameGroupValidatorHandler;
-import com.diffusehyperion.inertiaanticheat.networking.method.name.ServerNameIndividualValidatorHandler;
-import com.diffusehyperion.inertiaanticheat.networking.method.name.ServerNameReceiverHandler;
-import com.diffusehyperion.inertiaanticheat.networking.method.name.handlers.NameValidationHandler;
-import com.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
+import com.diffusehyperion.inertiaanticheat.common.InertiaAntiCheat;
+import com.diffusehyperion.inertiaanticheat.common.interfaces.UpgradedServerLoginNetworkHandler;
+import com.diffusehyperion.inertiaanticheat.common.util.InertiaAntiCheatConstants;
+import com.diffusehyperion.inertiaanticheat.server.networking.method.ValidatorHandler;
+import com.diffusehyperion.inertiaanticheat.server.networking.method.data.ServerDataGroupValidatorHandler;
+import com.diffusehyperion.inertiaanticheat.server.networking.method.data.ServerDataIndividualValidatorHandler;
+import com.diffusehyperion.inertiaanticheat.server.networking.method.data.ServerDataReceiverHandler;
+import com.diffusehyperion.inertiaanticheat.server.networking.method.data.handlers.DataValidationHandler;
+import com.diffusehyperion.inertiaanticheat.server.networking.method.id.ServerIdGroupValidatorHandler;
+import com.diffusehyperion.inertiaanticheat.server.networking.method.id.ServerIdIndividualValidatorHandler;
+import com.diffusehyperion.inertiaanticheat.server.networking.method.id.ServerIdReceiverHandler;
+import com.diffusehyperion.inertiaanticheat.server.networking.method.id.handlers.IdValidationHandler;
+import com.diffusehyperion.inertiaanticheat.server.networking.method.name.ServerNameGroupValidatorHandler;
+import com.diffusehyperion.inertiaanticheat.server.networking.method.name.ServerNameIndividualValidatorHandler;
+import com.diffusehyperion.inertiaanticheat.server.networking.method.name.ServerNameReceiverHandler;
+import com.diffusehyperion.inertiaanticheat.server.networking.method.name.handlers.NameValidationHandler;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.network.PacketByteBuf;
@@ -26,6 +26,9 @@ import net.minecraft.text.Text;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.concurrent.CompletableFuture;
+
+import static com.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.debugInfo;
+import static com.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer.debugLine;
 
 public class ServerLoginModlistTransferHandler {
     private KeyPair serverKeyPair;
@@ -48,16 +51,16 @@ public class ServerLoginModlistTransferHandler {
         ServerLoginModlistTransferHandler transferHandler = new ServerLoginModlistTransferHandler();
         synchronizer.waitFor(transferHandler.loginBlocker);
 
-        InertiaAntiCheat.debugLine();
-        InertiaAntiCheat.debugInfo("Checking if " + handler.getConnectionInfo() + " has bypass permissions");
+        debugLine();
+        debugInfo("Checking if " + handler.getConnectionInfo() + " has bypass permissions");
         boolean allowed = Permissions.check(upgradedHandler.inertiaAntiCheat$getGameProfile(), "inertiaanticheat.bypass").join();
         if (allowed) {
-            InertiaAntiCheat.debugInfo(handler.getConnectionInfo() + " is allowed to bypass");
-            InertiaAntiCheat.debugLine();
+            debugInfo(handler.getConnectionInfo() + " is allowed to bypass");
+            debugLine();
             transferHandler.loginBlocker.complete(null);
             return;
         }
-        InertiaAntiCheat.debugInfo("Not allowed to bypass, checking if address " + handler.getConnectionInfo() + " responds to mod messages");
+        debugInfo("Not allowed to bypass, checking if address " + handler.getConnectionInfo() + " responds to mod messages");
 
         ServerLoginNetworking.registerReceiver(handler, InertiaAntiCheatConstants.CHECK_CONNECTION, transferHandler::checkConnection);
         sender.sendPacket(InertiaAntiCheatConstants.CHECK_CONNECTION, PacketByteBufs.empty());
@@ -74,11 +77,11 @@ public class ServerLoginModlistTransferHandler {
         LoginPacketSender sender = (LoginPacketSender) packetSender;
 
         if (!b) {
-            InertiaAntiCheat.debugInfo(handler.getConnectionInfo() + " does not respond to mod messages, kicking now");
+            debugInfo(handler.getConnectionInfo() + " does not respond to mod messages, kicking now");
             handler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("validation.vanillaKickMessage")));
             return;
         }
-        InertiaAntiCheat.debugInfo(handler.getConnectionInfo() + " responds to mod messages, creating handler");
+        debugInfo(handler.getConnectionInfo() + " responds to mod messages, creating handler");
 
 
         PacketByteBuf response = PacketByteBufs.create();
@@ -98,7 +101,7 @@ public class ServerLoginModlistTransferHandler {
     setAdaptor(MinecraftServer server, ServerLoginNetworkHandler handler,
                boolean b, PacketByteBuf buf,
                ServerLoginNetworking.LoginSynchronizer synchronizer, PacketSender packetSender) {
-        InertiaAntiCheat.debugInfo("Received " + handler.getConnectionInfo() + " keypair");
+        debugInfo("Received " + handler.getConnectionInfo() + " keypair");
         LoginPacketSender sender = (LoginPacketSender) packetSender;
 
         this.clientKey = InertiaAntiCheat.retrievePublicKey(buf);
@@ -122,12 +125,12 @@ public class ServerLoginModlistTransferHandler {
         UpgradedServerLoginNetworkHandler upgradedHandler = (UpgradedServerLoginNetworkHandler) handler;
 
         Runnable failureTask = () -> {
-            InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " failed modlist check");
+            debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " failed modlist check");
             handler.disconnect(Text.of(InertiaAntiCheatServer.serverConfig.getString("validation.deniedKickMessage")));
         };
-        Runnable successTask = () -> InertiaAntiCheat.debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " passed modlist check");
+        Runnable successTask = () -> debugInfo("Address " + upgradedHandler.inertiaAntiCheat$getConnection().getAddress() + " passed modlist check");
         Runnable finishTask = () -> {
-            InertiaAntiCheat.debugInfo("Finishing transfer, checking mods now");
+            debugInfo("Finishing transfer, checking mods now");
             ServerLoginNetworking.unregisterReceiver(handler, InertiaAntiCheatConstants.SEND_MOD);
         };
 
@@ -172,6 +175,6 @@ public class ServerLoginModlistTransferHandler {
         }
 
         validatorAdaptor.future.whenComplete((ignored1, ignored2) -> this.loginBlocker.complete(null));
-        InertiaAntiCheat.debugLine();
+        debugLine();
     }
 }

@@ -18,14 +18,18 @@
       "com.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient"
     ],
     "main": [
-      "com.diffusehyperion.inertiaanticheat.InertiaAntiCheat"
+      "com.diffusehyperion.inertiaanticheat.common.InertiaAntiCheat"
     ],
     "server": [
       "com.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer"
     ]
   },
   "mixins": [
-    "inertiaanticheat.mixins.json"
+    "inertiaanticheat.mixins.json",
+    {
+      "config": "inertiaanticheat.client.mixins.json",
+      "environment": "client"
+    }
   ],
   "depends": {
     "fabricloader": "*",

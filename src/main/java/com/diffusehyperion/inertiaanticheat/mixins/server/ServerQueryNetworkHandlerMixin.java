@@ -1,10 +1,10 @@
 package com.diffusehyperion.inertiaanticheat.mixins.server;
 
-import com.diffusehyperion.inertiaanticheat.networking.packets.S2C.AnticheatDetailsS2CPacket;
+import com.diffusehyperion.inertiaanticheat.common.networking.packets.S2C.AnticheatDetailsS2CPacket;
+import com.diffusehyperion.inertiaanticheat.common.util.GroupAnticheatDetails;
+import com.diffusehyperion.inertiaanticheat.common.util.IndividualAnticheatDetails;
+import com.diffusehyperion.inertiaanticheat.common.util.ValidationMethod;
 import com.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer;
-import com.diffusehyperion.inertiaanticheat.util.GroupAnticheatDetails;
-import com.diffusehyperion.inertiaanticheat.util.IndividualAnticheatDetails;
-import com.diffusehyperion.inertiaanticheat.util.ValidationMethod;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.c2s.query.QueryPingC2SPacket;
 import net.minecraft.server.network.ServerQueryNetworkHandler;
