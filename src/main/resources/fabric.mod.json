@@ -18,7 +18,7 @@
       "com.diffusehyperion.inertiaanticheat.client.InertiaAntiCheatClient"
     ],
     "main": [
-      "com.diffusehyperion.inertiaanticheat.InertiaAntiCheat"
+      "com.diffusehyperion.inertiaanticheat.common.InertiaAntiCheat"
     ],
     "server": [
       "com.diffusehyperion.inertiaanticheat.server.InertiaAntiCheatServer"

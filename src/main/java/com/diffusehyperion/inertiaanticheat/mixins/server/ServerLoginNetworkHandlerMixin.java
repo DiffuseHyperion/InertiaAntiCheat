@@ -1,7 +1,7 @@
 package com.diffusehyperion.inertiaanticheat.mixins.server;
 
+import com.diffusehyperion.inertiaanticheat.common.interfaces.UpgradedServerLoginNetworkHandler;
 import com.mojang.authlib.GameProfile;
-import com.diffusehyperion.inertiaanticheat.interfaces.UpgradedServerLoginNetworkHandler;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.network.ServerLoginNetworkHandler;
 import org.jetbrains.annotations.Nullable;

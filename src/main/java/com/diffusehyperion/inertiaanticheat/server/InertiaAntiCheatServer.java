@@ -1,12 +1,15 @@
 package com.diffusehyperion.inertiaanticheat.server;
 
-import com.diffusehyperion.inertiaanticheat.util.TransferMethod;
+import com.diffusehyperion.inertiaanticheat.common.InertiaAntiCheat;
+import com.diffusehyperion.inertiaanticheat.common.util.HashAlgorithm;
+import com.diffusehyperion.inertiaanticheat.common.util.InertiaAntiCheatConstants;
+import com.diffusehyperion.inertiaanticheat.common.util.TransferMethod;
+import com.diffusehyperion.inertiaanticheat.common.util.ValidationMethod;
 import com.moandjiezana.toml.Toml;
-import com.diffusehyperion.inertiaanticheat.InertiaAntiCheat;
-import com.diffusehyperion.inertiaanticheat.util.HashAlgorithm;
-import com.diffusehyperion.inertiaanticheat.util.InertiaAntiCheatConstants;
-import com.diffusehyperion.inertiaanticheat.util.ValidationMethod;
 import net.fabricmc.api.DedicatedServerModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
+
+import static com.diffusehyperion.inertiaanticheat.common.InertiaAntiCheat.*;
 
 public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
 
@@ -76,5 +79,39 @@ public class InertiaAntiCheatServer implements DedicatedServerModInitializer {
         }
 
         ServerLoginModlistTransferHandler.init();
+    }
+
+    public static void debugInfo(String info) {
+        if (inDebug()) {
+            info(info);
+        }
+    }
+
+    public static void debugWarn(String info) {
+        if (inDebug()) {
+            warn(info);
+        }
+    }
+
+    public static void debugError(String info) {
+        if (inDebug()) {
+            error(info);
+        }
+    }
+
+    public static void debugLine() {
+        if (inDebug()) {
+            info("--------------------"); // lol
+        }
+    }
+
+    public static void debugLine2() {
+        if (inDebug()) {
+            info("===================="); // lol 2
+        }
+    }
+
+    public static boolean inDebug() {
+        return FabricLoader.getInstance().isDevelopmentEnvironment() || serverConfig.getBoolean("debug.debug");
     }
 }

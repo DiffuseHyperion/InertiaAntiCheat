@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.diffusehyperion.inertiaanticheat.mixins.client",
+  "compatibilityLevel": "JAVA_8",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+    "ClientConnectionMixin",
+    "ClientLoginNetworkHandlerMixin",
+    "ConnectScreenAccessor",
+    "ConnectScreenMixin",
+    "ConnectScreenThreadMixin",
+    "MultiplayerServerListPingerMixin",
+    "MultiplayerServerListWidgetServerEntryMixin",
+    "ServerInfoMixin"
+  ]
+}
