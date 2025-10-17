@@ -25,7 +25,11 @@
     ]
   },
   "mixins": [
-    "inertiaanticheat.mixins.json"
+    "inertiaanticheat.mixins.json",
+    {
+      "config": "inertiaanticheat.client.mixins.json",
+      "environment": "client"
+    }
   ],
   "depends": {
     "fabricloader": "*",

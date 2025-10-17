@@ -2,9 +2,12 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.diffusehyperion.inertiaanticheat.mixins.client",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_21",
   "injectors": {
     "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
   },
   "client": [
     "ClientConnectionMixin",
