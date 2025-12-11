@@ -11,6 +11,7 @@ import net.minecraft.client.network.MultiplayerServerListPinger;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.network.ClientConnection;
+import net.minecraft.network.NetworkingBackend;
 import net.minecraft.network.listener.ClientQueryPacketListener;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
@@ -27,17 +28,19 @@ public abstract class MultiplayerServerListPingerMixin {
     @Shadow
     void showError(Text error, ServerInfo info) {}
     @Shadow
-    void ping(InetSocketAddress socketAddress, final ServerAddress address, final ServerInfo serverInfo) {}
+    void ping(InetSocketAddress socketAddress, ServerAddress address, ServerInfo serverInfo, NetworkingBackend backend) {}
 
     @Inject(method = "add",
             at = @At(value = "HEAD"))
-    private void setUpgradedServerPingRefs(ServerInfo entry, Runnable saver, Runnable pingCallback, CallbackInfo ci,
-                            @Share("serverInfo") LocalRef<ServerInfo> serverDataLocalRef,
-                            @Share("saver") LocalRef<Runnable> saverLocalRef,
-                            @Share("pingCallback") LocalRef<Runnable> pingCallbackLocalRef) {
+    private void setUpgradedServerPingRefs(ServerInfo entry, Runnable saver, Runnable pingCallback, NetworkingBackend backend, CallbackInfo ci,
+                                           @Share("serverInfo") LocalRef<ServerInfo> serverDataLocalRef,
+                                           @Share("saver") LocalRef<Runnable> saverLocalRef,
+                                           @Share("pingCallback") LocalRef<Runnable> pingCallbackLocalRef,
+                                           @Share("backend") LocalRef<NetworkingBackend> backendLocalRef) {
         serverDataLocalRef.set(entry);
         saverLocalRef.set(saver);
         pingCallbackLocalRef.set(pingCallback);
+        backendLocalRef.set(backend);
     }
 
     @Redirect(method = "add",
@@ -47,14 +50,16 @@ public abstract class MultiplayerServerListPingerMixin {
             @Share("serverInfo") LocalRef<ServerInfo> serverDataLocalRef,
             @Share("saver") LocalRef<Runnable> runnableLocalRef,
             @Share("pingCallback") LocalRef<Runnable> pingCallbackLocalRef,
+            @Share("backend") LocalRef<NetworkingBackend> backendLocalRef,
             @Local InetSocketAddress inetSocketAddress,
             @Local ServerAddress serverAddress) {
         ServerInfo serverInfo = serverDataLocalRef.get();
         Runnable saver = runnableLocalRef.get();
         Runnable pingCallback = pingCallbackLocalRef.get();
+        NetworkingBackend backend = backendLocalRef.get();
 
         UpgradedClientQueryPacketListener listener =
-                new UpgradedClientQueryNetworkHandler(serverInfo, saver, pingCallback,
+                new UpgradedClientQueryNetworkHandler(serverInfo, saver, pingCallback, backend,
                         connection, inetSocketAddress, serverAddress,
                 this::showError,
                 this::ping);

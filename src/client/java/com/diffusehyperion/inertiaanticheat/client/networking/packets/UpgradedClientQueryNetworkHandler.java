@@ -3,11 +3,13 @@ package com.diffusehyperion.inertiaanticheat.client.networking.packets;
 import com.diffusehyperion.inertiaanticheat.common.interfaces.UpgradedServerInfo;
 import com.diffusehyperion.inertiaanticheat.common.networking.packets.S2C.AnticheatDetailsS2CPacket;
 import com.diffusehyperion.inertiaanticheat.common.networking.packets.UpgradedClientQueryPacketListener;
+import com.diffusehyperion.inertiaanticheat.utils.QuadConsumer;
 import net.minecraft.client.network.MultiplayerServerListPinger;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.DisconnectionInfo;
+import net.minecraft.network.NetworkingBackend;
 import net.minecraft.network.packet.c2s.query.QueryPingC2SPacket;
 import net.minecraft.network.packet.s2c.query.PingResultS2CPacket;
 import net.minecraft.network.packet.s2c.query.QueryResponseS2CPacket;
@@ -17,7 +19,6 @@ import net.minecraft.server.ServerMetadata;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
-import org.apache.logging.log4j.util.TriConsumer;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ public class UpgradedClientQueryNetworkHandler implements UpgradedClientQueryPac
     private final ServerInfo entry;
     private final Runnable saver;
     private final Runnable pingCallback;
+    private final NetworkingBackend backend;
 
     private final ClientConnection clientConnection;
 
@@ -38,21 +40,23 @@ public class UpgradedClientQueryNetworkHandler implements UpgradedClientQueryPac
     private final ServerAddress serverAddress;
 
     private final BiConsumer<Text, ServerInfo> showErrorMethod;
-    private final TriConsumer<InetSocketAddress, ServerAddress, ServerInfo> pingMethod;
+    private final QuadConsumer<InetSocketAddress, ServerAddress, ServerInfo, NetworkingBackend> pingMethod;
 
     private boolean sentQuery;
     private boolean received;
     private long startTime;
 
-    public UpgradedClientQueryNetworkHandler(ServerInfo entry, Runnable saver, Runnable pingCallback, ClientConnection clientConnection,
+    public UpgradedClientQueryNetworkHandler(ServerInfo entry, Runnable saver, Runnable pingCallback, NetworkingBackend backend,
+                                             ClientConnection clientConnection,
                                              InetSocketAddress inetSocketAddress, ServerAddress serverAddress,
                                              BiConsumer<Text, ServerInfo> showErrorMethod,
-                                             TriConsumer<InetSocketAddress, ServerAddress, ServerInfo> pingMethod) {
+                                             QuadConsumer<InetSocketAddress, ServerAddress, ServerInfo, NetworkingBackend> pingMethod) {
         /* ---------- vanilla fields ----------*/
 
         this.entry = entry;
         this.saver = saver;
         this.pingCallback = pingCallback;
+        this.backend = backend;
 
         this.clientConnection = clientConnection;
 
@@ -138,7 +142,7 @@ public class UpgradedClientQueryNetworkHandler implements UpgradedClientQueryPac
     public void onDisconnected(DisconnectionInfo info) {
         if (!this.sentQuery) {
             showErrorMethod.accept(info.reason(), entry);
-            pingMethod.accept(inetSocketAddress, serverAddress, entry);
+            pingMethod.accept(inetSocketAddress, serverAddress, entry, backend);
         }
     }
 
